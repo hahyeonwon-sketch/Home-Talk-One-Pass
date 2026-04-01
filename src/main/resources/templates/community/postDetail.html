@@ -9,6 +9,12 @@
 <body>
 게시글 상세 페이지 : 카테고리, 제목, 작성자(닉네임), 작성일, 조회수, 내용, 목록(버튼)
                   댓글(CRUD 다음 주 구현)
-
+<!--
+    (boards=${boards}, boardId=${boardId})
+    (categories=${categories}, categoryId=${categoryId})
+    이 파라미터들도 Board, Category 한 뒤에 다시 붙이기
+ -->
+<div th:replace="~{community/fragments/boardListHeader :: boardListHeader}"></div>
+<div th:replace="~{community/fragments/categoryBanner :: categoryBanner}"></div>
 </body>
 </html>

@@ -7,6 +7,25 @@
     <link rel="stylesheet" href="/css/style.css" th:href="@{/css/style.css}">
 </head>
 <body>
-게시글 작성
+<!--
+    (boards=${boards}, boardId=${boardId})
+    (categories=${categories}, categoryId=${categoryId})
+    이 파라미터들도 Board, Category 한 뒤에 다시 붙이기
+ -->
+<div th:replace="~{community/fragments/boardListHeader :: boardListHeader}"></div>
+<div th:replace="~{community/fragments/categoryBanner :: categoryBanner}"></div>
+
+    <div class="form-container">
+        <h2>게시글 작성</h2>
+
+        <form>
+            <select>
+                <option>---카테고리 선택---</option>
+                <option>---자유---</option>
+                <option>---토론---</option>
+            </select>
+        </form>
+    </div>
+
 </body>
 </html>

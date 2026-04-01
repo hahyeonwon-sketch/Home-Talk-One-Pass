@@ -7,34 +7,37 @@
     <link rel="stylesheet" href="/css/style.css" th:href="@{/css/style.css}">
 </head>
 <body>
-    <div class="main-banner-fragments-plan">
-        <h1>커뮤니티</h1>
-        <p><small>게시판(Boards) 목록 - 광장 | 마켓 | 소통 (a 태그 & href 연결)</small></p>
-    </div>
-    <div class="category-banner-fragments-plan">
-        <h2>광장</h2>
-        <p><small>카테고리(Categories) 목록 - 전체(all) | 자유(free) | 토론(debate) (a 태그 & href 연결)</small></p>
-    </div>
+    <!--
+        (boards=${boards}, boardId=${boardId})
+        (categories=${categories}, categoryId=${categoryId})
+        이 파라미터들도 Board, Category 한 뒤에 다시 붙이기
+     -->
+    <div th:replace="~{community/fragments/boardListHeader :: boardListHeader}"></div>
+    <div th:replace="~{community/fragments/categoryBanner :: categoryBanner}"></div>
     <p>태그(tags)</p>
 
     <div class="postList-container">
-        <table th:if="${not #lists.isEmpty(posts)}">
-            <tr>
-                <th>카테고리</th>
-                <th>제목</th>
-                <th>댓글수</th>
-                <th>작성자</th>
-                <th>조회수</th>
-                <th>작성일</th>
-            </tr>
-            <tr th:each="post : ${posts}">
-                <td th:text="${post.categoryId}"></td>
-                <td><a th:href="@{/community/{id}(id=${post.postId})}" th:text="${post.title}"></a></td>
-                <td th:text="${post.commentCount}"></td>
-                <td th:text="${post.writerId}"></td>
-                <td th:text="${post.viewCount}"></td>
-                <td th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd')}"></td>
-            </tr>
+        <table>
+            <thead>
+                <tr>
+                    <th>카테고리</th>
+                    <th>제목</th>
+                    <th>댓글수</th>
+                    <th>작성자</th>
+                    <th>조회수</th>
+                    <th>작성일</th>
+                </tr>
+            </thead>
+            <tbody th:if="${not #lists.isEmpty(posts)}">
+                <tr th:each="post : ${posts}">
+                    <td th:text="${post.categoryId}"></td>
+                    <td><a th:href="@{/community/{id}(id=${post.postId})}" th:text="${post.title}"></a></td>
+                    <td th:text="${post.commentCount}"></td>
+                    <td th:text="${post.writerId}"></td>
+                    <td th:text="${post.viewCount}"></td>
+                    <td th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd')}"></td>
+                </tr>
+            </tbody>
         </table>
     </div>
     <div >
