@@ -1,5 +1,6 @@
 package com.hometalk.onepass.community.dto;
 
+import com.hometalk.onepass.community.entity.Category;
 import com.hometalk.onepass.community.entity.Post;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,17 +12,17 @@ import lombok.Setter;
 public class PostCreateRequest {
     private String title;
     private String content;
-    private Long writerId;
+    private Long writerId;      // Member Entity 구현 전까지 유지
     private Long categoryId;
     private boolean pinned;
 
-    public Post toEntity() {
+    public Post toEntity(Category category) {
         Post post = new Post();
-        post.setTitle(title);
-        post.setContent(content);
-        post.setPinned(pinned);
-        post.setWriterId(writerId);
-        post.setCategoryId(categoryId);
+        post.setTitle(this.title);
+        post.setContent(this.content);
+        post.setPinned(this.pinned);
+        post.setWriterId(this.writerId);
+        post.setCategory(category);
         return post;
     }
 }

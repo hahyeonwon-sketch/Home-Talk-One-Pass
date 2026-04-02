@@ -12,8 +12,8 @@
     (categories=${categories}, categoryId=${categoryId})
     이 파라미터들도 Board, Category 한 뒤에 다시 붙이기
  -->
-<div th:replace="~{community/fragments/boardListHeader :: boardListHeader}"></div>
-<div th:replace="~{community/fragments/categoryBanner :: categoryBanner}"></div>
+<div th:replace="~{community/fragments/boardListHeader :: boardListHeader(boards=${boards}, boardId=${boardId})}"></div>
+<div th:replace="~{community/fragments/categoryBanner :: categoryBanner(board=${board}, categories=${categories}, categoryId=${categoryId})}"></div>
 
     <div class="form-container">
         <h2>게시글 작성</h2>

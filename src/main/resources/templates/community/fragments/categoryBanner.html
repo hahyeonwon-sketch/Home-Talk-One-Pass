@@ -2,21 +2,21 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 
 <body>
-<!--
-    <div th:fragment="categoryBanner(categories, categoryId)" class="category-banner">
-        <h2 th:text="${category.name}">광장</h2>      &lt;!&ndash; 추후 수정 필요 &ndash;&gt;
+
+    <div th:fragment="categoryBanner(board, categories, categoryId)" class="category-banner">
+        <h2 th:text="${board.name}">광장</h2>   <!-- 추후 수정 필요 -->
         <nav>
-            <a href="#" th:href="@{/community/list/}">전체</a>
+            <a href="#" th:href="@{/community/list/(boardId=${board.id})}"
+                th:classappend="${categoryId == null ? 'active' : ''}">전체</a>
             <a th:each="category : ${categories}"
-               href="#" th:href="@{/community/list(categoryId=${category.id})}"
+               href="#" th:href="@{/community/list(boardId=${board.id}, categoryId=${category.id})}"
                th:text="${category.name}"
                th:classappend="${categoryId == category.id ? 'active' : ''}">카테고리명</a>
         </nav>
     </div>
 
-    이건 Board, Category Entity 만들고서 주석 해제
--->
-    <div div th:fragment="categoryBanner" class="category-banner">>
+<!--
+    <div th:fragment="categoryBanner" class="category-banner">>
         <h2>카테고리</h2>
         <nav>
             <a th:href="@{/community/list/}" class="active">전체</a>
@@ -24,5 +24,6 @@
             <a th:href="@{/community/list/}">토론</a>
         </nav>
     </div>
+-->
 </body>
 </html>

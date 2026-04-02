@@ -3,19 +3,21 @@ package com.hometalk.onepass.community.dto;
 import com.hometalk.onepass.community.entity.Post;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
+@NoArgsConstructor
 @AllArgsConstructor
 public class PostResponse {
-    private Long postId;
+    private Long id;
     private String title;
     private String content;
     private boolean pinned;
-    //private String boardName;
-    //private String categoryName;
+    private String boardId;
+    private String categoryId;
     //private String writerNickname;
     //private List<String> tags;
     private LocalDateTime createdAt;
@@ -24,12 +26,12 @@ public class PostResponse {
 
     // Entity -> DTO 변환 생성자
     public PostResponse(Post post) {
-        this.postId = post.getPostId();
+        this.id = post.getId();
         this.title = post.getTitle();
         this.content = post.getContent();
         this.pinned = post.isPinned();
-        //this.boardName = post.getCategory().getBoard().getBoardName();
-        //this.categoryName = post.getCategory().getName();
+        this.boardId = post.getCategory().getBoard().getName();
+        this.categoryId = post.getCategory().getName();
         //this.writerNickname = post.getWriter().getNickname();
         //this.tags = post.getTags().stream().map(tag -> tag.getName()).collect(Collectors.toList());
         this.createdAt = post.getCreatedAt();

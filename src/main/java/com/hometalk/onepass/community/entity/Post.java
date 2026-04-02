@@ -15,17 +15,20 @@ import java.time.LocalDateTime;
 public class Post {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long postId;
+    private Long id;
     private String title;
-    @Column(columnDefinition = "Text")
+    @Lob @Column(columnDefinition = "Text")
     private String content;
     private boolean pinned = false;
     private int viewCount = 0;
     private int commentCount = 0;
 
     // FK들 (후에 Entity 구현하면 연결할 것)
+    // @ManyToOne @JoinColumn(name = "writer_id", referencedColumnName = "id", nullable = false)
     private Long writerId;
-    private Long categoryId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id", referencedColumnName = "id", nullable = false)
+    private Category category;
 
     @Enumerated(EnumType.STRING)
     private PostStatus status = PostStatus.ACTIVE;
