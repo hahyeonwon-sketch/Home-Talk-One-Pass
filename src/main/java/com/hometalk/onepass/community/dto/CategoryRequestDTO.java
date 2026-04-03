@@ -11,14 +11,16 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CategoryRequest {
+public class CategoryRequestDTO {
     private String name;
     private Long boardId;
+    private String code;
 
     public Category toEntity(Board board) {
         Category category = new Category();
         category.setName(this.name);
         category.setBoard(board);
+        category.setCode(this.code);
         return category;
     }
 }

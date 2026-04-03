@@ -2,16 +2,17 @@ package com.hometalk.onepass.community.dto;
 
 import com.hometalk.onepass.community.entity.Post;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class PostResponse {
+@Builder
+public class PostResponseDTO {
     private Long id;
     private String title;
     private String content;
@@ -25,7 +26,7 @@ public class PostResponse {
     private int commentCount;
 
     // Entity -> DTO 변환 생성자
-    public PostResponse(Post post) {
+    public PostResponseDTO(Post post) {
         this.id = post.getId();
         this.title = post.getTitle();
         this.content = post.getContent();

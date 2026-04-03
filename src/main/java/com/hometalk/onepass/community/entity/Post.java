@@ -1,10 +1,8 @@
 package com.hometalk.onepass.community.entity;
 
-import com.hometalk.onepass.community.dto.PostUpdateRequest;
+import com.hometalk.onepass.community.dto.PostRequestDTO;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -12,6 +10,8 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor     // Builder 쓸 땐 필수
+@Builder
 public class Post {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,6 +29,9 @@ public class Post {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", referencedColumnName = "id", nullable = false)
     private Category category;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "board_id", referencedColumnName = "id", nullable = false)
+    private Board board;
 
     @Enumerated(EnumType.STRING)
     private PostStatus status = PostStatus.ACTIVE;
@@ -49,7 +52,7 @@ public class Post {
     }
 
 
-    public void update(PostUpdateRequest dto) {
+    public void update(PostRequestDTO dto) {
         this.title = dto.getTitle();
         this.content = dto.getContent();
         this.pinned = dto.isPinned();

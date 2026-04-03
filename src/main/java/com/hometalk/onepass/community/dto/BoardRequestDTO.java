@@ -8,12 +8,14 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class BoardRequest {
+public class BoardRequestDTO {
     private String name;
+    private String code;
 
     public Board toEntity() {
         Board board = new Board();
         board.setName(this.name);
+        board.setCode(this.code);
         return board;
     }
 }

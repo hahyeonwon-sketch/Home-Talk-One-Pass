@@ -30,10 +30,10 @@
             </thead>
             <tbody th:if="${not #lists.isEmpty(posts)}">
                 <tr th:each="post : ${posts}">
-                    <td th:text="${post.categoryId}"></td>
+                    <td th:text="${post.category.name}"></td>
                     <td><a th:href="@{/community/{id}(id=${post.id})}" th:text="${post.title}"></a></td>
                     <td th:text="${post.commentCount}"></td>
-                    <!-- <td th:text="${post.writerId}"></td> -->
+                    <td>작성자</td>
                     <td th:text="${post.viewCount}"></td>
                     <td th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd')}"></td>
                 </tr>

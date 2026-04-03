@@ -2,18 +2,22 @@ package com.hometalk.onepass.community.dto;
 
 import com.hometalk.onepass.community.entity.Board;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class BoardResponse {
+@Builder
+public class BoardResponseDTO {
     private Long id;
     private String name;
+    private String code;
 
-    public BoardResponse(Board board) {
+    public BoardResponseDTO(Board board) {
         this.id = board.getId();
         this.name = board.getName();
+        this.code = board.getCode();
     }
 }

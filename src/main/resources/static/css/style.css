@@ -1,7 +1,86 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
-    font-family: 'Segoe UI', Arial, Sans-serif; background: #f0f4f8; color: #1e293b;
+    font-family: 'Segoe UI', Arial, Sans-serif; background: #FAF4F0; color: #1e293b;
     line-height: 1.6; min-height: 100vh; display: flex; flex-direction: column;
+}
+
+/* 게시판 전체 헤더 */
+.boardList-header {
+    padding: 2rem 1rem; border-bottom: 1px solid #032154; margin-bottom: 2rem;
+}
+.boardList-header h1 {
+    font-size: 1.5rem; color: #170124; margin-bottom: 1.5rem;
+}
+/* 게시판 메뉴 네비게이션 */
+.boardList-header nav {
+    display: flex; gap: 30px;
+}
+.boardList-header nav a {
+    text-decoration: none; color: #9EBFDB;
+    font-weight: 600; font-size: 1.1rem;
+    padding-bottom: 10px;
+    transition: all 0.2s ease;
+    border-bottom: 3px solid transparent;
+}
+.boardList-header nav a:hover {
+    color: #032154;
+    border-bottom: 3px solid #032154;
+}
+.boardList-header nav a.active {
+    color: #032154;
+    border-bottom: 3px solid #032154;
+}
+.boardList-header nav a:hover:not(.active) {
+    color: #3C6ABC;
+}
+
+
+/* 카테고리 탭 */
+.category-banner {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(3, 33, 84, 0.05); /* 메인 컬러 기반의 아주 연한 그림자 */
+}
+
+.category-banner h2 {
+    font-size: 1.3rem;
+    color: #032154;
+    margin-bottom: 1.2rem;
+}
+
+.category-banner nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.category-banner nav a {
+    padding: 0.6rem 1.4rem;
+    background-color: #ffffff;
+    color: #4073C9; /* 일반 버튼 컬러 */
+    border: 1px solid #9EBFDB;
+    border-radius: 8px; /* 팔레트 느낌에 맞춰 살짝 각진 둥근형 */
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+/* 활성화된 카테고리 (active) - 포인트 코랄 사용 */
+.category-banner nav a.active {
+    background-color: #EB6E57;
+    color: white;
+    border-color: #EB6E57;
+    font-weight: 700;
+    box-shadow: 0 4px 8px rgba(235, 110, 87, 0.3);
+}
+
+.category-banner nav a:hover:not(.active) {
+    background-color: #7ED3D9; /* 포인트 텍스트(민트계열) 컬러로 호버 */
+    border-color: #7ED3D9;
+    color: white;
 }
 
 
@@ -38,11 +117,20 @@ tr:hover {
 /* 버튼 스타일 */
 .add-post-btn {
     display: inline-block;
-    background-color: #007bff;
+    background-color: #EB6E57;
     color: white;
     padding: 10px 20px;
     text-decoration: none;
     border-radius: 5px;
     float: right; /* 오른쪽 정렬 */
     margin-top: 10px;
+}
+.add-post-btn:hover {
+    background-color: #D95D48; /* 살짝 어두운 코랄로 피드백 */
+    transform: translateY(-2px); /* 살짝 떠오르는 효과 */
+    box-shadow: 0 6px 20px rgba(235, 110, 87, 0.4);
+}
+
+.add-post-btn:active {
+    transform: translateY(0);
 }

@@ -2,28 +2,17 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 
 <body>
-
     <div th:fragment="categoryBanner(board, categories, categoryId)" class="category-banner">
-        <h2 th:text="${board.name}">광장</h2>   <!-- 추후 수정 필요 -->
+        <h2 th:text="${board.name}">광장</h2>
         <nav>
-            <a href="#" th:href="@{/community/list/(boardId=${board.id})}"
+            <a href="#" th:href="@{/community/{boardCode}(boardCode=${board.code})}"
                 th:classappend="${categoryId == null ? 'active' : ''}">전체</a>
+
             <a th:each="category : ${categories}"
-               href="#" th:href="@{/community/list(boardId=${board.id}, categoryId=${category.id})}"
+               href="#" th:href="@{/community/{boardCode}/{categoryCode}(boardCode=${board.code}, categoryCode=${category.code})}"
                th:text="${category.name}"
                th:classappend="${categoryId == category.id ? 'active' : ''}">카테고리명</a>
         </nav>
     </div>
-
-<!--
-    <div th:fragment="categoryBanner" class="category-banner">>
-        <h2>카테고리</h2>
-        <nav>
-            <a th:href="@{/community/list/}" class="active">전체</a>
-            <a th:href="@{/community/list/}">자유</a>
-            <a th:href="@{/community/list/}">토론</a>
-        </nav>
-    </div>
--->
 </body>
 </html>

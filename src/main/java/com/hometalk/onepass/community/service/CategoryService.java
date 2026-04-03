@@ -1,6 +1,6 @@
 package com.hometalk.onepass.community.service;
 
-import com.hometalk.onepass.community.dto.CategoryResponse;
+import com.hometalk.onepass.community.dto.CategoryResponseDTO;
 import com.hometalk.onepass.community.repository.BoardRepository;
 import com.hometalk.onepass.community.repository.CategoryRepository;
 import jakarta.transaction.Transactional;
@@ -17,9 +17,13 @@ public class CategoryService {
     private final BoardRepository boardRepository;
 
     @Transactional
-    public List<CategoryResponse> findAllByBoardId(Long boardId) {
+    public List<CategoryResponseDTO> findAllByBoardId(Long boardId) {
         return categoryRepository.findAllByBoardId(boardId).stream()
-                .map(CategoryResponse::new)
+                .map(CategoryResponseDTO::new)
                 .collect(Collectors.toList());
+    }
+
+    public CategoryResponseDTO findByCode(String categoryCode) {
+        return categoryRepository.findByCode(categoryCode).map(CategoryResponseDTO::new).orElse(null);
     }
 }
