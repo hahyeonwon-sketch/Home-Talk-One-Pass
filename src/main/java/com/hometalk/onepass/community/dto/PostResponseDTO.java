@@ -17,8 +17,8 @@ public class PostResponseDTO {
     private String title;
     private String content;
     private boolean pinned;
-    private String boardId;
-    private String categoryId;
+    private String boardName;
+    private String categoryName;
     //private String writerNickname;
     //private List<String> tags;
     private LocalDateTime createdAt;
@@ -31,8 +31,8 @@ public class PostResponseDTO {
         this.title = post.getTitle();
         this.content = post.getContent();
         this.pinned = post.isPinned();
-        this.boardId = post.getCategory().getBoard().getName();
-        this.categoryId = post.getCategory().getName();
+        this.boardName = post.getCategory().getBoard().getName();
+        this.categoryName = post.getCategory().getName();
         //this.writerNickname = post.getWriter().getNickname();
         //this.tags = post.getTags().stream().map(tag -> tag.getName()).collect(Collectors.toList());
         this.createdAt = post.getCreatedAt();

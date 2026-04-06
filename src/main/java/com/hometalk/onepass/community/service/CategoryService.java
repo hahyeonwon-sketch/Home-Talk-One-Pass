@@ -26,4 +26,13 @@ public class CategoryService {
     public CategoryResponseDTO findByCode(String categoryCode) {
         return categoryRepository.findByCode(categoryCode).map(CategoryResponseDTO::new).orElse(null);
     }
+
+    // 글쓰기 모드용
+    @Transactional
+    public List<CategoryResponseDTO> findAllByBoardIdForWrite(Long boardId) {
+        return categoryRepository.findAllByBoardId(boardId).stream()
+                .filter(category -> !category.getName().equals("전체")) // '전체' 제외
+                .map(CategoryResponseDTO::new)
+                .collect(Collectors.toList());
+    }
 }

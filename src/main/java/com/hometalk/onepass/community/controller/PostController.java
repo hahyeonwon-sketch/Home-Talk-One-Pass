@@ -31,7 +31,8 @@ public class PostController {
         return fillCommunityModel(board, null, page, model);
     }
 
-    @GetMapping("/{boardCode}/{categoryCode}")
+    // 카테고리별 목록
+    @GetMapping("/{boardCode}/{categoryCode:[a-zA-Z]+}")
     public String categoryList(@PathVariable String boardCode,
                                @PathVariable String categoryCode,
                                @RequestParam(defaultValue = "0") int page,
@@ -43,26 +44,43 @@ public class PostController {
     }
 
     // 게시글 상세 페이지
-    @GetMapping("/{boardCode}/{id}")
-    public String postDetail(@PathVariable Long id, Model model) {
-        Post post = postService.postDetail(id);
-        model.addAttribute("post", new PostResponseDTO(post));
+    @GetMapping("/{boardCode}/{id:[0-9]+}")
+    public String postDetail(@PathVariable String boardCode, @PathVariable Long id, Model model) {
+        // 1. 게시글 데이터 가져오기
+        PostResponseDTO post = postService.postDetail(id);
+        model.addAttribute("post", post);
+
+        // 2. 공통 레이아웃(배너) 데이터
+        BoardResponseDTO board = boardService.findByCode(boardCode);
+        addLayoutAttributes(board, null, model, false); // 공통 데이터 담기
         return "community/postDetail";
     }
 
     // 게시글 작성 폼
     @GetMapping("/{boardCode}/write")
-    public String postForm(Model model) {
+    public String postForm(@PathVariable String boardCode, Model model) {
+        // 1. URL에서 받은 boardCode로 게시판 정보 조회
+        BoardResponseDTO board = boardService.findByCode(boardCode);
+
+        // 2. 공통 레이아웃(배너) 데이터
+        addLayoutAttributes(board, null, model, true); // 배너와 헤더는 나오지만 목록은 안 가져옴
+
+        // 3. 폼 입력을 위한 빈 DTO
         model.addAttribute("post", new PostRequestDTO());
         return "community/postForm";
     }
 
     // 게시글 수정 폼
     @GetMapping("{boardCode}/edit/{id}")
-    public String postForm(@PathVariable Long id, Model model) {
-        Post post = postService.postDetail(id);
+    public String postForm(@PathVariable String boardCode, @PathVariable Long id, Model model) {
+        PostResponseDTO post = postService.postDetail(id);
+
+        // 2. 공통 레이아웃(배너) 데이터
+        BoardResponseDTO board = boardService.findByCode(boardCode);
+        addLayoutAttributes(board, null, model, true); // 배너와 헤더는 나오지만 목록은 안 가져옴
 
         PostRequestDTO dto = new PostRequestDTO();
+        dto.setId(id);
         dto.setTitle(post.getTitle());
         dto.setContent(post.getContent());
         dto.setPinned(post.isPinned());
@@ -72,39 +90,49 @@ public class PostController {
     }
 
     // 게시글 등록
-    @PostMapping("/save")
-    public String createPost(PostRequestDTO dto) {
-        Long id = postService.postSave(dto);
-        return "redirect:/community/" + id;
+    @PostMapping("/{boardCode}/save")
+    public String createPost(@PathVariable String boardCode, @ModelAttribute PostRequestDTO dto) {
+        Long id = postService.postSave(boardCode, dto);
+        return "redirect:/community/" + boardCode + "/" + id;
     }
 
     // 게시글 수정
-    @PostMapping("/edit/{id}") // 폼 태그의 action 주소와 맞춰야 합니다.
-    public String updatePost(@PathVariable Long id, PostRequestDTO dto) {
+    @PostMapping("/{boardCode}/edit/{id}")      // 폼 태그의 action 주소
+    public String updatePost(@PathVariable String boardCode, @PathVariable Long id, PostRequestDTO dto) {
         postService.postUpdate(id, dto);
-        return "redirect:/community/" + id;
+        return "redirect:/community/" + boardCode + "/" + id;
     }
 
-    // 공통 method
-    private String fillCommunityModel(BoardResponseDTO board,
-                                      CategoryResponseDTO category,
-                                      int page, Model model) {
-        Long bId = board.getId();
-        Long cId = (category != null) ? category.getId() : null;
 
-        model.addAttribute("board", board); // 이제 DTO를 바로 모델에 담음
+    // 공통 데이터 method
+    private void addLayoutAttributes(BoardResponseDTO board, CategoryResponseDTO category,
+                                     Model model, boolean isWriteMode) {
+        model.addAttribute("board", board);
         model.addAttribute("category", category);
-        model.addAttribute("boards", boardService.findAll());
-        model.addAttribute("categories", categoryService.findAllByBoardId(bId));
-        model.addAttribute("posts", postService.postList(bId, cId, page));
+        model.addAttribute("boards", boardService.findAll()); // 게시판 헤더용
 
-        // HTML에서 'active' 표시를 위해 필요한 ID값들
-        model.addAttribute("boardId", bId);
-        model.addAttribute("categoryId", cId);
+        // 글쓰기 모드일 때만 '전체'가 빠진 목록을 가져옴
+        List<CategoryResponseDTO> categories;
+        if (isWriteMode) {
+            categories = categoryService.findAllByBoardIdForWrite(board.getId());
+        } else {
+            categories = categoryService.findAllByBoardId(board.getId());
+        }
 
-        model.addAttribute("currentPage", page); // 일단 담아두기만 하세요!
+        model.addAttribute("categories", categories); // 카테고리 배너용
+        model.addAttribute("boardId", board.getId());
+        model.addAttribute("categoryId", (category != null) ? category.getId() : null);
+    }
+
+    // 공통 method - 배너 가져올 페이지/기능들에 모두 쓰임
+    private String fillCommunityModel(BoardResponseDTO board, CategoryResponseDTO category, int page, Model model) {
+        // 공통 레이아웃 데이터 채우기
+        addLayoutAttributes(board, category, model, false);
+
+        // 목록 페이지 전용 데이터 채우기
         model.addAttribute("posts", postService.postList(board.getId(),
                 (category != null ? category.getId() : null), page));
+        model.addAttribute("currentPage", page);
 
         return "community/postList";
     }

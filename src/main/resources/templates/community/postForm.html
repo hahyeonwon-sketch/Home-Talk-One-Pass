@@ -3,29 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HomeTOP Community</title>
+    <title>HomeTOP Community</title>        <!-- 제목도 게시판에 따라 변경되도록 -->
     <link rel="stylesheet" href="/css/style.css" th:href="@{/css/style.css}">
 </head>
 <body>
-<!--
-    (boards=${boards}, boardId=${boardId})
-    (categories=${categories}, categoryId=${categoryId})
-    이 파라미터들도 Board, Category 한 뒤에 다시 붙이기
- -->
 <div th:replace="~{community/fragments/boardListHeader :: boardListHeader(boards=${boards}, boardId=${boardId})}"></div>
 <div th:replace="~{community/fragments/categoryBanner :: categoryBanner(board=${board}, categories=${categories}, categoryId=${categoryId})}"></div>
 
-    <div class="form-container">
-        <h2>게시글 작성</h2>
+<div class="container">
+    <h2 th:text="${board.name} + ' 글쓰기'">커뮤니티 글쓰기</h2>
 
-        <form>
-            <select>
-                <option>---카테고리 선택---</option>
-                <option>---자유---</option>
-                <option>---토론---</option>
+    <form th:action="@{/community/{code}/save(code=${board.code})}" method="post" id="postForm" th:object="${post}">
+        <div class="form-group">
+            <label>태그 선택: </label>
+            <input type="checkbox" name="tags" value="공지"> 공지
+            <input type="checkbox" name="tags" value="질문"> 질문
+            <input type="checkbox" name="tags" value="정보"> 정보
+        </div>
+
+        <div class="form-group">
+            <select th:field="*{categoryId}" required>
+                <option value="">카테고리 선택</option>
+                <option th:each="category : ${categories}" th:value="${category.id}"
+                        th:text="${category.name}">카테고리 명</option>
             </select>
-        </form>
-    </div>
+        </div>
 
+        <input type="hidden" th:field="*{id}">
+
+        <div class="form-group">
+            <input type="text" id="title" th:field="*{title}" placeholder="제목을 입력하세요 (최대 50자)"
+                   maxlength="50" required style="width: 100%;">
+            <small><span id="charCount">0</span>/50</small>
+        </div>
+
+        <div style="background: #f4f4f4; padding: 5px; border: 1px solid #ccc;">
+            <small>에디터 툴바 영역 (폰트, 정렬 등 구현 예정)</small>
+        </div>
+
+        <div class="form-group">
+            <textarea th:field="*{content}" rows="15" placeholder="내용을 입력하세요"
+                      style="width: 100%;" required></textarea>
+        </div>
+
+        <div class="button-group" style="margin-top: 20px;">
+            <button type="button" onclick="confirmCancel()">취소</button>
+            <button type="button" onclick="saveTemp()">임시저장</button>
+            <button type="submit">등록</button>
+            <a th:href="@{/community/{code}(code=${board.code})}" class="btn btn-secondary">목록</a>
+        </div>
+
+        <input type="hidden" name="isTemp" id="isTemp" value="false">
+    </form>
+</div>
+
+<script>
+    // 3번 기능: 제목 글자 수 카운트
+    document.getElementById('title').addEventListener('input', function() {
+        document.getElementById('charCount').innerText = this.value.length;
+    });
+
+    // 6번 기능: 취소 버튼 컨펌
+    function confirmCancel() {
+        if (confirm("글 등록을 취소하시겠습니까?")) {
+            location.href = "/community/list";
+        }
+    }
+
+    // 2번 기능: 임시저장 로직
+    function saveTemp() {
+        document.getElementById('isTemp').value = "true";
+        alert("임시저장 되었습니다. (목록에는 숨김 처리됩니다)");
+        document.getElementById('postForm').submit();
+    }
+</script>
 </body>
 </html>

@@ -4,133 +4,120 @@ body {
     line-height: 1.6; min-height: 100vh; display: flex; flex-direction: column;
 }
 
-/* 게시판 전체 헤더 */
-.boardList-header {
-    padding: 2rem 1rem; border-bottom: 1px solid #032154; margin-bottom: 2rem;
-}
-.boardList-header h1 {
-    font-size: 1.5rem; color: #170124; margin-bottom: 1.5rem;
-}
-/* 게시판 메뉴 네비게이션 */
-.boardList-header nav {
-    display: flex; gap: 30px;
-}
-.boardList-header nav a {
-    text-decoration: none; color: #9EBFDB;
-    font-weight: 600; font-size: 1.1rem;
-    padding-bottom: 10px;
-    transition: all 0.2s ease;
-    border-bottom: 3px solid transparent;
-}
-.boardList-header nav a:hover {
-    color: #032154;
-    border-bottom: 3px solid #032154;
-}
-.boardList-header nav a.active {
-    color: #032154;
-    border-bottom: 3px solid #032154;
-}
-.boardList-header nav a:hover:not(.active) {
-    color: #3C6ABC;
+/* 1. 변수 설정 및 기본 폰트 */
+:root {
+    --main-navy: #032154;      /* 깊은 신뢰감의 네이비 */
+    --point-coral: #EB6E57;    /* 화사한 포인트 코랄 */
+    --soft-mint: #D1E8E4;     /* 청량한 민트 호버 효과 */
+    --bg-gray: #F4F7F9;       /* 배경색 */
+    --border-color: #E2E8F0;
 }
 
-
-/* 카테고리 탭 */
-.category-banner {
-    margin-top: 2rem;
-    padding: 1.5rem;
-    background-color: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(3, 33, 84, 0.05); /* 메인 컬러 기반의 아주 연한 그림자 */
+body {
+    font-family: 'Pretendard', sans-serif;
+    background-color: var(--bg-gray);
+    margin: 0;
+    padding: 20px;
+    color: #333;
 }
 
-.category-banner h2 {
-    font-size: 1.3rem;
-    color: #032154;
-    margin-bottom: 1.2rem;
-}
-
-.category-banner nav {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-}
-
-.category-banner nav a {
-    padding: 0.6rem 1.4rem;
-    background-color: #ffffff;
-    color: #4073C9; /* 일반 버튼 컬러 */
-    border: 1px solid #9EBFDB;
-    border-radius: 8px; /* 팔레트 느낌에 맞춰 살짝 각진 둥근형 */
-    text-decoration: none;
-    font-size: 0.95rem;
-    font-weight: 500;
-    transition: all 0.2s;
-}
-
-/* 활성화된 카테고리 (active) - 포인트 코랄 사용 */
-.category-banner nav a.active {
-    background-color: #EB6E57;
-    color: white;
-    border-color: #EB6E57;
-    font-weight: 700;
-    box-shadow: 0 4px 8px rgba(235, 110, 87, 0.3);
-}
-
-.category-banner nav a:hover:not(.active) {
-    background-color: #7ED3D9; /* 포인트 텍스트(민트계열) 컬러로 호버 */
-    border-color: #7ED3D9;
-    color: white;
-}
-
-
-/* 본문 컨테이너: 가운데 정렬 및 여백 */
+/* 2. 게시글 목록 컨테이너 */
 .postList-container {
-    max-width: 1100px;
+    max-width: 80%;
     margin: 20px auto;
-    padding: 0 20px;
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
-/* 테이블 스타일: 선을 없애고 하단 라인만 강조 (요즘 스타일) */
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
+/* 3. 테이블 스타일 */
+table { width: 100%; table-layout: fixed; }
+
+thead tr {
+    background-color: var(--main-navy);
+    color: white;
 }
 
 th {
-    border-bottom: 2px solid #333; /* 헤더 아래쪽만 진하게 */
     padding: 15px;
-    text-align: left;
-    background-color: #f9f9f9;
+    font-weight: 600;
+    font-size: 0.95rem;
+    border-bottom: 3px solid var(--point-coral); /* 헤더 아래 코랄 포인트 */
 }
+/* 각 열의 너비 비율 (합쳐서 100%가 되게 조정) */
+th:nth-child(1) { width: 10%; } /* 카테고리 */
+th:nth-child(2) { width: 50%; } /* 제목 (가장 넓게!) */
+th:nth-child(3) { width: 8%; }  /* 댓글수 */
+th:nth-child(4) { width: 12%; } /* 작성자 */
+th:nth-child(5) { width: 8%; }  /* 조회수 */
+th:nth-child(6) { width: 12%; } /* 작성일 */
 
 td {
-    border-bottom: 1px solid #eee; /* 줄 사이에는 연한 선 */
     padding: 15px;
+    text-align: center;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 0.9rem;
 }
 
-tr:hover {
-    background-color: #fcfcfc; /* 마우스 올렸을 때 효과 */
+/* 제목 열만 왼쪽 정렬 + 네이비 강조 */
+td:nth-child(2) {
+    text-align: left;
 }
 
-/* 버튼 스타일 */
-.add-post-btn {
-    display: inline-block;
-    background-color: #EB6E57;
-    color: white;
-    padding: 10px 20px;
+td a {
     text-decoration: none;
-    border-radius: 5px;
-    float: right; /* 오른쪽 정렬 */
-    margin-top: 10px;
-}
-.add-post-btn:hover {
-    background-color: #D95D48; /* 살짝 어두운 코랄로 피드백 */
-    transform: translateY(-2px); /* 살짝 떠오르는 효과 */
-    box-shadow: 0 6px 20px rgba(235, 110, 87, 0.4);
+    color: var(--main-navy);
+    font-weight: 500;
 }
 
-.add-post-btn:active {
-    transform: translateY(0);
+td a:hover {
+    color: var(--point-coral);
+    text-decoration: underline;
+}
+
+/* 행 호버 시 민트색 */
+tbody tr:hover {
+    background-color: rgba(209, 232, 228, 0.4);
+    transition: 0.3s;
+}
+
+/* 4. 버튼 스타일 */
+.btn {
+    display: inline-block;
+    padding: 12px 24px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: all 0.3s;
+    margin-top: 20px;
+}
+
+.add-post-btn {
+    background-color: var(--point-coral);
+    color: white;
+    float: right; /* 우측 정렬 */
+    box-shadow: 0 4px 10px rgba(235, 110, 87, 0.3);
+}
+
+.add-post-btn:hover {
+    background-color: #d65a45;
+    transform: translateY(-2px);
+}
+
+/* 5. 데이터 없을 때 (No Data) */
+.no-data {
+    text-align: center;
+    padding: 50px;
+    color: #777;
+    font-size: 1.1rem;
+    line-height: 1.6;
+}
+
+/* 태그 텍스트 스타일 */
+p {
+    max-width: 1200px;
+    margin: 10px auto;
+    color: var(--main-navy);
+    font-weight: bold;
 }

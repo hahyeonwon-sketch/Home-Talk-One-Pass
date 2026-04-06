@@ -7,11 +7,6 @@
     <link rel="stylesheet" href="/css/style.css" th:href="@{/css/style.css}">
 </head>
 <body>
-    <!--
-        (boards=${boards}, boardId=${boardId})
-        (categories=${categories}, categoryId=${categoryId})
-        이 파라미터들도 Board, Category 한 뒤에 다시 붙이기
-     -->
     <div th:replace="~{community/fragments/boardListHeader :: boardListHeader(boards=${boards}, boardId=${boardId})}"></div>
     <div th:replace="~{community/fragments/categoryBanner :: categoryBanner(board=${board}, categories=${categories}, categoryId=${categoryId})}"></div>
     <p>태그(tags)</p>
@@ -30,8 +25,8 @@
             </thead>
             <tbody th:if="${not #lists.isEmpty(posts)}">
                 <tr th:each="post : ${posts}">
-                    <td th:text="${post.category.name}"></td>
-                    <td><a th:href="@{/community/{id}(id=${post.id})}" th:text="${post.title}"></a></td>
+                    <td th:text="${post.categoryName}"></td>
+                    <td><a th:href="@{/community/{code}/{id}(code=${board.code}, id=${post.id})}" th:text="${post.title}"></a></td>
                     <td th:text="${post.commentCount}"></td>
                     <td>작성자</td>
                     <td th:text="${post.viewCount}"></td>
@@ -40,10 +35,9 @@
             </tbody>
         </table>
     </div>
-    <div >
-        <a th:href="@{/community/write}" class="btn add-post-btn">글 작성</a>
-    </div>
-
     <p th:if="${#lists.isEmpty(posts)}" class="no-data">게시글이 없습니다.<br>새 게시글을 작성해보세요!</p>
+    <div >
+        <a th:href="@{/community/{code}/write(code=${board.code})}" class="btn add-post-btn">글 작성</a>
+    </div>
 </body>
 </html>

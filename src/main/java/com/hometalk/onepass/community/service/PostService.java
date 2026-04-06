@@ -2,8 +2,11 @@ package com.hometalk.onepass.community.service;
 
 import com.hometalk.onepass.community.dto.PostRequestDTO;
 import com.hometalk.onepass.community.dto.PostListResponse;
+import com.hometalk.onepass.community.dto.PostResponseDTO;
+import com.hometalk.onepass.community.entity.Board;
 import com.hometalk.onepass.community.entity.Category;
 import com.hometalk.onepass.community.entity.Post;
+import com.hometalk.onepass.community.repository.BoardRepository;
 import com.hometalk.onepass.community.repository.CategoryRepository;
 import com.hometalk.onepass.community.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,13 +21,19 @@ import java.util.List;
 public class PostService {
     private final PostRepository postRepository;
     private final CategoryRepository categoryRepository;
+    private final BoardRepository boardRepository;
 
     // Create
     @Transactional
-    public Long postSave(PostRequestDTO dto) {
+    public Long postSave(String boardCode, PostRequestDTO dto) {
+        // 1. boardCode로 게시판 ID 조회
+        Board board = boardRepository.findByCode(boardCode).orElseThrow(() ->
+                new IllegalArgumentException("해당 게시판이 존재하지 않습니다." + boardCode));
+
         Category category = categoryRepository.findById(dto.getCategoryId()).orElseThrow(() ->
                     new IllegalArgumentException("해당 카테고리가 존재하지 않습니다." + dto.getCategoryId()));
-        Post post = dto.toEntity(category);
+        Post post = dto.toEntity(category, board);
+        post.setBoard(board);
         return postRepository.save(post).getId();
     }
 
@@ -64,8 +73,9 @@ public class PostService {
     }*/
 
     // Read - 상세 페이지
-    public Post postDetail(Long id) {
-        return postRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("게시글이 없습니다."));
+    public PostResponseDTO postDetail(Long id) {
+        Post post = postRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("게시글이 없습니다."));
+        return new PostResponseDTO(post);
     }
 
     // Update
