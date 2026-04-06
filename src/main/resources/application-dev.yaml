@@ -8,30 +8,24 @@ spring:
     password: 12345
     driver-class-name: com.mysql.cj.jdbc.Driver
 
-  # SQL 초기화 스트립트 설정
+  # SQL 초기화 스크립트 설정
   sql:
     init:
-      mode: never   # never: 자동 초기화 스크립트 절대 실행하지 않음. 즉, 초기화 SQL 파일이 있어도 무시 // always: 항상 초기화 스크립트 실행
+      mode: never
       encoding: UTF-8
 
   jpa:
-    defer-datasource-initialization: true   # datasource 초기화 후 data.sql 실행 (순서 보장)
+    defer-datasource-initialization: true
     hibernate:
       ddl-auto: update
-      # ddl-auto 옵션 설명
-      #   none  : 아무것도 안 함 (운영 환경 권장)
-      #   validate : 엔티티와 테이블 일치 여부만 검증
-      #   update : 엔티티 변경분만 테이블에 반영 (개발 권장)
-      #   create : 기존 테이블 DROP 후 새로 생성
-      #   create-drop : create + 앱 종료 시 테이블 DROP
     show-sql: false
 
 
   thymeleaf:
-    cache: false  # 캐시 비활성화
+    cache: false
 
 logging:
   level:
-    root: INFO                # 전체 기본 로그 레벨
-    com.hometalk: DEBUG       # 프로젝트 패키지 - 상세 로그 출력
-    org.hibernate.SQL: DEBUG  # hibernate SQL 쿼리 로그
+    root: INFO
+    com.hometalk: DEBUG
+    org.hibernate.SQL: DEBUG

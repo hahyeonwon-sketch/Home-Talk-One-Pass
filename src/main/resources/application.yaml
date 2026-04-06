@@ -13,7 +13,7 @@ spring:
     open-in-view: false
     properties:
       hibernate:
-        format-sql: true
+        format_sql: true
 
-thymeleaf:
-  encoding: UTF-8
+  thymeleaf:
+    encoding: UTF-8
