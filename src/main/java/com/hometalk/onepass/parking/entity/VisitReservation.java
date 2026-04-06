@@ -1,17 +1,18 @@
 package com.hometalk.onepass.parking.entity;
 
-import com.hometalk.onepass.common.entity.BaseSoftDeleteEntity;
+import com.hometalk.onepass.entity.BaseSoftDeleteEntity;
+import com.hometalk.onepass.entity.auth.Household;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.Where;
+import org.hibernate.annotations.SQLRestriction;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "visit_reservations")
 @Getter
 @NoArgsConstructor
-@Where(clause = "is_deleted = false")
+@SQLRestriction("is_deleted = false")
 public class VisitReservation extends BaseSoftDeleteEntity {
 
     @Id

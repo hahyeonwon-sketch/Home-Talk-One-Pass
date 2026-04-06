@@ -1,4 +1,5 @@
 package com.hometalk.onepass.parking.entity;
+import com.hometalk.onepass.entity.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -6,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "payments")
 @Getter
 @NoArgsConstructor
-public class Payment extends Common {
+public class Payment extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "payment_id")

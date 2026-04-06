@@ -1,5 +1,8 @@
 package com.hometalk.onepass.parking.entity;
 
+
+import com.hometalk.onepass.entity.BaseTimeEntity;
+import com.hometalk.onepass.entity.auth.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,7 +13,7 @@ import java.time.LocalDateTime;
 @Table(name = "vehicle_approvals")
 @Getter
 @NoArgsConstructor
-public class VehicleApproval extends Common {
+public class VehicleApproval extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

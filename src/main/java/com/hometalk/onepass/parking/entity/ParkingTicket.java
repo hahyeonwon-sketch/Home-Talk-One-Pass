@@ -1,4 +1,6 @@
 package com.hometalk.onepass.parking.entity;
+import com.hometalk.onepass.entity.BaseTimeEntity;
+import com.hometalk.onepass.entity.auth.Household;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,7 +16,7 @@ import java.time.LocalDate;
 // 정책: 매달 1일 자동 발급 (세대 + 타입 + 연/월 기준 1회)
 @Getter
 @NoArgsConstructor
-public class ParkingTicket extends Common {
+public class ParkingTicket extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
