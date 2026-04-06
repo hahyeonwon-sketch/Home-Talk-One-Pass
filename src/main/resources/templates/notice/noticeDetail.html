@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>공지 상세</title>
+</head>
+<body>
+<div th:replace="fragments/noticeHeader :: notice-page-header"></div>
+
+
+<table class="notice-table">
+    <tr>
+        <td class="badge"><span>중요(배지)</span></td>
+        <td class="notice-title">공지 제목</td>
+        <td class="create">작성일시</td>
+        <td class="update">수정일시</td>
+        <td class="notice-view">3,021</td>
+    </tr>
+</table>
+
+<hr>
+
+
+<div class="notice-box">
+    <div class="content">
+        <div class="image">
+            <img src="" alt="사진" width="200" height="150">
+        </div>
+        <p>공지 내용</p>
+    </div>
+</div>
+
+
+<table class="notice-nav-table">
+    <tr class="previous-notice">
+        <td>이전글</td>
+        <td class="notice-nav-title">이전글 제목</td>
+        <td class="notice-nav-created">게시일시</td>
+        <td class="notice-nav-updated">수정일시</td>
+        <td class="notice-nav-view">조회수</td>
+    </tr>
+    <tr class="next-notice">
+        <td>다음글</td>
+        <td class="notice-nav-title">다음글 제목</td>
+        <td class="notice-nav-created">게시일시</td>
+        <td class="notice-nav-updated">수정일시</td>
+        <td class="notice-nav-view">조회수</td>
+    </tr>
+</table>
+
+</body>
+</html>

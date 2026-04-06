@@ -3,7 +3,7 @@ server:
 
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/bookdb?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    url: jdbc:mysql://localhost:3306/onepassdb?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
     username: root
     password: 12345
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -25,6 +25,7 @@ spring:
       #   create : 기존 테이블 DROP 후 새로 생성
       #   create-drop : create + 앱 종료 시 테이블 DROP
     show-sql: false
+
 
   thymeleaf:
     cache: false  # 캐시 비활성화

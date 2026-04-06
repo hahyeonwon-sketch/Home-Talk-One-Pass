@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>일정 등록</title>
+</head>
+<body>
+
+
+<div class="calendar-top">
+    <div class="calendar-nav">
+        <button type="button" class="btn-prev">◀</button>
+        <span class="current-month">3월</span>
+        <button type="button" class="btn-next">▶</button>
+    </div>
+    <button type="button" class="btn-schedule-add">일정 등록</button>
+</div>
+
+
+<div class="calendar-grid">
+    <div class="weekday">일</div>
+    <div class="weekday">월</div>
+    <div class="weekday">화</div>
+    <div class="weekday">수</div>
+    <div class="weekday">목</div>
+    <div class="weekday">금</div>
+    <div class="weekday">토</div>
+
+    <div class="day-cell"></div>
+    <div class="day-cell">1</div>
+    <div class="day-cell">2</div>
+</div>
+
+<!-- 일정 등록 모달 -->
+<div class="schedule-modal">
+    <div class="modal-header">
+        <span>일정 등록</span>
+        <button type="button" class="btn-close">X</button>
+    </div>
+
+    <div class="modal-content">
+        <div class="modal-row">
+            <label>일정명</label>
+            <input type="text" name="scheduleName" placeholder="일정명을 입력하세요.">
+        </div>
+
+        <div class="modal-row">
+            <label>시작</label>
+            <input type="date" name="startDate">
+            <select name="startHour"></select>
+            <select name="startMinute"></select>
+        </div>
+
+        <div class="modal-row">
+            <label>종료</label>
+            <input type="date" name="endDate">
+            <select name="endHour"></select>
+            <select name="endMinute"></select>
+        </div>
+
+        <div class="modal-row">
+            <label>설명</label>
+            <textarea name="scheduleDescription"></textarea>
+        </div>
+
+        <div class="modal-row">
+            <label>URL</label>
+            <input type="text" name="scheduleUrl">
+        </div>
+
+        <div class="modal-bottom">
+            <button type="button" class="btn-register">등록</button>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

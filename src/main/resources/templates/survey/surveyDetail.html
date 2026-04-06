@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>설문 참여</title>
+</head>
+<body>
+
+<div th:replace="fragments/noticeHeader :: notice-page-header"></div>
+
+
+<table class="notice-table">
+    <tr>
+        <td class="badge"><span>설문(배지)</span></td>
+        <td class="survey-title">설문 제목</td>
+        <td class="survey-date">2026-03-01 ~ 2026-03-20</td>
+    </tr>
+</table>
+
+<hr>
+
+
+<div class="survey-box">
+
+    <p class="survey-info">설문 설명</p>
+
+    <hr>
+
+
+    <div class="question-wrap">
+        <h4 class="question"><span>*</span> Q1. 첫 번째 문항</h4>
+        <div class="option">
+            <input type="radio" name="q1" id="q1_1">
+            <label for="q1_1">1. 선택지 1</label>
+        </div>
+        <div class="option">
+            <input type="radio" name="q1" id="q1_2">
+            <label for="q1_2">2. 선택지 2</label>
+        </div>
+        <div class="option">
+            <input type="radio" name="q1" id="q1_3">
+            <label for="q1_3">3. 선택지 3</label>
+        </div>
+    </div>
+
+    <hr>
+
+
+    <div class="image">
+        <img src="" alt="사진" width="200" height="150">
+    </div>
+
+
+    <div class="question-wrap">
+        <h4 class="question">Q2. 두 번째 문항</h4>
+        <div class="option">
+            <input type="radio" name="q2" id="q2_1">
+            <label for="q2_1">1. 선택지 1</label>
+        </div>
+        <div class="option">
+            <input type="radio" name="q2" id="q2_2">
+            <label for="q2_2">2. 선택지 2</label>
+        </div>
+        <div class="option">
+            <input type="radio" name="q2" id="q2_3">
+            <label for="q2_3">3. 선택지 3</label>
+        </div>
+    </div>
+
+</div>
+
+
+<div class="submit-btn">
+    <button type="submit">제출</button>
+</div>
+
+</body>
+</html>

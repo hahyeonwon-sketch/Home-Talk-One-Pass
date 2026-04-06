@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>공지 작성</title>
+</head>
+<body>
+<div th:replace="fragments/noticeHeader :: notice-page-header"></div>
+
+<!-- 상단 우측 버튼 -->
+<div class="notice-write-top">
+    <input type="checkbox" id="pinned">
+    <label for="pinned">상단 고정</label>
+    <button type="button" class="btn-delete">삭제</button>
+    <button type="button" class="btn-edit">수정</button>
+</div>
+
+
+<div class="notice-title-wrap">
+    <label for="title">제목</label>
+    <input type="text" id="title" name="title">
+</div>
+
+
+<div class="notice-content-wrap">
+    <textarea name="content" class="notice-content"></textarea>
+</div>
+
+
+<div class="notice-bottom">
+    <div>
+        <input type="file" id="file" name="file">
+        <label for="file" class="btn-file">파일 올리기</label>
+    </div>
+    <div>
+        <button type="button" class="btn-schedule">일정 등록</button>
+        <button type="button" class="btn-submit">게시</button>
+    </div>
+</div>
+
+</body>
+</html>

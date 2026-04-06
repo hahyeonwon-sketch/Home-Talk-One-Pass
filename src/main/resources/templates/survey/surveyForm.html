@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>설문 작성</title>
+</head>
+<body>
+<div th:replace="fragments/noticeHeader :: notice-page-header"></div>
+
+
+<div class="survey-top">
+    <input type="checkbox" id="anonymous">
+    <label for="anonymous">익명</label>
+    <input type="checkbox" id="pinned">
+    <label for="pinned">상단 고정</label>
+    <button type="button" class="btn-delete">삭제</button>
+    <button type="button" class="btn-edit">수정</button>
+</div>
+
+
+<div class="survey-info">
+    <input type="text" name="surveyTitle" placeholder="제목을 입력해주세요">
+    <textarea name="surveyDescription" placeholder="설명을 작성해주세요"></textarea>
+</div>
+
+
+<div class="question-wrap">
+    <span class="question-number">1</span>
+    <input type="text" name="questionTitle" placeholder="문항 제목" class="question-title">
+    <input type="checkbox" id="required1">
+    <label for="required1">필수</label>
+    <input type="file" id="file1" name="questionFile">
+    <label for="file1" class="btn-file">파일</label>
+
+    <div class="options-wrap">
+        <div class="option">
+            <input type="radio" name="q1" disabled>
+            <input type="text" name="optionText" placeholder="보기">
+        </div>
+        <div class="option">
+            <input type="radio" name="q1" disabled>
+            <input type="text" name="optionText" placeholder="보기">
+        </div>
+        <div class="option">
+            <input type="radio" name="q1" disabled>
+            <input type="text" name="optionText" placeholder="보기">
+        </div>
+    </div>
+</div>
+
+
+<div class="question-wrap">
+    <span class="question-number">2</span>
+    <input type="text" name="questionTitle" placeholder="문항 제목" class="question-title">
+    <input type="checkbox" id="required2">
+    <label for="required2">필수</label>
+    <input type="file" id="file2" name="questionFile">
+    <label for="file2" class="btn-file">파일</label>
+
+    <div class="options-wrap">
+        <div class="option">
+            <input type="radio" name="q2" disabled>
+            <input type="text" name="optionText" placeholder="보기">
+        </div>
+        <div class="option">
+            <input type="radio" name="q2" disabled>
+            <input type="text" name="optionText" placeholder="보기">
+        </div>
+        <div class="option">
+            <input type="radio" name="q2" disabled>
+            <input type="text" name="optionText" placeholder="보기">
+        </div>
+    </div>
+</div>
+
+
+<div class="survey-bottom">
+    <button type="button" class="btn-schedule">일정 등록</button>
+    <button type="button" class="btn-submit">게시</button>
+</div>
+
+</body>
+</html>
