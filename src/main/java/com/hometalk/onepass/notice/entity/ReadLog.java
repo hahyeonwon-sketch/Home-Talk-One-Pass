@@ -1,7 +1,7 @@
 package com.hometalk.onepass.notice.entity;
 
 
-import com.hometalk.onepass.entity.BaseTimeEntity;
+import com.hometalk.onepass.common.entity.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.Data;
 

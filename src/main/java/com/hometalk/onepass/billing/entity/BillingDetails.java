@@ -1,6 +1,6 @@
 package com.hometalk.onepass.billing.entity;
 
-import com.hometalk.onepass.common.entity.BaseEntity;
+import com.hometalk.onepass.common.entity.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -28,7 +28,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
-public class BillingDetails extends BaseEntity {
+public class BillingDetails extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

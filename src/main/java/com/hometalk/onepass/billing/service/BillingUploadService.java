@@ -24,9 +24,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class BillingUploadService {
 
-    private final BillingsRepository       billingsRepository;
-    private final BillingDetailsRepository billingDetailsRepository;
-    private final BillingLogsRepository    billingLogsRepository;
+    private final BillingRepository       billingsRepository;
+    private final BillingDetailRepository billingDetailsRepository;
+    private final BillingLogRepository    billingLogsRepository;
 
     // 엑셀 필수 컬럼
     private static final String COL_HOUSEHOLD_ID  = "household_id";

@@ -27,9 +27,9 @@ import java.util.Optional;
 @Transactional(readOnly = true)
 public class BillingService {
 
-    private final BillingsRepository       billingsRepository;
-    private final BillingDetailsRepository billingDetailsRepository;
-    private final BillingLogsRepository    billingLogsRepository;
+    private final BillingRepository       billingsRepository;
+    private final BillingDetailRepository billingDetailsRepository;
+    private final BillingLogRepository    billingLogsRepository;
 
     // ═══════════════════════════════════════════════════════
     // 입주민 — 관리비 페이지 초기 진입
@@ -234,25 +234,25 @@ public class BillingService {
     // ═══════════════════════════════════════════════════════
 
     public long getTotalCount(String billingMonth) {
-        BillingsRepository.BillingStatProjection stat =
+        BillingRepository.BillingStatProjection stat =
                 billingsRepository.countStatsByBillingMonth(billingMonth);
         return stat != null && stat.getTotalCount() != null ? stat.getTotalCount() : 0L;
     }
 
     public long getPaidCount(String billingMonth) {
-        BillingsRepository.BillingStatProjection stat =
+        BillingRepository.BillingStatProjection stat =
                 billingsRepository.countStatsByBillingMonth(billingMonth);
         return stat != null && stat.getPaidCount() != null ? stat.getPaidCount() : 0L;
     }
 
     public long getUnpaidCount(String billingMonth) {
-        BillingsRepository.BillingStatProjection stat =
+        BillingRepository.BillingStatProjection stat =
                 billingsRepository.countStatsByBillingMonth(billingMonth);
         return stat != null && stat.getUnpaidCount() != null ? stat.getUnpaidCount() : 0L;
     }
 
     public double getPaidRate(String billingMonth) {
-        BillingsRepository.BillingStatProjection stat =
+        BillingRepository.BillingStatProjection stat =
                 billingsRepository.countStatsByBillingMonth(billingMonth);
         if (stat == null || stat.getTotalCount() == null || stat.getTotalCount() == 0) return 0.0;
         return Math.round((double) stat.getPaidCount() / stat.getTotalCount() * 1000) / 10.0;
