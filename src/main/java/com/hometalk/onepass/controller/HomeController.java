@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class HomeController {
 
-    @GetMapping({"/", "/home"})
+    @GetMapping({ "/home"})
     public String home(Model model) {
 <<<<<<< HEAD
         // 로그인 한 사용자는 대시보드로 리다이렉트
