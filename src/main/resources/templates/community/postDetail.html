@@ -34,7 +34,10 @@
 
             <div class="auth-buttons">
                 <a th:href="@{/community/{code}/edit/{id}(code=${board.code}, id=${post.id})}" class="btn-edit">수정</a>
-                <button type="button" class="btn-delete">삭제</button>
+                <form th:action="@{/community/{code}/delete/{id}(code=${boardCode}, id=${post.id})}"
+                      method="post" style="display:inline;" id="deleteForm">
+                    <button type="button" class="btn-delete" onclick="confirmDelete()">삭제</button>
+                </form>
             </div>
         </div>
 
@@ -43,5 +46,13 @@
             <p>댓글 기능 준비 중...</p>
         </div>
     </div>
+
+    <script>
+        function confirmDelete() {
+            if (confirm("정말로 이 게시글을 삭제하시겠습니까? \n삭제된 글은 목록에서 사라집니다.")) {
+                document.getElementById('deleteForm').submit();
+            }
+        }
+    </script>
 </body>
 </html>

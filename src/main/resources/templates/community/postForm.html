@@ -47,10 +47,9 @@
         </div>
 
         <div class="button-group" style="margin-top: 20px;">
-            <button type="button" onclick="confirmCancel()">취소</button>
+            <a th:href="@{/community/{code}(code=${board.code})}" onclick="return confirmCancel()">취소</a>
             <button type="button" onclick="saveTemp()">임시저장</button>
             <button type="submit">등록</button>
-            <a th:href="@{/community/{code}(code=${board.code})}" class="btn btn-secondary">목록</a>
         </div>
 
         <input type="hidden" name="isTemp" id="isTemp" value="false">
@@ -58,19 +57,21 @@
 </div>
 
 <script>
-    // 3번 기능: 제목 글자 수 카운트
+    // 제목 글자 수 카운트
     document.getElementById('title').addEventListener('input', function() {
         document.getElementById('charCount').innerText = this.value.length;
     });
 
-    // 6번 기능: 취소 버튼 컨펌
+    // 취소 버튼 컨펌
     function confirmCancel() {
-        if (confirm("글 등록을 취소하시겠습니까?")) {
-            location.href = "/community/list";
+        if (confirm("작성 중인 내용을 중단하고 목록으로 돌아가시겠습니까?\n(임시저장된 내용은 보존됩니다.)")) {
+            return true;
+        } else {
+            return false;
         }
     }
 
-    // 2번 기능: 임시저장 로직
+    // 임시저장 로직
     function saveTemp() {
         document.getElementById('isTemp').value = "true";
         alert("임시저장 되었습니다. (목록에는 숨김 처리됩니다)");

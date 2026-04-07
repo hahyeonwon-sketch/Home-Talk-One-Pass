@@ -79,9 +79,34 @@ public class PostService {
     }
 
     // Update
+    // 수정 화면에 데이터를 가져오기
+    public PostRequestDTO getPostForEdit(Long id) {
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("해당 게시글이 없습니다. id=" + id));
+
+        // 엔티티를 바로 RequestDTO로 변환해서 반환
+        return PostRequestDTO.builder()
+                .id(post.getId())
+                .title(post.getTitle())
+                .content(post.getContent())
+                .pinned(post.isPinned())
+                .build();
+    }
     @Transactional
     public void postUpdate(Long id, PostRequestDTO dto) {
         Post post = postRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("게시글이 없습니다."));
         post.update(dto);
     }
+
+    // Delete
+    @Transactional
+    public void deletePost(Long id) {   // user merge 후에는 userId도 필요
+        Post post = postRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("게시글이 없습니다."));
+        // 작성자 본인 검증
+//        if (!post.getWriterId().equals(currentUserId)) {
+//            throw new IllegalStateException("삭제 권한이 없습니다.");
+//        }
+        post.softDelete();
+    }
+
 }

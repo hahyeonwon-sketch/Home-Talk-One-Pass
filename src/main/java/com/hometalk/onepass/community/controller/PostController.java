@@ -73,18 +73,13 @@ public class PostController {
     // 게시글 수정 폼
     @GetMapping("{boardCode}/edit/{id}")
     public String postForm(@PathVariable String boardCode, @PathVariable Long id, Model model) {
-        PostResponseDTO post = postService.postDetail(id);
+        PostRequestDTO post = postService.getPostForEdit(id);
 
         // 2. 공통 레이아웃(배너) 데이터
         BoardResponseDTO board = boardService.findByCode(boardCode);
         addLayoutAttributes(board, null, model, true); // 배너와 헤더는 나오지만 목록은 안 가져옴
 
-        PostRequestDTO dto = new PostRequestDTO();
-        dto.setId(id);
-        dto.setTitle(post.getTitle());
-        dto.setContent(post.getContent());
-        dto.setPinned(post.isPinned());
-        model.addAttribute("post", dto);
+        model.addAttribute("post", post);
         model.addAttribute("postId", id);
         return "community/postForm";
     }
@@ -101,6 +96,14 @@ public class PostController {
     public String updatePost(@PathVariable String boardCode, @PathVariable Long id, PostRequestDTO dto) {
         postService.postUpdate(id, dto);
         return "redirect:/community/" + boardCode + "/" + id;
+    }
+
+    // 게시글 삭제
+    @PostMapping("/{boardCode}/delete/{id}")
+    public String deletePost(@PathVariable String boardCode, @PathVariable Long id) {
+        postService.deletePost(id);
+        // 삭제 후 해당 게시판의 목록 리다이렉트
+        return "redirect:/community/" + boardCode;
     }
 
 

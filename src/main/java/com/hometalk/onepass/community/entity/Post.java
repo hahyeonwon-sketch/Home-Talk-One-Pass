@@ -3,6 +3,8 @@ package com.hometalk.onepass.community.entity;
 import com.hometalk.onepass.community.dto.PostRequestDTO;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
 
@@ -12,6 +14,9 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor     // Builder 쓸 땐 필수
 @Builder
+@Table(name = "posts")
+@SQLDelete(sql = "UPDATE posts SET deleted_at = CURRENT_TIMESTAMP, status = 'DELETED' WHERE id = ?")        // delete() 호출 시 실행될 SQL 문
+@SQLRestriction("deleted_at IS NULL")
 public class Post {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,6 +38,8 @@ public class Post {
     @JoinColumn(name = "board_id", referencedColumnName = "id", nullable = false)
     private Board board;
 
+    @Builder.Default
+    @Column(length = 20)
     @Enumerated(EnumType.STRING)
     private PostStatus status = PostStatus.ACTIVE;
 
@@ -56,5 +63,10 @@ public class Post {
         this.title = dto.getTitle();
         this.content = dto.getContent();
         this.pinned = dto.isPinned();
+    }
+
+    public void softDelete() {
+        this.deletedAt = LocalDateTime.now();
+        this.status = PostStatus.DELETED;
     }
 }

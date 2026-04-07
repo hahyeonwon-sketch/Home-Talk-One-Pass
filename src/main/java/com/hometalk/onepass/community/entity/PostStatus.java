@@ -3,7 +3,8 @@ package com.hometalk.onepass.community.entity;
 public enum PostStatus {
     ACTIVE("활성"),
     HIDDEN("숨김"),
-    DRAFT("임시저장");
+    DRAFT("임시저장"),
+    DELETED("삭제");
 
     private final String description;
 
