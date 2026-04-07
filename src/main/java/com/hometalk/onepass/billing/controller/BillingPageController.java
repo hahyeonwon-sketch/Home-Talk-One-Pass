@@ -143,7 +143,7 @@ public class BillingPageController {
     /**
      * 로그인 사용자의 householdId 추출
      *
-     * TODO: Security 커스텀 UserDetails 완성 후 아래로 교체
+     * TODO : Security 커스텀 UserDetails 완성 후 아래로 교체
      *   @AuthenticationPrincipal CustomUserDetails userDetails
      *   return userDetails.getHouseholdId();
      */
@@ -152,7 +152,7 @@ public class BillingPageController {
         // 임시: principal에서 householdId 추출 (UserDetails 구현 완성 전 임시 처리)
         // 실제 구현 시 CustomUserDetails 캐스팅으로 교체
         if (auth != null && auth.getPrincipal() instanceof org.springframework.security.core.userdetails.UserDetails ud) {
-            // TODO: CustomUserDetails 완성 후 교체
+            /// CustomUserDetails 완성 후 교체
             // return ((CustomUserDetails) ud).getHouseholdId();
         }
         // 개발 단계 임시 하드코딩 — 반드시 교체 필요
