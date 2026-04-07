@@ -5,7 +5,7 @@ import lombok.Getter;
 
 
 
-@Entity
+@Entity(name = "user") // 다른 이름으로 구분
 @Getter
 @Table(name = "kjh_user")
 public class User {

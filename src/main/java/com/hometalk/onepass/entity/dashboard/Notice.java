@@ -11,7 +11,7 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 
-@Entity
+@Entity(name = "dashboard") // 다른 이름으로 구분
 @Getter
 @Setter
 @NoArgsConstructor
