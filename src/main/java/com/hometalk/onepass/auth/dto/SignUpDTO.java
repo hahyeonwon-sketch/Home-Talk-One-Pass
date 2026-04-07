@@ -1,4 +1,4 @@
-package com.hometalk.onepass.DTO.authDTO;
+package com.hometalk.onepass.auth.dto;
 
 import lombok.Getter;
 import lombok.Setter;

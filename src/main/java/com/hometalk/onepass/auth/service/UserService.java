@@ -1,8 +1,8 @@
-package com.hometalk.onepass.service.auth;
+package com.hometalk.onepass.auth.service;
 
-import com.hometalk.onepass.DTO.authDTO.SignUpDTO;
+import com.hometalk.onepass.auth.dto.SignUpDTO;
 import com.hometalk.onepass.entity.auth.User;
-import com.hometalk.onepass.repository.auth.UserRepository;
+import com.hometalk.onepass.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
