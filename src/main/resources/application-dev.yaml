@@ -7,6 +7,7 @@ spring:
     username: onepass
     password: hometop402
     driver-class-name: com.mysql.cj.jdbc.Driver
+<<<<<<< HEAD
   # SQL 초기화 스크립트 설정
   sql:
     init:
@@ -17,11 +18,33 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: false
+=======
+
+  # SQL 초기화 스크립트 설정
+  sql:
+    init:
+      mode: never
+      encoding: UTF-8
+
+  jpa:
+    defer-datasource-initialization: true
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+
+
+>>>>>>> e9d88f9f25b225b57753bc38dec6fe1dea0382f0
   thymeleaf:
     cache: false
 
 logging:
   level:
+<<<<<<< HEAD
     root: INFO        # 전체 기본 로그 레벨
     com.hometalk: DEBUG     # 프로젝트 패키지 - 상세 로그 출력
     org.hibernate.SQL: DEBUG    # hibernate SQL 쿼리 로그
+=======
+    root: INFO
+    com.hometalk: DEBUG
+    org.hibernate.SQL: DEBUG
+>>>>>>> e9d88f9f25b225b57753bc38dec6fe1dea0382f0

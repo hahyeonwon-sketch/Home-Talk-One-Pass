@@ -1,9 +1,23 @@
 package com.hometalk.onepass.controller;
 
+<<<<<<< HEAD
+=======
+/*
+    홈 페이지 컨트롤러
+        → 프로젝트 메인 랜딩 페이지
+    URL: GET /hometop/ 또는 /hometop/home
+    템플릿: templates/home.html
+
+    비로그인 → home.html (랜딩)
+    로그인 상태 → redirect: /dashboard
+ */
+
+>>>>>>> e9d88f9f25b225b57753bc38dec6fe1dea0382f0
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
+<<<<<<< HEAD
 /*
     홈페이지 컨트롤러
         --> 프로젝트 메인 렌딩 페이지
@@ -24,3 +38,14 @@ public class HomeController {
         return "home";
     }
 }
+=======
+@Controller
+public class HomeController {
+
+    @GetMapping({"/", "/home"})
+    public String home(Model model) {
+        // 로그인한 사용자는 대시보드로 리다이렉트
+        return "home";
+    }
+}
+>>>>>>> e9d88f9f25b225b57753bc38dec6fe1dea0382f0
