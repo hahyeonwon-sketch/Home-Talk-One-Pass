@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/onepass.main.iml" filepath="$PROJECT_DIR$/.idea/modules/onepass.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/onepass_main.iml" filepath="$PROJECT_DIR$/.idea/modules/onepass_main.iml" group="onepass" />
     </modules>
   </component>
 </project>
