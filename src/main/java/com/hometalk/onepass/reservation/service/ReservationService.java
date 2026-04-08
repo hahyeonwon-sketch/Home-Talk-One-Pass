@@ -8,8 +8,6 @@ import com.hometalk.onepass.reservation.entity.Reservation;
 import com.hometalk.onepass.reservation.entity.ReservationStatus;
 import com.hometalk.onepass.reservation.entity.ReservationTime;
 import com.hometalk.onepass.reservation.repository.ReservationRepository;
-import com.hometalk.onepass.user.User;       // 아까 만든 임시 User 경로 확인!
-import com.hometalk.onepass.user.UserRepository; // 아까 만든 임시 Repository 경로 확인!
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
