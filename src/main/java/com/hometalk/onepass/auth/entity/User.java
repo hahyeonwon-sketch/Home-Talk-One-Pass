@@ -24,9 +24,6 @@ public class User extends BaseSoftDeleteEntity {
     @JoinColumn(name = "household_id")
     private Household household;
 
-    @Column(name = "login_id", nullable = false, length = 100)
-    private String loginId;
-
     @Column(name = "name", nullable = false, length = 50)
     private String name;
 
@@ -55,9 +52,8 @@ public class User extends BaseSoftDeleteEntity {
     private List<SocialAccount> socialAccounts = new ArrayList<>();
 
     @Builder
-    public User(String loginId, String name, String nickname, String email,
+    public User(String name, String nickname, String email,
                 String phoneNumber, UserStatus status, UserRole role) {
-        this.loginId = loginId;
         this.name = name;
         this.nickname = nickname;
         this.email = email;
