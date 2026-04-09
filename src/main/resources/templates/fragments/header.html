@@ -47,7 +47,7 @@
 <!--                    <span style="margin: 0 10px; color: #ccc;">&gt;</span>-->
                         <span th:if="${currentUri.startsWith('/hometop/auth')}">로그인</span>
                         <span th:if="${currentUri.startsWith('/hometop/notification')}">알람 목록</span>
-                        <span th:if="${currentUri.startsWith('/hometop/parking/vehicle/register')}">주차</span>
+                        <span th:if="${currentUri.startsWith('/hometop/parking')}">주차</span>
                         <span th:if="${currentUri == '/hometop/index'}">대시보드</span>
                      </th:block>
                  </span>
@@ -57,9 +57,18 @@
                 <th:block th:if="${currentUri != '/hometop/index' && currentUri != null && currentUri != '/hometop/auth'}">
                     <span style="margin: 0 10px; color: #ccc;">&gt;</span>
                     <strong style="color: #333; font-weight: 700;">
-                        <span th:if="${currentUri.startsWith('/hometop/notification')}">전체 보기</span>
-                        <span th:if="${currentUri.startsWith('/hometop/parking/vehicle/register')}">등록</span>
-                        <span th:if="${currentUri.startsWith('/hometop/settings')}">환경 설정</span>
+
+                        <!-- 알림 목록 -->
+                        <th:block th:if="${currentUri.startsWith('/hometop/notification')}">
+                            <span th:if="${currentUri == '/hometop/notification'}">전체 보기</span>
+                        </th:block>
+
+                        <!-- 주차 목록 -->
+                        <th:block th:if="${currentUri.startsWith('/hometop/parking')}">
+                            <span th:if="${currentUri == '/hometop/parking/vehicle'}">조회</span>
+                            <span th:if="${currentUri == '/hometop/parking/vehicle/register'}">등록</span>
+                        </th:block>
+
                     </strong>
                 </th:block>
 
