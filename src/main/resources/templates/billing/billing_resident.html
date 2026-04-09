@@ -4,8 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>관리비 - HomeTalkOnePass</title>
-    <link rel="stylesheet" href="/css/common.css"          th:href="@{/css/common.css}" />
-    <link rel="stylesheet" href="/css/billing_resident.css" th:href="@{/css/billing_resident.css}" />
+    <link rel="stylesheet" href="/dashboard/style.css" th:href="@{/dashboard/style.css}" />
+    <link rel="stylesheet" href="/billing/css/common.css" th:href="@{/billing/css/common.css}" />
+    <link rel="stylesheet" href="/billing/css/billing_resident.css" th:href="@{/billing/css/billing_resident.css}" />
 </head>
 <body>
 
@@ -13,7 +14,7 @@
 
     <!-- ── 사이드바 fragment ── -->
     <div th:replace="~{fragments/sidebar :: sidebar}"
-         th:with="activeMenu='billing'"></div>
+         th:with="menu='billing'"></div>
 
     <!-- ── 메인 콘텐츠 ── -->
     <main class="bp-page">

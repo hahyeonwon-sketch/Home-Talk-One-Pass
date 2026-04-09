@@ -1,13 +1,23 @@
 package com.hometalk.onepass.billing.controller;
 
+import com.hometalk.onepass.billing.dto.BillingSummaryResponse;
 import com.hometalk.onepass.billing.dto.ResidentBillingResponse;
+import com.hometalk.onepass.billing.entity.Billing.BillingStatus;
+import com.hometalk.onepass.billing.service.BillingService.AdminBillingStats;
+
 import com.hometalk.onepass.billing.service.BillingService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 @Controller
 @RequestMapping("/billing")
@@ -16,36 +26,94 @@ public class BillingPageController {
 
     private final BillingService billingService;
 
-    /**
-     * 입주민 관리비 페이지
-     * GET /billing
-     * TODO: Security 완성 후 householdId를 CustomUserDetails에서 추출하도록 변경
-     */
+    // ─────────────────────────────────────────────
+    // 입주민 관리비 페이지
+    // ─────────────────────────────────────────────
+
     @GetMapping
-    public String billingPage(
-            @RequestParam Long householdId,  // TODO: @AuthenticationPrincipal로 교체
+    public String billingPage(Model model) {
+        // TODO: Security 완성 후 CustomUserDetails에서 추출
+        Long householdId = 1L;
+
+        ResidentBillingResponse response = billingService.getResidentBillingPage(householdId);
+
+        // HTML 변수명에 맞춰 개별로 넘기기
+        model.addAttribute("unpaidList", response.getBillings().stream()
+                .filter(b -> b.getStatus().name().equals("UNPAID"))
+                .toList());
+        model.addAttribute("currentMonthBilling", response.getBillings().stream()
+                .filter(b -> b.getBillingMonth().equals(
+                        LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM"))))
+                .findFirst().orElse(null));
+        model.addAttribute("currentMonthLabel",
+                LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy년 M월")));
+        model.addAttribute("unpaidCount",  response.getUnpaidCount());
+        model.addAttribute("unpaidMonths", response.getBillings().stream()
+                .filter(b -> b.getStatus().name().equals("UNPAID"))
+                .map(BillingSummaryResponse::getBillingMonth)
+                .toList());
+        model.addAttribute("latestPaidDate", response.getLastPaidDate() != null
+                ? response.getLastPaidDate()
+                .format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))
+                : null);
+        model.addAttribute("latestPaidMonth", response.getLastPaidDate() != null
+                ? response.getLastPaidDate()
+                .format(DateTimeFormatter.ofPattern("M월"))
+                : null);
+        model.addAttribute("billings",    response.getBillings());
+        model.addAttribute("hasMore",     false);
+        model.addAttribute("householdId", householdId);
+        model.addAttribute("unitInfo",    "");
+        model.addAttribute("menu",        "billing");
+        return "billing/billing_resident";
+    }
+
+
+    // ─────────────────────────────────────────────
+    // 관리자 고지서 업로드 페이지
+    // ─────────────────────────────────────────────
+
+    @GetMapping("/admin/upload")
+    public String uploadPage(Model model) {
+        model.addAttribute("menu", "billing");  // 추가
+        return "billing/billing_admin_upload";
+    }
+
+
+    // ─────────────────────────────────────────────
+    // 관리자 미납 세대 관리 페이지
+    // ─────────────────────────────────────────────
+
+    @GetMapping("/admin/unpaid")
+    public String unpaidPage(
+            @RequestParam(required = false) String dong,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) String month,
+            @RequestParam(required = false) BillingStatus status,
+            @RequestParam(defaultValue = "false") boolean overdue,
+            @RequestParam(defaultValue = "0") int page,
             Model model
     ) {
-        ResidentBillingResponse response = billingService.getResidentBillingPage(householdId);
-        model.addAttribute("billing", response);
-        return "billing/billing";  // templates/billing/billing.html
+        String currentMonth = LocalDate.now()
+                .format(DateTimeFormatter.ofPattern("yyyy-MM"));
+        AdminBillingStats stats = billingService.getAdminStats(currentMonth);
+
+        Page<BillingSummaryResponse> unpaidPage = billingService.getUnpaidList(
+                dong, year, month, status, overdue,
+                PageRequest.of(page, 20, Sort.by(Sort.Direction.DESC, "billingMonth"))
+        );
+
+        model.addAttribute("totalCount",  stats.total());
+        model.addAttribute("paidCount",   stats.paid());
+        model.addAttribute("unpaidCount", stats.unpaid());
+        model.addAttribute("paidRate",    stats.paidRate());
+        model.addAttribute("billingList", unpaidPage.getContent());
+        model.addAttribute("currentPage", unpaidPage.getNumber());
+        model.addAttribute("totalPages",  unpaidPage.getTotalPages());
+        model.addAttribute("pageSize",    20);
+        model.addAttribute("menu",        "billing");
+
+        return "billing/billing_admin_unpaid";
     }
 
-    /**
-     * 관리자 고지서 업로드 페이지
-     * GET /billing/admin/upload
-     */
-    @GetMapping("/admin/upload")
-    public String uploadPage() {
-        return "billing/admin-upload";  // templates/billing/admin-upload.html
-    }
-
-    /**
-     * 관리자 미납 세대 관리 페이지
-     * GET /billing/admin/unpaid
-     */
-    @GetMapping("/admin/unpaid")
-    public String unpaidPage() {
-        return "billing/admin-unpaid";  // templates/billing/admin-unpaid.html
-    }
 }

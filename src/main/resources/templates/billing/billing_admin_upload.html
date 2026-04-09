@@ -4,8 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>고지서 업로드 - HomeTalkOnePass</title>
-    <link rel="stylesheet" href="/common.css" th:href="@{/common.css}" />
-    <link rel="stylesheet" href="/css/billing_upload.css" th:href="@{/css/billing_upload.css}" />
+    <link rel="stylesheet" href="/dashboard/style.css" th:href="@{/dashboard/style.css}" />
+    <link rel="stylesheet" href="/billing/css/common.css" th:href="@{/billing/css/common.css}" />
+    <link rel="stylesheet" href="/billing/css/billing_admin_upload.css" th:href="@{/billing/css/billing_admin_upload.css}" />
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
@@ -13,7 +14,7 @@
 <div class="layout">
 
     <div th:replace="~{fragments/sidebar :: sidebar}"
-         th:with="activeMenu='billing', activeSubMenu='upload'"></div>
+         th:with="menu='billing'"></div>
 
     <main class="main-content">
 

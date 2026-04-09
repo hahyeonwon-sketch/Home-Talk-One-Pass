@@ -75,5 +75,5 @@ public interface BillingRepository extends JpaRepository<Billing, Long> {
     long countByBillingMonthAndStatus(String billingMonth, BillingStatus status);
 
     // UPSERT 기준 조회
-    Optional<Billing> findByHousehold_IdAndBillingMonth(Long householdId, String billingMonth);
+    //Optional<Billing> findByHousehold_IdAndBillingMonth(Long householdId, String billingMonth);
 }

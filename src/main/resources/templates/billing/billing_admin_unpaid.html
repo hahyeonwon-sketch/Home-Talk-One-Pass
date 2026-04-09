@@ -4,15 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>미납 세대 관리 - HomeTalkOnePass</title>
-    <link rel="stylesheet" href="/css/common.css"          th:href="@{/css/common.css}" />
-    <link rel="stylesheet" href="/css/billing_unpaid.css"  th:href="@{/css/billing_unpaid.css}" />
+    <link rel="stylesheet" href="/dashboard/style.css" th:href="@{/dashboard/style.css}" />
+    <link rel="stylesheet" href="/billing/css/common.css" th:href="@{/billing/css/common.css}" />
+    <link rel="stylesheet" href="/billing/css/billing_admin_unpaid.css" th:href="@{/billing/css/billing_admin_unpaid.css}" />
 </head>
 <body>
 
 <div class="layout">
 
     <div th:replace="~{fragments/sidebar :: sidebar}"
-         th:with="activeMenu='billing', activeSubMenu='unpaid'"></div>
+         th:with="menu='billing'"></div>
 
     <main class="main-content">
 

@@ -1,5 +1,6 @@
 package com.hometalk.onepass.billing.entity;
 
+import com.hometalk.onepass.billing.entity.BillingStatus;
 import com.hometalk.onepass.auth.entity.Household;
 import com.hometalk.onepass.common.entity.BaseTimeEntity;
 import jakarta.persistence.*;
@@ -10,18 +11,18 @@ import java.time.LocalDate;
 
 @Entity
 @Table(
-        name = "billings",
+        name = "billing",
         uniqueConstraints = {
                 @UniqueConstraint(
-                        name = "uk_billings_household_month",
+                        name = "uk_billing_household_month",
                         columnNames = {"household_id", "billing_month"}
                 )
         },
         indexes = {
-                @Index(name = "idx_billings_household_id",  columnList = "household_id"),
-                @Index(name = "idx_billings_billing_month", columnList = "billing_month"),
-                @Index(name = "idx_billings_status",        columnList = "status"),
-                @Index(name = "idx_billings_due_date",      columnList = "due_date")
+                @Index(name = "idx_billing_household_id",  columnList = "household_id"),
+                @Index(name = "idx_billing_billing_month", columnList = "billing_month"),
+                @Index(name = "idx_billing_status",        columnList = "status"),
+                @Index(name = "idx_billing_due_date",      columnList = "due_date")
         }
 )
 @Getter
@@ -61,7 +62,4 @@ public class Billing extends BaseTimeEntity {
         this.dueDate = dueDate;
     }
 
-    public enum BillingStatus {
-        UNPAID, PAID
-    }
 }

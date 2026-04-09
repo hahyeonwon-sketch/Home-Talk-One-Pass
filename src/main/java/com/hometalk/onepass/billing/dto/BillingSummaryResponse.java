@@ -10,8 +10,9 @@ package com.hometalk.onepass.billing.dto;
  *  - 관리자 고지서 업로드 유효성 검사 + 미리보기 테이블
  *    · NUM, 동/호, household_id, 부과월, 청구금액, 검증상태, 비고(UPSERT)
  */
+
 import com.hometalk.onepass.billing.entity.Billing;
-import com.hometalk.onepass.billing.entity.Billing.BillingStatus;
+import com.hometalk.onepass.billing.entity.BillingStatus;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -25,6 +26,7 @@ public class BillingSummaryResponse {
     private final Long billingId;
     private final String dong;
     private final String ho;
+    private final String unit;          // 추가 - "101동 1204호"
     private final String residentName;
     private final String billingMonth;
     private final LocalDate dueDate;
@@ -37,6 +39,7 @@ public class BillingSummaryResponse {
                 .billingId(billing.getId())
                 .dong(billing.getHousehold().getDong())
                 .ho(billing.getHousehold().getHo())
+                .unit(billing.getHousehold().getDong() + " " + billing.getHousehold().getHo())
                 .billingMonth(billing.getBillingMonth())
                 .dueDate(billing.getDueDate())
                 .totalAmount(billing.getTotalAmount())
@@ -50,6 +53,7 @@ public class BillingSummaryResponse {
                 .billingId(billing.getId())
                 .dong(billing.getHousehold().getDong())
                 .ho(billing.getHousehold().getHo())
+                .unit(billing.getHousehold().getDong() + " " + billing.getHousehold().getHo())
                 .residentName(residentName)
                 .billingMonth(billing.getBillingMonth())
                 .dueDate(billing.getDueDate())

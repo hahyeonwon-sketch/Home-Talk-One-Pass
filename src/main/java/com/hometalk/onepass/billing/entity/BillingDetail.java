@@ -8,9 +8,9 @@ import java.math.BigDecimal;
 
 @Entity
 @Table(
-        name = "billing_details",
+        name = "billing_detail",
         indexes = {
-                @Index(name = "idx_billing_details_billing_id", columnList = "billing_id")
+                @Index(name = "idx_billing_detail_billing_id", columnList = "billing_id")
         }
 )
 @Getter
@@ -27,7 +27,7 @@ public class BillingDetail extends BaseTimeEntity {
     @JoinColumn(
             name = "billing_id",
             nullable = false,
-            foreignKey = @ForeignKey(name = "fk_billing_details_billing_id")
+            foreignKey = @ForeignKey(name = "fk_billing_detail_billing_id")
     )
     private Billing billing;
 

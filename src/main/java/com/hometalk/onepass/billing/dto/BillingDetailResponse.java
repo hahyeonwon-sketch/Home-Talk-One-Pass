@@ -15,7 +15,7 @@ package com.hometalk.onepass.billing.dto;
  *  - PAID                    : 납부 완료 메시지 + paidAt 표시 (초록색 박스)
  */
 
-import com.hometalk.onepass.billing.entity.Billing.BillingStatus;
+import com.hometalk.onepass.billing.entity.BillingStatus;
 import lombok.Builder;
 import lombok.Getter;
 
