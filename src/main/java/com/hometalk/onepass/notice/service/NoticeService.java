@@ -4,12 +4,16 @@ package com.hometalk.onepass.notice.service;
 import com.hometalk.onepass.notice.dto.NoticeDetailResponseDto;
 import com.hometalk.onepass.notice.dto.NoticeListResponseDto;
 import com.hometalk.onepass.notice.dto.NoticeRequestDto;
+import com.hometalk.onepass.notice.entity.Attachment;
+import com.hometalk.onepass.notice.entity.Badge;
 import com.hometalk.onepass.notice.entity.Notice;
+import com.hometalk.onepass.notice.repository.AttachmentRepository;
 import com.hometalk.onepass.notice.repository.NoticeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,21 +23,22 @@ import java.util.stream.Collectors;
 public class NoticeService {
 
     private final NoticeRepository noticeRepository;
+    private final AttachmentRepository attachmentRepository;
 
-    // 공지 전체 목록 조회
+    // 공지 전체 목록 조회 , 상단 고정, 최신순 정렬
     public List<NoticeListResponseDto> getNoticeList() {
-        List<Notice> notices = noticeRepository.findAll();
 
-        //DTO로 변환 후 반환
+        List<Notice> notices = noticeRepository.findAllByOrderByIsPinnedDescCreatedAtDesc();
+
         return notices.stream().map(notice -> new NoticeListResponseDto(
-                notice.getId(),
-                notice.getTitle(),
-                notice.getBadge(),
-                notice.getIsPinned(),
-                notice.getViewCount(),
-                notice.getCreatedAt(),
-                notice.getUpdatedAt()
-        ))
+                        notice.getId(),
+                        notice.getTitle(),
+                        notice.getBadge(),
+                        notice.getIsPinned(),
+                        notice.getViewCount(),
+                        notice.getCreatedAt(),
+                        notice.getUpdatedAt()
+                ))
                 .collect(Collectors.toList());
     }
 
@@ -86,4 +91,59 @@ public class NoticeService {
                 notice.getUpdatedAt()
         );
     }
+
+    // 이전글
+    public NoticeListResponseDto getPreNotice(Long id) {
+        return noticeRepository.findFirstByIdLessThanOrderByIdDesc(id)
+                .map(notice -> new NoticeListResponseDto(
+                        notice.getId(),
+                        notice.getTitle(),
+                        notice.getBadge(),
+                        notice.getIsPinned(),
+                        notice.getViewCount(),
+                        notice.getCreatedAt(),
+                        notice.getUpdatedAt()
+                ))
+        .orElse(null);
+    }
+
+    // 다음글
+    public NoticeListResponseDto getNextNotice(Long id) {
+        return noticeRepository.findFirstByIdGreaterThanOrderByIdAsc(id)
+                .map(notice -> new NoticeListResponseDto(
+                        notice.getId(),
+                        notice.getTitle(),
+                        notice.getBadge(),
+                        notice.getIsPinned(),
+                        notice.getViewCount(),
+                        notice.getCreatedAt(),
+                        notice.getUpdatedAt()
+                ))
+                .orElse(null);
+    }
+
+    // 제목, 내용 키워드 검색
+    public List<NoticeListResponseDto> searchNotice(String keyword) {
+        // keyword를 제목과 내용 둘 다 검색
+        List<Notice> notices = noticeRepository.findByTitleContainingOrContentContaining(keyword, keyword);
+
+        return notices.stream().map(notice -> new NoticeListResponseDto(
+                notice.getId(),
+                notice.getTitle(),
+                notice.getBadge(),
+                notice.getIsPinned(),
+                notice.getViewCount(),
+                notice.getCreatedAt(),
+                notice.getUpdatedAt()
+        ))
+                .collect(Collectors.toList());
+    }
+    // 첨부파일
+    public List<Attachment> getAttachments(Long noticeId) {
+
+        return attachmentRepository.findByNoticeId(noticeId);
+    }
+
+
+
 }

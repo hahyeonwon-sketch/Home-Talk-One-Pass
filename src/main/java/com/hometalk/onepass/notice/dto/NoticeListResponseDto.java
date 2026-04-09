@@ -15,7 +15,7 @@ public class NoticeListResponseDto {
     private Long id;
     private String title;
     private Badge badge;
-    private boolean isPinned;
+    private Boolean isPinned;
     private int viewCount;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
