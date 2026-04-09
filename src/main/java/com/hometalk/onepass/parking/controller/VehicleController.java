@@ -35,7 +35,9 @@ public class VehicleController {
 
     // 차량 등록 페이지
     @GetMapping("/vehicle/register")
-    public String vehicleRegisterPage() {
+    public String vehicleRegisterPage(Model model) {
+
+        model.addAttribute("menu", "parking");
         return "parking/vehicle-register";
     }
 

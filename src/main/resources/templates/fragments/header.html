@@ -45,7 +45,7 @@
             <th:block th:if="${currentUri != null}">
 <!--                <span style="margin: 0 10px; color: #ccc;">&gt;</span>-->
                 <span th:if="${currentUri.startsWith('/hometop/notification')}">알람 목록</span>
-                <span th:if="${currentUri.startsWith('/hometop/settings')}">시스템 설정</span>
+                <span th:if="${currentUri.startsWith('/hometop/parking/vehicle/register')}">주차</span>
                 <span th:if="${currentUri == '/hometop/index'}">대시보드</span>
             </th:block>
         </span>
@@ -55,7 +55,7 @@
                 <span style="margin: 0 10px; color: #ccc;">&gt;</span>
                 <strong style="color: #333; font-weight: 700;">
                     <span th:if="${currentUri.startsWith('/hometop/notification')}">전체 보기</span>
-                    <span th:if="${currentUri.startsWith('/hometop/user')}">사용자 관리</span>
+                    <span th:if="${currentUri.startsWith('/hometop/parking/vehicle/register')}">등록</span>
                     <span th:if="${currentUri.startsWith('/hometop/settings')}">환경 설정</span>
                 </strong>
             </th:block>
