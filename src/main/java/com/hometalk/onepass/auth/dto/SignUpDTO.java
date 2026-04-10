@@ -10,3 +10,4 @@ public class SignUpDTO {
     private String email;
     private String phoneNumber;
 }
+//1
