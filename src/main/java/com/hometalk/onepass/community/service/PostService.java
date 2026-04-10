@@ -42,8 +42,6 @@ public class PostService {
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         Post post = dto.toEntity(category, board, writer);
-        post.setUser(writer); // 작성자 설정
-        post.setBoard(board);
         return postRepository.save(post).getId();
     }
 

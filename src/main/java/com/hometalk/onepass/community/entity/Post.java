@@ -10,11 +10,13 @@ import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor     // Builder 쓸 땐 필수
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)     // Builder 쓸 땐 필수
 @Builder
 @Table(name = "posts", indexes = {
         @Index(name = "idx_post_user",columnList = "user_id, created_at DESC"),
@@ -33,18 +35,28 @@ public class Post extends BaseSoftDeleteEntity {
     @Lob @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
 
-    @Column
+    @Builder.Default
     private boolean pinned = false;
 
-    @Column(columnDefinition = "integer default 0")
+    @Column(columnDefinition = "integer default 0", nullable = false)
     @Builder.Default
     private Integer viewCount = 0;
 
-    @Column(columnDefinition = "integer default 0")
+    @Column(columnDefinition = "integer default 0", nullable = false)
     @Builder.Default
     private Integer commentCount = 0;
 
-    // FK
+    // Post가 1인 관계
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<PostTag> postTags = new ArrayList<>();
+
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<PostImage> postImages = new ArrayList<>();
+
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Comment> comments = new ArrayList<>();
+
+    // FK (Post가 N인 관계)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
     private User user;
@@ -65,6 +77,7 @@ public class Post extends BaseSoftDeleteEntity {
     @Enumerated(EnumType.STRING)
     private MarketStatus marketStatus = MarketStatus.SHARED;
 
+    // 변경 method
     public void update(PostRequestDTO dto) {
         this.title = dto.getTitle();
         this.content = dto.getContent();
@@ -75,6 +88,11 @@ public class Post extends BaseSoftDeleteEntity {
     public void softDelete() {
         super.softDelete();     // 부모 deletedAt 설정 실행
         this.postStatus = PostStatus.DELETED;
+    }
+
+    // 조회수
+    public void addViewCount() {
+        this.viewCount++;
     }
 
     // 상태 변경 method
