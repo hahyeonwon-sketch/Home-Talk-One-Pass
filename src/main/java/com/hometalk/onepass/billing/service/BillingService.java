@@ -183,7 +183,9 @@ public class BillingService {
                 .findAllWithAdminFilter(dong, yearFrom, yearTo, month, status, overdueBefore, pageable)
                 .map(b -> BillingSummaryResponse.of(
                         b,
-                        b.getHousehold().getUsers().get(0).getName()  // 대표 입주민명
+                        "-"
+        //                b.getHousehold().getUsers().get(0).getName()  // 대표 입주민명
+                        // TODO: HouseholdRepository 머지 후 b.getHousehold().getUsers().get(0).getName() 으로 교체
                 ));
 
     }

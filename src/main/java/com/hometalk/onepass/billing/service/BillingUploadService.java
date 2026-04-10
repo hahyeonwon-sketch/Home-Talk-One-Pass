@@ -29,6 +29,7 @@ public class BillingUploadService {
     private final BillingRepository       billingRepository;
     private final BillingDetailRepository billingDetailRepository;
     private final BillingLogRepository    billingLogRepository;
+    // TODO: HouseholdRepository 머지 후 아래 주석 해제
     //private final HouseholdRepository     householdRepository;
 
     // ─────────────────────────────────────────────
@@ -84,6 +85,7 @@ public class BillingUploadService {
 
             if (validate(row) != null) continue;
 
+            // TODO: HouseholdRepository 머지 후 아래 주석 해제
         //    Household household = householdRepository.findById(row.getHouseholdId())
         //            .orElseThrow(() -> new IllegalArgumentException(
         //                    "존재하지 않는 세대입니다. id=" + row.getHouseholdId()));
@@ -100,19 +102,27 @@ public class BillingUploadService {
                 billing.updateByUpload(row.getTotalAmount(), row.getDueDate());
                 billingDetailRepository.deleteByBilling_Id(billing.getId());
                 updateCount++;
-            } else {
-                // INSERT
-//                billing = billingRepository.save(Billing.builder()
-//                        .household(household)
-//                        .billingMonth(row.getBillingMonth())
-//                        .dueDate(row.getDueDate())
-//                        .totalAmount(row.getTotalAmount())
-//                        .status(BillingStatus.UNPAID)
-//                        .build());
-//                insertCount++;
-//            }
 
-            // billing_details 저장
+            } else {
+                // TODO: HouseholdRepository 머지 후 아래 주석 해제
+                // Household household = householdRepository.findById(row.getHouseholdId())
+                //         .orElseThrow(() -> new IllegalArgumentException(
+                //                 "존재하지 않는 세대입니다. id=" + row.getHouseholdId()));
+
+                // HouseholdRepository 연동 전 임시 처리 — INSERT 스킵
+                insertCount++;
+                continue; // TODO: 머지 후 아래 billing 생성 코드로 교체
+
+                // billing = billingRepository.save(Billing.builder()
+                //         .household(household)
+                //         .billingMonth(row.getBillingMonth())
+                //         .dueDate(row.getDueDate())
+                //         .totalAmount(row.getTotalAmount())
+                //         .status(BillingStatus.UNPAID)
+                //         .build());
+            }
+
+// billing_details 저장
             List<BillingDetail> details = new ArrayList<>();
             List<ItemRow> items = row.getItems();
             for (int i = 0; i < items.size(); i++) {
@@ -125,12 +135,14 @@ public class BillingUploadService {
             }
             billingDetailRepository.saveAll(details);
 
-            // billing_logs UPLOAD 기록
+// billing_logs UPLOAD 기록
             billingLogRepository.save(BillingLog.builder()
                     .billing(billing)
                     .userId(adminId)
                     .actionType(BillingActionType.UPLOAD)
                     .build());
+
+
         }
 
         return new UploadConfirmResult(insertCount, updateCount);
