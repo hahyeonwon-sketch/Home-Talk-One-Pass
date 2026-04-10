@@ -13,6 +13,7 @@
 
 </head>
 <body>
+
 <div class="auth-container">
     <h2>Home Talk One Pass</h2>
     <h2>로그인</h2>
@@ -33,16 +34,15 @@
 
 
 <script th:if="${param.error}" th:inline="javascript">
-    /*<![CDATA[*/
 
     // 1. 알림창 띄우기
     alert("아이디 또는 비밀번호가 일치하지 않습니다.");
 
     // 2. 확인(OK)을 누르면 다시 깨끗한 로그인 페이지로 리다이렉트
-    // window.location.pathname은 현재 경로(예: /hometop/auth)를 의미합니다.
     window.location.href = window.location.pathname;
-
     /*]]>*/
 </script>
+
+
 </body>
 </html>

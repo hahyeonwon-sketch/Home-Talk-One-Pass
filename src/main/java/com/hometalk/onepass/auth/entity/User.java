@@ -43,7 +43,7 @@ public class User extends BaseSoftDeleteEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false, length = 20)
-    private UserRole role = UserRole.MEMBER;
+    private UserRole role = UserRole.TEMP;
 
     // 연관관계
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
@@ -60,7 +60,7 @@ public class User extends BaseSoftDeleteEntity {
         this.email = email;
         this.phoneNumber = phoneNumber;
         this.status = status != null ? status : UserStatus.PENDING;
-        this.role = role != null ? role : UserRole.MEMBER;
+        this.role = role != null ? role : UserRole.TEMP;
     }
 
     // 세대 배정 (관리자 승인 시 호출)
@@ -82,6 +82,7 @@ public class User extends BaseSoftDeleteEntity {
     }
 
     public enum UserRole {
-        ADMIN, RESIDENT, STAFF, MEMBER
+        ADMIN, RESIDENT, STAFF, TEMP
     }
+
 }
