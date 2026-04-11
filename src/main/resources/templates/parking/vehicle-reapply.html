@@ -35,9 +35,11 @@
     <input type="text" th:value="${vehicle.vehicleType}" readonly>
   </div>
 
-  <form id="reapplyForm" th:action="@{/parking/vehicle/reapply}" method="post" enctype="multipart/form-data">
+  <form id="reapplyForm"
+        th:action="@{/parking/vehicle/reapply/{vehicleId}(vehicleId=${vehicle.vehicleId})}"
+        method="post"
+        enctype="multipart/form-data">
     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-    <input type="hidden" name="vehicleId" th:value="${vehicle.vehicleId}">
 
     <div class="form-group">
       <label>필수 서류</label>
@@ -87,29 +89,24 @@
   const allowedExtensions = ['jpg', 'jpeg', 'pdf'];
   const allowedMimeTypes = ['image/jpeg', 'application/pdf'];
 
-  // 파일 추가 버튼
   document.getElementById('addFileBtn').addEventListener('click', () => fileInput.click());
 
-  // 파일 선택 시
   fileInput.addEventListener('change', () => {
       const files = Array.from(fileInput.files);
 
       files.forEach(file => {
           const ext = file.name.split('.').pop().toLowerCase();
 
-          // 파일 중복 방지
           if (uploadedFiles.some(f => f.name === file.name)) {
               fileError.textContent = `"${file.name}"은 이미 추가된 파일입니다.`;
               return;
           }
 
-          // 확장자 검증
           if (!allowedExtensions.includes(ext)) {
               fileError.textContent = 'jpg, pdf 파일만 업로드 가능합니다.';
               return;
           }
 
-          // MIME 타입 검증
           if (!allowedMimeTypes.includes(file.type)) {
               fileError.textContent = '올바르지 않은 파일 형식입니다.';
               return;
@@ -132,14 +129,12 @@
       checkSubmitBtn();
   });
 
-  // fileInput과 uploadedFiles 동기화
   function syncFileInput() {
       const dt = new DataTransfer();
       uploadedFiles.forEach(file => dt.items.add(file));
       fileInput.files = dt.files;
   }
 
-  // 항목 제거
   document.getElementById('removeFileBtn').addEventListener('click', () => {
       const rows = Array.from(fileList.querySelectorAll('tr'));
       const toRemove = [];
@@ -151,7 +146,6 @@
           }
       });
 
-      // 뒤에서부터 제거해야 index 안 밀림
       toRemove.reverse().forEach(index => {
           uploadedFiles.splice(index, 1);
           rows[index].remove();
@@ -161,7 +155,6 @@
       checkSubmitBtn();
   });
 
-  // 전체 항목 제거
   document.getElementById('removeAllFileBtn').addEventListener('click', () => {
       fileList.innerHTML = '';
       uploadedFiles.length = 0;
@@ -169,17 +162,14 @@
       checkSubmitBtn();
   });
 
-  // 전체 선택 체크박스
   document.getElementById('checkAll').addEventListener('change', (e) => {
       document.querySelectorAll('.fileCheck').forEach(cb => cb.checked = e.target.checked);
   });
 
-  // 제출 버튼 활성화 체크
   function checkSubmitBtn() {
       submitBtn.disabled = uploadedFiles.length === 0;
   }
 
-  // 폼 제출 시 최종 검증
   document.getElementById('reapplyForm').addEventListener('submit', (e) => {
       if (uploadedFiles.length === 0) {
           e.preventDefault();

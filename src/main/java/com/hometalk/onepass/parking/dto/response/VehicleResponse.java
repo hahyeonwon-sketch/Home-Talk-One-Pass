@@ -18,8 +18,11 @@ public class VehicleResponse {
         this.vehicleId = vehicle.getVehicleId();
         this.vehicleNumber = vehicle.getVehicleNumber();
         this.model = vehicle.getModel();
+        this.vehicleType = vehicle.getVehicleType();
         this.status = vehicle.getStatus().name();
-        this.userName = vehicle.getUser().getName();
-        this.household = vehicle.getHousehold().getDong() + " " + vehicle.getHousehold().getHo();
+        this.userName = vehicle.getUser() != null ? vehicle.getUser().getName() : "";
+        this.household = vehicle.getHousehold() != null
+                ? vehicle.getHousehold().getDong() + " " + vehicle.getHousehold().getHo()
+                : "";
     }
 }

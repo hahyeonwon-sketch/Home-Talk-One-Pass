@@ -48,7 +48,7 @@
         <button type="button"
                 th:if="${vehicle.status.name() == 'REJECTED'}"
                 class="reapply-btn"
-                th:attr="data-vehicle=${vehicle.vehicleNumber}"
+                th:attr="data-vehicle=${vehicle.vehicleId}"
                 onclick="goReapply(this.getAttribute('data-vehicle'))">
           재신청
         </button>
@@ -78,12 +78,12 @@
 <script>
   const csrfToken = document.querySelector('meta[name="_csrf"]').content;
   const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
-  let selectedVehicleNumber = '';
+  let selectedVehicleId = null;
 
-  function goReapply(vehicleNumber) {
-      selectedVehicleNumber = vehicleNumber;
+  function goReapply(vehicleId) {
+      selectedVehicleId = vehicleId;
 
-      fetch(`/parking/vehicle/reject-reason/${encodeURIComponent(vehicleNumber)}`, {
+      fetch(`/parking/vehicle/reject-reason/${vehicleId}`, {
           headers: {
               [csrfHeader]: csrfToken
           }
@@ -93,10 +93,10 @@
                   const msg = await res.text();
                   throw new Error(msg || '서버 오류');
               }
-              return res.json();
+              return res.text();
           })
           .then(data => {
-              document.getElementById('rejectReason').textContent = data.rejectReason ?? '사유 없음';
+              document.getElementById('rejectReason').textContent = data || '사유 없음';
               document.getElementById('rejectModal').style.display = 'block';
           })
           .catch(err => {
@@ -110,7 +110,7 @@
   }
 
   function goReapplyFromModal() {
-      location.href = `/parking/vehicle/reapply/${encodeURIComponent(selectedVehicleNumber)}`;
+      location.href = `/parking/vehicle/reapply/${selectedVehicleId}`;
   }
 </script>
 

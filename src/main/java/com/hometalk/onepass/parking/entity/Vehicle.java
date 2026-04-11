@@ -6,13 +6,11 @@ import com.hometalk.onepass.auth.entity.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Table(name = "vehicles")
 @Getter
 @NoArgsConstructor
-@SQLRestriction("is_deleted = false")
 public class Vehicle extends BaseSoftDeleteEntity {
 
     @Id
@@ -38,7 +36,10 @@ public class Vehicle extends BaseSoftDeleteEntity {
     @Column(length = 50)
     private String model;
 
-    public Vehicle(Household household, User user, String vehicleNumber, String model) {
+    @Column(name = "vehicle_type", length = 20)
+    private String vehicleType;
+
+    public Vehicle(Household household, User user, String vehicleNumber, String model, String vehicleType) {
         if (vehicleNumber == null || vehicleNumber.isBlank()) {
             throw new IllegalArgumentException("차량 번호는 필수입니다.");
         }
@@ -46,6 +47,7 @@ public class Vehicle extends BaseSoftDeleteEntity {
         this.user = user;
         this.vehicleNumber = vehicleNumber;
         this.model = model;
+        this.vehicleType = vehicleType;
         this.status = VehicleStatus.PENDING;
     }
 
