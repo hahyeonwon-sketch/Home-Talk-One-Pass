@@ -15,5 +15,6 @@ spring:
       hibernate:
         format_sql: true
 
+
   thymeleaf:
     encoding: UTF-8
