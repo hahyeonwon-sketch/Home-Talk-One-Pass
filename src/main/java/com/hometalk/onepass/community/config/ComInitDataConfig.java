@@ -1,12 +1,9 @@
 package com.hometalk.onepass.community.config;
 
-import com.hometalk.onepass.community.dto.BoardRequestDTO;
-import com.hometalk.onepass.community.dto.BoardResponseDTO;
 import com.hometalk.onepass.community.entity.Board;
 import com.hometalk.onepass.community.entity.Category;
 import com.hometalk.onepass.community.repository.BoardRepository;
 import com.hometalk.onepass.community.repository.CategoryRepository;
-import com.hometalk.onepass.community.service.BoardService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -17,7 +14,7 @@ import java.util.List;
 @Slf4j
 @Configuration
 @RequiredArgsConstructor
-public class InitDataConfig implements CommandLineRunner {
+public class ComInitDataConfig implements CommandLineRunner {
 
     private final BoardRepository boardRepository;
     private final CategoryRepository categoryRepository;

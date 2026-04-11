@@ -15,9 +15,12 @@ public class BoardResponseDTO {
     private String name;
     private String code;
 
-    public BoardResponseDTO(Board board) {
-        this.id = board.getId();
-        this.name = board.getName();
-        this.code = board.getCode();
+    // 정적 팩토리 메서드
+    public static BoardResponseDTO from(Board board) {
+        return BoardResponseDTO.builder()
+                .id(board.getId())
+                .name(board.getName())
+                .code(board.getCode())
+                .build();
     }
 }

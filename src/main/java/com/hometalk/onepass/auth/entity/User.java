@@ -1,7 +1,8 @@
 package com.hometalk.onepass.auth.entity;
+
 import com.hometalk.onepass.common.entity.BaseSoftDeleteEntity;
-
-
+import com.hometalk.onepass.community.entity.Comment;
+import com.hometalk.onepass.community.entity.Post;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -43,7 +44,7 @@ public class User extends BaseSoftDeleteEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false, length = 20)
-    private UserRole role = UserRole.TEMP;
+    private UserRole role = UserRole.MEMBER;
 
     // 연관관계
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
@@ -51,6 +52,13 @@ public class User extends BaseSoftDeleteEntity {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<SocialAccount> socialAccounts = new ArrayList<>();
+
+    // community
+    @OneToMany(mappedBy = "writer", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Post> posts = new ArrayList<>();
+
+    @OneToMany(mappedBy = "writer", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Comment> comments = new ArrayList<>();
 
     @Builder
     public User(String name, String nickname, String email,
@@ -60,7 +68,7 @@ public class User extends BaseSoftDeleteEntity {
         this.email = email;
         this.phoneNumber = phoneNumber;
         this.status = status != null ? status : UserStatus.PENDING;
-        this.role = role != null ? role : UserRole.TEMP;
+        this.role = role != null ? role : UserRole.MEMBER;
     }
 
     // 세대 배정 (관리자 승인 시 호출)
@@ -82,7 +90,6 @@ public class User extends BaseSoftDeleteEntity {
     }
 
     public enum UserRole {
-        ADMIN, RESIDENT, STAFF, TEMP
+        ADMIN, RESIDENT, STAFF, MEMBER
     }
-
 }
