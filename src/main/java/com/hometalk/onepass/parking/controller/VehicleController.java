@@ -30,12 +30,15 @@ public class VehicleController {
         Long householdId = null; // TODO: JWT 연동 후 추출
         List<VehicleResponse> vehicles = vehicleService.getHouseholdVehicles(householdId);
         model.addAttribute("vehicles", vehicles);
+        model.addAttribute("menu", "parking");
         return "parking/vehicle-status";
     }
 
     // 차량 등록 페이지
     @GetMapping("/vehicle/register")
-    public String vehicleRegisterPage() {
+    public String vehicleRegisterPage(Model model) {
+
+        model.addAttribute("menu", "parking");
         return "parking/vehicle-register";
     }
 
