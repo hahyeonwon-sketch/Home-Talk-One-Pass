@@ -4,6 +4,8 @@ import com.hometalk.onepass.auth.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -13,47 +15,30 @@ import java.time.LocalDateTime;
 @Table(name = "kjh_inquiry")
 public class Inquiry {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
 
-    @Column(nullable = false)
-    private String title;
+    public void setUser(User user) { this.user = user; }
 
     private String category;
-
-    @Column(columnDefinition = "TEXT", nullable = false)
+    private String title;
     private String content;
-
+    private String status; // 미답변, 처리중, 완료 등
     private String answer;
 
-    // 기본값을 '미답변'으로 설정
-    @Builder.Default
-    private String status = "미답변";
-
     private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 
-    // DB에 처음 저장될 때 현재 시간을 자동으로 넣어줌
     @PrePersist
     public void prePersist() {
         this.createdAt = LocalDateTime.now();
+        if (this.status == null) this.status = "미답변";
     }
 
-    @PreUpdate
-    public void preUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
-
-    /**
-     * 답변 등록 및 상태 변경 메소드
-     */
-    public void addAnswer(String answer) {
-        this.answer = answer;
-        this.status = "답변완료";
-    }
+    @Builder.Default
+    @OneToMany(mappedBy = "inquiry", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<InquiryAttachment> attachments = new ArrayList<>();
 }
