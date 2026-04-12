@@ -16,5 +16,5 @@ public interface NoticeRepository extends JpaRepository<Notice, Long> {
     List<Notice> findAllByOrderByIsPinnedDescCreatedAtDesc();
 
     // 제목, 내용 키워드 검색
-    List<Notice> findByTitleContainingOrContentContaining(String title, String content);
+    List<Notice> findByTitleContainingOrContentContainingOrderByCreatedAtDesc(String keyword, String keyword1);
 }
