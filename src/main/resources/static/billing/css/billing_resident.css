@@ -5,14 +5,25 @@
 ═══════════════════════════════════════ */
 
 /* ── 페이지 ── */
-.bp-page { padding: 24px; min-height: 100vh; background: var(--color-bg); }
+.bp-page { width: 100%; display: flex; flex-direction: column;
+       padding: 24px; min-height: 100vh; background: var(--color-bg); }
 
-/* ── 미납 알림 배너 ── */
-.bp-alert { display: flex; align-items: flex-start; gap: 10px; padding: 12px 16px; background: var(--color-unpaid-bg); border: 1px solid var(--color-unpaid-border); border-radius: var(--radius-md); margin-bottom: 20px; }
-.bp-alert-icon { width: 20px; height: 20px; border-radius: 50%; background: var(--color-btn-point); display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; font-size: 12px; color: #fff; font-weight: 600; }
+/* ── 미납 배너 내용 (미납일 때만 표시) ── */
+.bp-alert-inner {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+.bp-alert-icon {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: var(--color-btn-point);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    font-size: 12px; color: #fff; font-weight: 600;
+}
 .bp-alert-title { font-size: 13px; font-weight: 500; color: var(--color-unpaid-text); }
-.bp-alert-sub { font-size: 11px; color: var(--color-unpaid-text); opacity: .75; margin-top: 3px; }
-
+.bp-alert-sub   { font-size: 11px; color: var(--color-unpaid-text); opacity: .75; margin-top: 3px; }
 /* ── 요약 카드 ── */
 .bp-summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 28px; }
 .bp-card { background: var(--color-surface-2); border-radius: var(--radius-md); padding: 14px 16px; }

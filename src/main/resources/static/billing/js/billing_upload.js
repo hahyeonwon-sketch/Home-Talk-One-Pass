@@ -7,7 +7,7 @@
    - 시트   : 동별 분리 (101동, 102동, ...)
    - 컬럼 A : 동/호 (예: 101-101)
    - 컬럼 B : 당월부과액 (= total_amount)
-   - 컬럼 C~S: 항목별 금액 (18개)
+   - 컬럼 C~S: 항목별 금액 (17개)
    ================================================================ */
 
 'use strict';
@@ -26,16 +26,16 @@ const MONTHS = ['1월','2월','3월','4월','5월','6월','7월','8월',
                 '9월','10월','11월','12월'];
 
 /* ── 상태 ── */
-let validRows   = [];
-let billingMonth = null;  // 파일명에서 파싱한 부과월 (예: "2026-03")
-let selYear     = new Date().getFullYear();
-let selMonth    = null;
-let selDong     = null;
-let openPanel   = null;
-let sortKey     = null;
-let sortDir     = 1;
-let pendingFile = null;
-let uploadDone  = false;
+let validRows    = [];
+let billingMonth = null;
+let selYear      = new Date().getFullYear();
+let selMonth     = null;
+let selDong      = null;
+let openPanel    = null;
+let sortKey      = null;
+let sortDir      = 1;
+let pendingFile  = null;
+let uploadDone   = false;
 
 /* ================================================================
    초기화
@@ -72,15 +72,11 @@ function initUploadZone() {
    파일 처리 → 중복 확인 → 파싱
 ================================================================ */
 async function handleFile(file) {
-    pendingFile = file;
+    pendingFile  = file;
 
-    // 파일명에서 부과월 추출
-    // 2026_03.xlsx → "2026-03"
-    // 2026-03.xlsx → "2026-03"
     const nameMatch = file.name.match(/(\d{4})[_-](\d{2})/);
     billingMonth = nameMatch ? `${nameMatch[1]}-${nameMatch[2]}` : null;
 
-    // 중복 확인 API
     if (billingMonth) {
         try {
             const res  = await fetch(
@@ -116,20 +112,24 @@ function confirmDup() {
 function processFile(file) {
     const reader = new FileReader();
     reader.onload = e => {
-        const wb   = XLSX.read(e.target.result, { type: 'binary' });
+        const wb      = XLSX.read(e.target.result, { type: 'binary' });
         const allRows = [];
 
-        // 모든 시트(동) 순회
         wb.SheetNames.forEach(sheetName => {
             const ws   = wb.Sheets[sheetName];
-            const rows = XLSX.utils.sheet_to_json(ws, { defval: 0 });
-            // 시트명에서 동 추출 (예: "101동" → "101동")
+            // raw: true — 숫자를 숫자 타입 그대로 읽기
+            // defval: '' — 빈 셀은 빈 문자열로
+            const rows = XLSX.utils.sheet_to_json(ws, { raw: true, defval: '' });
+            const firstRow = rows[0];
+                const keys = Object.keys(firstRow);
+                console.log('[DEBUG] 컬럼명 목록:', keys);
+                console.log('[DEBUG] 당월부과액 키 존재?', keys.some(k => k.trim() === '당월부과액'));
+                console.log('[DEBUG] 당월부과액 값:', firstRow[keys.find(k => k.trim() === '당월부과액')]);
             const dong = sheetName.replace(/동$/, '') + '동';
-            rows.forEach(row => {
-                allRows.push({ ...row, _dong: dong });
-            });
+            rows.forEach(row => allRows.push({ ...row, _dong: dong }));
         });
 
+        console.log('[DEBUG] 첫 번째 행 원본:', allRows[0]); // 파싱 확인용
         runValidation(allRows);
     };
     reader.readAsBinaryString(file);
@@ -142,39 +142,44 @@ function runValidation(rows) {
     uploadDone = false;
     document.getElementById('uploadDoneBanner').style.display = 'none';
 
-    validRows = rows.map((row, idx) => {
-        // 엑셀 컬럼 파싱
-        const dongHo = String(row['동/호'] || '').trim();   // "101-101"
-        const total  = Number(row['당월부과액']) || 0;
-        const dong   = row._dong || '';                      // "101동"
+    // 컬럼명 공백 제거한 새 rows 생성
+    const trimmedRows = rows.map(row => {
+        const trimmed = {};
+        Object.keys(row).forEach(key => {
+            trimmed[key.trim()] = row[key];
+        });
+        return trimmed;
+    });
 
-        // 동/호 분리 (예: "101-101" → ho: "101호")
+    validRows = rows.map((row, idx) => {
+        const dongHo = String(row['동/호'] ?? '').trim();
+        // 숫자 또는 문자열 모두 처리
+        const total  = parseFloat(String(row['당월부과액']).replace(/,/g, '')) || 0;
+        const dong   = row._dong || '';
         const hoPart = dongHo.split('-')[1] || '';
         const unit   = dongHo ? `${dong} ${hoPart}호` : dongHo;
-
-        // household_id: 현재는 동/호로 대체 (HouseholdRepository 연동 후 교체)
-        // TODO: 서버에서 household_id 매핑
         const householdId = dongHo;
+        const month  = billingMonth || '';
 
-        // 부과월: 파일명에서 파싱한 값 사용
-        const month = billingMonth || '';
-
-        // 검증
         let valid = '정상';
-        if (!dongHo || !month)   valid = '오류';
-        else if (total === 0)    valid = '금액 누락';
+        if (!dongHo || !month) valid = '오류';
+        else if (total === 0)  valid = '금액 누락';
 
-        // 항목 파싱
+        // 항목 파싱 — 숫자/문자열 모두 처리
         const details = ITEM_COLS
-            .map(col => ({ item_name: col, item_amount: Number(row[col]) || 0 }))
+            .map(col => {
+                const raw = row[col];
+                const amt = parseFloat(String(raw).replace(/,/g, '')) || 0;
+                return { item_name: col, item_amount: amt };
+            })
             .filter(d => d.item_amount > 0);
 
         return {
             num:           idx + 1,
-            household_id:  householdId,   // "101-101" (임시)
-            dong:          dong,           // "101동"
-            unit:          unit,           // "101동 101호"
-            billing_month: month,          // "2026-03"
+            household_id:  householdId,
+            dong,
+            unit,
+            billing_month: month,
             total_amount:  total,
             valid,
             upsertType:    valid === '정상' ? 'INSERT' : null,
@@ -182,7 +187,6 @@ function runValidation(rows) {
         };
     });
 
-    // 자동 필터 세팅
     if (billingMonth) {
         const parts = billingMonth.split('-');
         selYear  = Number(parts[0]);
@@ -205,15 +209,14 @@ function showTableSection() {
 }
 
 function renderTable() {
-let rows = validRows.filter(r => {
-    const [y, m] = r.billing_month.split('-').map(Number);
-    if (selYear  && y !== selYear)  return false;  // 추가
-    if (selMonth && m !== selMonth) return false;  // 추가
-    if (selDong  && r.dong !== selDong) return false;
-    return true;
-});
+    let rows = validRows.filter(r => {
+        const [y, m] = r.billing_month.split('-').map(Number);
+        if (selYear  && y !== selYear)  return false;
+        if (selMonth && m !== selMonth) return false;
+        if (selDong  && r.dong !== selDong) return false;
+        return true;
+    });
 
-    // 정렬
     if (sortKey) {
         rows = [...rows].sort((a, b) => {
             const av = a[sortKey], bv = b[sortKey];
@@ -223,10 +226,8 @@ let rows = validRows.filter(r => {
         });
     }
 
-    // num 재계산
     rows = rows.map((r, i) => ({ ...r, num: i + 1 }));
 
-    // 메타 정보
     const totalCount  = validRows.length;
     const errorCount  = validRows.filter(r => r.valid !== '정상').length;
     const normalCount = totalCount - errorCount;
@@ -333,7 +334,7 @@ function closeAllPanels() {
     openPanel = null;
 }
 
-function pickYear(y)  {
+function pickYear(y) {
     selYear = y;
     document.getElementById('lblYear').textContent = y ? y + '년' : '전체';
     closeAllPanels(); renderTable();
@@ -343,7 +344,7 @@ function pickMonth(m) {
     document.getElementById('lblMonth').textContent = m ? MONTHS[m - 1] : '전체 월';
     closeAllPanels(); renderTable();
 }
-function pickDong(d)  {
+function pickDong(d) {
     selDong = d;
     document.getElementById('lblDong').textContent = d ? d : '전체 동';
     closeAllPanels(); renderTable();
@@ -402,11 +403,10 @@ async function confirmUpload() {
     const errorCount = validRows.filter(r => r.valid !== '정상').length;
     if (errorCount > 0 || uploadDone) return;
 
-    // validRows → Controller UploadRow 형식으로 변환
     const uploadRows = validRows
         .filter(r => r.valid === '정상')
         .map(r => ({
-            householdId:  r.household_id,   // TODO: 실제 household PK로 교체
+            householdId:  r.household_id,
             billingMonth: r.billing_month,
             dueDate:      lastDayOfMonth(r.billing_month),
             totalAmount:  r.total_amount,
