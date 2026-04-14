@@ -121,7 +121,7 @@ public class NoticeService {
         noticeRepository.delete(notice);
     }
 
-    // 공지 상세 조회 (조회수 +1)
+    // 공지 상세 조회 (조회수)
     public NoticeDetailResponseDto getNoticeDetail(Long id) {
         Notice notice = noticeRepository.findById(id)
                 .orElseThrow(() -> new NoticeNotFoundException(id));
@@ -192,7 +192,7 @@ public class NoticeService {
         return attachmentRepository.findByNotice(notice);
     }
 
-    // 수정 페이지용 조회 (조회수 증가 없음)
+    // 수정 페이지용 조회 (조회수 증가X)
     public NoticeDetailResponseDto getNotice(Long id) {
         Notice notice = noticeRepository.findById(id)
                 .orElseThrow(() -> new NoticeNotFoundException(id));
