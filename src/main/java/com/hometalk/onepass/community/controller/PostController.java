@@ -8,6 +8,7 @@ import com.hometalk.onepass.community.service.BoardService;
 import com.hometalk.onepass.community.service.CategoryService;
 import com.hometalk.onepass.community.service.PostService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -27,10 +28,11 @@ public class PostController {
     // 게시판별 메인 (카테고리 '전체' 상태)
     @GetMapping("/{boardCode}")
     public String boardMain(@PathVariable String boardCode,
-                            @RequestParam(defaultValue = "0") int page,
+                            @RequestParam(defaultValue = "1") int page,
                             Model model) {
-        // 엔티티가 아닌 DTO를 받음
         BoardResponseDTO board = boardService.findByCode(boardCode);
+        // 사용자의 첫 페이지(1)은 JPA에서 0으로 처리하므로 1씩 빼줘야 함
+        int pageIndex = (page < 1) ? 0 : page - 1;
         return fillCommunityModel(board, null, page, model);
     }
 
@@ -38,10 +40,12 @@ public class PostController {
     @GetMapping("/{boardCode}/{categoryCode:[a-zA-Z]+}")
     public String categoryList(@PathVariable String boardCode,
                                @PathVariable String categoryCode,
-                               @RequestParam(defaultValue = "0") int page,
+                               @RequestParam(defaultValue = "1") int page,
                                Model model) {
         BoardResponseDTO board = boardService.findByCode(boardCode);
-        CategoryResponseDTO category = categoryService.findByCode(categoryCode);
+        CategoryResponseDTO category = "all".equals(categoryCode) ? null
+                                        : categoryService.findByCode(categoryCode);
+        int pageIndex = (page < 1) ? 0 : page - 1;
 
         return fillCommunityModel(board, category, page, model);
     }
@@ -230,16 +234,27 @@ public class PostController {
     // 공통 method - 배너 가져올 페이지/기능들에 모두 쓰임
     private String fillCommunityModel(BoardResponseDTO board, CategoryResponseDTO category, int page, Model model) {
         if (board == null) {
-            return "redirec:/community";    // 게시판 정보 없으면 메인 페이지
+            return "redirect:/community";    // 게시판 정보 없으면 메인 페이지
         }
+        if (category == null) {
+            model.addAttribute("categoryCode", "all");
+            model.addAttribute("categoryId", null);
+        } else {
+            model.addAttribute("categoryCode", category.getCode());
+            model.addAttribute("categoryId", category.getId());
+        }
+
         // 공통 레이아웃 데이터 채우기
         addLayoutAttributes(board, category, model, false);
 
         // 목록 페이지 전용 데이터 채우기
-        model.addAttribute("posts", postService.postList(board.getId(),
-                (category != null ? category.getId() : null)));
-        // model.addAttribute("currentPage", page);
+        Page<PostListResponse> postsPage = postService.postList(board.getId(),
+                                           (category != null ? category.getId() : null),
+                                           page);
 
+        model.addAttribute("posts", postsPage.getContent());    // List<PostListReponse>
+        model.addAttribute("page", postsPage);                  // 현재 페이지, 총 페이지 등
+        model.addAttribute("currentPage", page + 1);                // 현재 페이지 번호
         return "community/postList";
     }
 }

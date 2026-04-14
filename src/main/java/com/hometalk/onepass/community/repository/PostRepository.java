@@ -24,14 +24,22 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     int countByBoardCodeAndPostStatus(String boardCode, PostStatus status);
 
+
     @Query("SELECT p FROM Post p WHERE p.board.code = :boardCode " +
             "AND p.writer.id = :writerId AND p.postStatus = :status ORDER BY p.id DESC")
     List<Post> findTempPosts(String boardCode, Long writerId, PostStatus status);
 
-    // 임시저장은 목록 숨기기
-    @Query("SELECT p FROM Post p WHERE p.board.id = :boardId AND p.postStatus = :status ORDER BY p.id DESC")
-    List<Post> findActivePosts(@Param("boardId") Long boardId, @Param("status") PostStatus status);
+    // 임시저장은 목록 숨기기 -> 페이징 적용(List를 Page로 변경)
+    // 게시판 전체 글 조회 (페이징 적용)
+    @Query("SELECT p FROM Post p WHERE p.board.id = :boardId AND p.postStatus = :status")
+    Page<Post> findActivePosts(@Param("boardId") Long boardId,
+                               @Param("status") PostStatus status,
+                               Pageable pageable);
 
-    @Query("SELECT p FROM Post p WHERE p.board.id = :boardId AND p.category.id = :catId AND p.postStatus = :status ORDER BY p.id DESC")
-    List<Post> findCategoryPosts(@Param("boardId") Long boardId, @Param("catId") Long catId, @Param("status") PostStatus status);
+    // 특정 게시판 내 특정 카테고리 글 조회 (페이징 적용)
+    @Query("SELECT p FROM Post p WHERE p.board.id = :boardId AND p.category.id = :catId AND p.postStatus = :status")
+    Page<Post> findCategoryPosts(@Param("boardId") Long boardId,
+                                 @Param("catId") Long catId,
+                                 @Param("status") PostStatus status,
+                                 Pageable pageable);
 }
