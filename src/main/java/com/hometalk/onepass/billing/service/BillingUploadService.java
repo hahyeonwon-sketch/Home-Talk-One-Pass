@@ -10,9 +10,7 @@ import com.hometalk.onepass.billing.entity.BillingStatus;
 import com.hometalk.onepass.billing.repository.BillingDetailRepository;
 import com.hometalk.onepass.billing.repository.BillingLogRepository;
 import com.hometalk.onepass.billing.repository.BillingRepository;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -179,6 +177,8 @@ public class BillingUploadService {
 
     @Getter
     @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class UploadRow {
         private String        householdId;  // 엑셀 동/호 값 (예: "101-101")
         private String        billingMonth;
@@ -189,6 +189,8 @@ public class BillingUploadService {
 
     @Getter
     @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class ItemRow {
         private String     itemName;
         private BigDecimal itemAmount;

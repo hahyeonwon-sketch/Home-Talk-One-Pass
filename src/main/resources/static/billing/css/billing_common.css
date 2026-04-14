@@ -193,7 +193,7 @@ body {
 .modal-box {
     background: var(--color-surface);
     border-radius: var(--radius-xl);
-    width: 460px;
+    width: 680px;
     max-width: 95vw;
     max-height: 90vh;
     overflow-y: auto;

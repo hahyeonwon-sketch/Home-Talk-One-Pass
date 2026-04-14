@@ -26,7 +26,9 @@ const MONTHS = ['1월','2월','3월','4월','5월','6월','7월','8월',
                 '9월','10월','11월','12월'];
 
 /* ── 상태 ── */
-let validRows    = [];
+let validRows    = [];   // 엑셀 파싱 데이터 (업로드 전 검증용)
+let dbRows       = [];   // DB 조회 데이터
+let mode         = 'db'; // 'db' | 'excel' — 현재 테이블 표시 모드
 let billingMonth = null;
 let selYear      = new Date().getFullYear();
 let selMonth     = null;
@@ -38,14 +40,111 @@ let pendingFile  = null;
 let uploadDone   = false;
 
 /* ================================================================
-   초기화
+   초기화 — 페이지 진입 시 DB 데이터 자동 조회
 ================================================================ */
 document.addEventListener('DOMContentLoaded', () => {
     initUploadZone();
+    fetchDbList(); // 페이지 진입 시 DB 데이터 조회
     document.addEventListener('click', e => {
         if (!e.target.closest('.panel-wrap')) closeAllPanels();
     });
 });
+
+/* ================================================================
+   DB 데이터 조회 — GET /api/billing/admin/list
+================================================================ */
+async function fetchDbList() {
+    try {
+        const params = new URLSearchParams();
+        if (selYear)  params.set('year',  selYear);
+        if (selMonth) params.set('month', `${selYear}-${String(selMonth).padStart(2,'0')}`);
+        if (selDong)  params.set('dong',  selDong);
+        params.set('size', 200);
+
+        const res  = await fetch(`${CONTEXT_PATH}/api/billing/admin/list?${params}`);
+        const data = await res.json();
+
+        // Page 응답에서 content 추출
+        const content = data.content || [];
+        dbRows = content.map((item, idx) => ({
+            num:           idx + 1,
+            household_id:  item.unit || '—',
+            dong:          item.unit ? item.unit.split(' ')[0] : '—',
+            unit:          item.unit || '—',
+            billing_month: item.billingMonth || '—',
+            total_amount:  item.totalAmount || 0,
+            status:        item.status || '—',
+            valid:         '정상',
+            upsertType:    null,
+            details:       [],
+            fromDb:        true,
+        }));
+
+        mode = 'db';
+        showDbSection();
+
+    } catch (err) {
+        console.warn('DB 목록 조회 실패', err);
+    }
+}
+
+/* ================================================================
+   DB 데이터 테이블 표시
+================================================================ */
+function showDbSection() {
+    document.getElementById('filterBar').style.display    = 'flex';
+    document.getElementById('tableSection').style.display = 'block';
+    buildDongGridFromDb();
+    renderDbTable();
+}
+
+function renderDbTable() {
+    let rows = dbRows.filter(r => {
+        if (!r.billing_month || r.billing_month === '—') return true;
+        const [y, m] = r.billing_month.split('-').map(Number);
+        if (selYear  && y !== selYear)  return false;
+        if (selMonth && m !== selMonth) return false;
+        if (selDong  && r.dong !== selDong) return false;
+        return true;
+    });
+
+    rows = rows.map((r, i) => ({ ...r, num: i + 1 }));
+
+    document.getElementById('tableMeta').innerHTML =
+        `DB 저장 데이터 · 총 ${rows.length}건`;
+    document.getElementById('tableSummary').innerHTML =
+        `필터 조건으로 조회된 결과입니다.`;
+
+    // 업로드 확정 버튼 숨기기 (DB 모드에서는 불필요)
+    const btnConfirm = document.getElementById('btnConfirm');
+    btnConfirm.style.display = 'none';
+    document.getElementById('tableBody').innerHTML = rows.length
+        ? rows.map(r => `
+        <tr>
+            <td>${r.num}</td>
+            <td>${r.unit}</td>
+            <td>${r.household_id}</td>
+            <td>${r.billing_month}</td>
+            <td>${Number(r.total_amount).toLocaleString()}원</td>
+            <td><span class="badge badge-ok">DB저장</span></td>
+            <td>—</td>
+            <td>—</td>
+        </tr>`).join('')
+        : `<tr><td colspan="8" style="text-align:center;padding:36px;color:#aaa;">
+            조회된 데이터가 없습니다.</td></tr>`;
+}
+
+function buildDongGridFromDb() {
+    const dongs = [...new Set(dbRows.map(r => r.dong).filter(d => d && d !== '—'))].sort();
+    const grid  = document.getElementById('dongGrid');
+    grid.innerHTML =
+        `<button class="chip full${!selDong ? ' selected' : ''}"
+            onclick="pickDong(null)">전체 동</button>`
+        + dongs.map(d =>
+            `<button class="chip${selDong === d ? ' selected' : ''}"
+                onclick="pickDong('${d}')">${d}</button>`
+        ).join('');
+}
 
 /* ================================================================
    업로드 존
@@ -117,19 +216,11 @@ function processFile(file) {
 
         wb.SheetNames.forEach(sheetName => {
             const ws   = wb.Sheets[sheetName];
-            // raw: true — 숫자를 숫자 타입 그대로 읽기
-            // defval: '' — 빈 셀은 빈 문자열로
             const rows = XLSX.utils.sheet_to_json(ws, { raw: true, defval: '' });
-            const firstRow = rows[0];
-                const keys = Object.keys(firstRow);
-                console.log('[DEBUG] 컬럼명 목록:', keys);
-                console.log('[DEBUG] 당월부과액 키 존재?', keys.some(k => k.trim() === '당월부과액'));
-                console.log('[DEBUG] 당월부과액 값:', firstRow[keys.find(k => k.trim() === '당월부과액')]);
             const dong = sheetName.replace(/동$/, '') + '동';
             rows.forEach(row => allRows.push({ ...row, _dong: dong }));
         });
 
-        console.log('[DEBUG] 첫 번째 행 원본:', allRows[0]); // 파싱 확인용
         runValidation(allRows);
     };
     reader.readAsBinaryString(file);
@@ -142,7 +233,6 @@ function runValidation(rows) {
     uploadDone = false;
     document.getElementById('uploadDoneBanner').style.display = 'none';
 
-    // 컬럼명 공백 제거한 새 rows 생성
     const trimmedRows = rows.map(row => {
         const trimmed = {};
         Object.keys(row).forEach(key => {
@@ -151,21 +241,19 @@ function runValidation(rows) {
         return trimmed;
     });
 
-    validRows = rows.map((row, idx) => {
-        const dongHo = String(row['동/호'] ?? '').trim();
-        // 숫자 또는 문자열 모두 처리
-        const total  = parseFloat(String(row['당월부과액']).replace(/,/g, '')) || 0;
-        const dong   = row._dong || '';
-        const hoPart = dongHo.split('-')[1] || '';
-        const unit   = dongHo ? `${dong} ${hoPart}호` : dongHo;
+    validRows = trimmedRows.map((row, idx) => {
+        const dongHo      = String(row['동/호'] ?? '').trim();
+        const total       = parseFloat(String(row['당월부과액']).replace(/,/g, '')) || 0;
+        const dong        = row._dong || '';
+        const hoPart      = dongHo.split('-')[1] || '';
+        const unit        = dongHo ? `${dong} ${hoPart}호` : dongHo;
         const householdId = dongHo;
-        const month  = billingMonth || '';
+        const month       = billingMonth || '';
 
         let valid = '정상';
         if (!dongHo || !month) valid = '오류';
         else if (total === 0)  valid = '금액 누락';
 
-        // 항목 파싱 — 숫자/문자열 모두 처리
         const details = ITEM_COLS
             .map(col => {
                 const raw = row[col];
@@ -184,6 +272,7 @@ function runValidation(rows) {
             valid,
             upsertType:    valid === '정상' ? 'INSERT' : null,
             details,
+            fromDb:        false,
         };
     });
 
@@ -195,20 +284,28 @@ function runValidation(rows) {
         document.getElementById('lblMonth').textContent = MONTHS[selMonth - 1];
     }
 
-    showTableSection();
+    mode = 'excel';
+    showExcelSection();
 }
 
 /* ================================================================
-   테이블 표시 + 렌더링
+   엑셀 데이터 테이블 표시
 ================================================================ */
-function showTableSection() {
+function showExcelSection() {
     document.getElementById('filterBar').style.display    = 'flex';
     document.getElementById('tableSection').style.display = 'block';
     buildDongGrid();
+
+    // 업로드 확정 버튼 다시 표시
+    const btnConfirm = document.getElementById('btnConfirm');
+    btnConfirm.style.display = '';
+
     renderTable();
 }
 
 function renderTable() {
+    if (mode === 'db') { renderDbTable(); return; }
+
     let rows = validRows.filter(r => {
         const [y, m] = r.billing_month.split('-').map(Number);
         if (selYear  && y !== selYear)  return false;
@@ -337,17 +434,23 @@ function closeAllPanels() {
 function pickYear(y) {
     selYear = y;
     document.getElementById('lblYear').textContent = y ? y + '년' : '전체';
-    closeAllPanels(); renderTable();
+    closeAllPanels();
+    if (mode === 'db') fetchDbList();
+    else renderTable();
 }
 function pickMonth(m) {
     selMonth = m;
     document.getElementById('lblMonth').textContent = m ? MONTHS[m - 1] : '전체 월';
-    closeAllPanels(); renderTable();
+    closeAllPanels();
+    if (mode === 'db') fetchDbList();
+    else renderTable();
 }
 function pickDong(d) {
     selDong = d;
     document.getElementById('lblDong').textContent = d ? d : '전체 동';
-    closeAllPanels(); renderTable();
+    closeAllPanels();
+    if (mode === 'db') fetchDbList();
+    else renderTable();
 }
 
 /* ================================================================
@@ -360,7 +463,7 @@ function sortBy(key) {
 }
 
 /* ================================================================
-   미리보기 모달
+   미리보기 모달 (엑셀 모드 전용)
 ================================================================ */
 function openPreview(hid, month) {
     const row = validRows.find(r => r.household_id === hid && r.billing_month === month);
@@ -443,26 +546,30 @@ async function confirmUpload() {
         btn.disabled    = true;
         btn.classList.add('disabled');
 
+        // 업로드 확정 후 DB 데이터 재조회
+        await fetchDbList();
+
     } catch (err) {
         console.error('업로드 확정 실패', err);
         alert('업로드 중 오류가 발생했습니다. 다시 시도해 주세요.');
     }
 }
 
-/* ── 취소 ── */
+/* ── 취소 → DB 모드로 복귀 ── */
 function cancelUpload() {
     validRows    = [];
     billingMonth = null;
     uploadDone   = false;
-    document.getElementById('filterBar').style.display        = 'none';
-    document.getElementById('tableSection').style.display     = 'none';
     document.getElementById('uploadDoneBanner').style.display = 'none';
-    document.getElementById('tableBody').innerHTML            = '';
     document.getElementById('fileInput').value                = '';
     const btn = document.getElementById('btnConfirm');
     btn.textContent = '업로드 확정 ↑';
     btn.disabled    = false;
     btn.classList.remove('disabled');
+
+    // DB 모드로 복귀
+    mode = 'db';
+    fetchDbList();
 }
 
 /* ================================================================
