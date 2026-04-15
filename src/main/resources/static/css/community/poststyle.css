@@ -121,3 +121,17 @@ p {
     color: var(--main-navy);
     font-weight: bold;
 }
+
+.success-message {
+    background-color: #001f3f;
+    padding: 12px 20px;
+    border-radius: 6px;
+    margin: 10px 0;
+    border-left: 5px solid #FF7F50;
+    animation: fadeOut 3s forwards;
+}
+@keyframes fadeOut {
+    0% { opacity: 1; }
+    80% { opacity: 1; }
+    100% { opacity: 0; }
+}

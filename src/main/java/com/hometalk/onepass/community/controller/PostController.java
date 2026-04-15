@@ -10,6 +10,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 
@@ -122,11 +123,13 @@ public class PostController {
     }
  */
     @PostMapping("/{boardCode}/save")
-    public String createPost(@PathVariable String boardCode, @ModelAttribute PostRequestDTO dto) {
-        // [임시] 아직 로그인 기능이 없으므로, DB에 있는 유저 ID 1번이 작성한다고 가정합니다.
+    public String createPost(@PathVariable String boardCode, @ModelAttribute PostRequestDTO dto,
+                             RedirectAttributes redirectAttributes) {
+        // [임시] 아직 로그인 기능이 없으므로, DB에 있는 유저 ID 1번이 작성한다고 가정
         Long tempUserId = 1L;
-
         Long id = postService.postSave(boardCode, dto, tempUserId);
+
+        redirectAttributes.addFlashAttribute("successMessage", "글이 성공적으로 등록되었습니다.");
         return "redirect:/community/" + boardCode + "/" + id;
     }
 
@@ -142,15 +145,18 @@ public class PostController {
     }
  */
     @PostMapping("/{boardCode}/edit/{id}")
-    public String updatePost(@PathVariable String boardCode, @PathVariable Long id, PostRequestDTO dto) {
+    public String updatePost(@PathVariable String boardCode, @PathVariable Long id, PostRequestDTO dto,
+                             RedirectAttributes redirectAttributes) {
         // [임시] 수정 권한 테스트를 위한 고정 ID
         Long tempUserId = 1L;
 
         try {
             postService.postUpdate(id, dto, tempUserId);
+            redirectAttributes.addFlashAttribute("successMessage", "게시글이 수정되었습니다.");
         } catch (Exception e) {
             // 권한이 없거나 글이 없는 경우 에러 페이지나 메시지 처리
-            return "redirect:/community/" + boardCode + "?error=denied";
+            redirectAttributes.addFlashAttribute("errorMessage", "수정 권한이 없거나 오류가 발생했습니다.");
+            return "redirect:/community/" + boardCode;
         }
 
         return "redirect:/community/" + boardCode + "/" + id;
@@ -167,11 +173,13 @@ public class PostController {
     }
 */
     @PostMapping("/{boardCode}/delete/{id}")
-    public String deletePost(@PathVariable String boardCode, @PathVariable Long id) {
+    public String deletePost(@PathVariable String boardCode, @PathVariable Long id,
+                             RedirectAttributes redirectAttributes) {
         // [임시] 테스트를 위해 1번 유저라고 가정
         Long tempUserId = 1L;
 
         postService.deletePost(id, tempUserId);
+        redirectAttributes.addFlashAttribute("successMessage", "게시글이 삭제되었습니다.");
         return "redirect:/community/" + boardCode;
     }
 

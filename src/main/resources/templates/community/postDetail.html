@@ -11,6 +11,9 @@
 <div th:replace="~{community/fragments/boardListHeader :: boardListHeader(boards=${boards}, boardId=${boardId})}"></div>
 <div th:replace="~{community/fragments/categoryBanner :: categoryBanner(board=${board}, categories=${categories}, categoryId=${categoryId})}"></div>
 
+    <div th:if="${successMessage}" class="success-message">
+        <span th:text="${successMessage}"></span>
+    </div>
     <div class="post-detail-container">
         <div class="post-header">
             <span class="category" th:text="${post.categoryName}">카테고리</span>
