@@ -1,5 +1,8 @@
 package com.hometalk.onepass.notice.service;
 
+import com.hometalk.onepass.auth.entity.LocalAccount;
+import com.hometalk.onepass.auth.entity.User;
+import com.hometalk.onepass.auth.repository.LocalAccountRepository;
 import com.hometalk.onepass.notice.dto.NoticeDetailResponseDto;
 import com.hometalk.onepass.notice.dto.NoticeListResponseDto;
 import com.hometalk.onepass.notice.dto.NoticeRequestDto;
@@ -14,6 +17,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -30,13 +35,15 @@ public class NoticeService {
 
     private final NoticeRepository noticeRepository;
     private final AttachmentRepository attachmentRepository;
+    private final LocalAccountRepository localAccountRepository;
 
     @Value("${file.upload.path}")
     private String uploadPath;
 
-    // 공지 전체 목록 조회, 상단 고정, 최신순 정렬
+    // 공지 전체 목록 조회
     public Page<NoticeListResponseDto> getNoticeList(int page) {
-        Pageable pageable = PageRequest.of(page, 10, Sort.by("isPinned").descending().and(Sort.by("createdAt").descending()));
+        Pageable pageable = PageRequest.of(page, 10,
+                Sort.by("isPinned").descending().and(Sort.by("createdAt").descending()));
         Page<Notice> notices = noticeRepository.findAll(pageable);
         return notices.map(notice -> new NoticeListResponseDto(
                 notice.getId(),
@@ -56,20 +63,31 @@ public class NoticeService {
             throw new IllegalArgumentException("분류를 선택해주세요.");
         }
 
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        LocalAccount account = localAccountRepository.findByLoginId(auth.getName())
+                .orElseThrow(() -> new RuntimeException("로그인 정보를 찾을 수 없습니다."));
+
+        User user = account.getUser();
+
         Notice notice = new Notice();
         notice.setTitle(noticeRequestDto.getTitle());
         notice.setContent(noticeRequestDto.getContent());
         notice.setIsPinned(Boolean.TRUE.equals(noticeRequestDto.getIsPinned()));
         notice.setBadge(noticeRequestDto.getBadge());
+
+        notice.setUser(user);
+
         noticeRepository.save(notice);
 
         if (file != null && !file.isEmpty()) {
             saveFile(file, notice);
         }
+
         return notice.getId();
     }
 
-    // 파일 저장
+    // 파일 저장 (내부용)
     private void saveFile(MultipartFile file, Notice notice) {
         try {
             File dir = new File(uploadPath);
@@ -83,7 +101,7 @@ public class NoticeService {
 
             Attachment attachment = new Attachment();
             attachment.setNotice(notice);
-            attachment.setFileName(fileName);
+            attachment.setFileName(original != null ? original : "file"); // ✅ UUID 빼고 원본 파일명으로 저장
             attachment.setFilePath(filePath);
             attachment.setFileSize(file.getSize());
             attachmentRepository.save(attachment);
@@ -93,8 +111,8 @@ public class NoticeService {
         }
     }
 
-    // 공지 수정
-    public Long updateNotice(Long id, NoticeRequestDto noticeRequestDto) {
+    // 공지 수정 ✅ file 파라미터 추가, 기존 파일 교체 로직 추가
+    public Long updateNotice(Long id, NoticeRequestDto noticeRequestDto, MultipartFile file) {
         Notice notice = noticeRepository.findById(id)
                 .orElseThrow(() -> new NoticeNotFoundException(id));
 
@@ -106,8 +124,18 @@ public class NoticeService {
         notice.setContent(noticeRequestDto.getContent());
         notice.setIsPinned(Boolean.TRUE.equals(noticeRequestDto.getIsPinned()));
         notice.setBadge(noticeRequestDto.getBadge());
-
         noticeRepository.save(notice);
+
+        // ✅ 새 파일이 있으면 기존 파일 삭제 후 교체
+        if (file != null && !file.isEmpty()) {
+            List<Attachment> existing = attachmentRepository.findByNotice(notice);
+            for (Attachment att : existing) {
+                new File(att.getFilePath()).delete(); // 실제 파일 삭제
+            }
+            attachmentRepository.deleteByNotice(notice); // DB에서 삭제
+            saveFile(file, notice);                       // 새 파일 저장
+        }
+
         return notice.getId();
     }
 
@@ -118,14 +146,13 @@ public class NoticeService {
 
         List<Attachment> attachments = attachmentRepository.findByNotice(notice);
         for (Attachment attachment : attachments) {
-            File file = new File(attachment.getFilePath());
-            if (file.exists()) file.delete();
+            new File(attachment.getFilePath()).delete();
         }
         attachmentRepository.deleteByNotice(notice);
         noticeRepository.delete(notice);
     }
 
-    // 공지 상세 조회 (조회수)
+    // 공지 상세 조회 (조회수 +1)
     public NoticeDetailResponseDto getNoticeDetail(Long id) {
         Notice notice = noticeRepository.findById(id)
                 .orElseThrow(() -> new NoticeNotFoundException(id));
@@ -139,6 +166,7 @@ public class NoticeService {
                 notice.getContent(),
                 notice.getViewCount(),
                 notice.getBadge(),
+                notice.getIsPinned(),
                 notice.getCreatedAt(),
                 notice.getUpdatedAt()
         );
@@ -174,7 +202,7 @@ public class NoticeService {
                 .orElse(null);
     }
 
-    // 제목, 내용 키워드 검색 (최신순)
+    // 키워드 검색
     public Page<NoticeListResponseDto> searchNotice(String keyword, int page) {
         Pageable pageable = PageRequest.of(page, 10,
                 Sort.by("isPinned").descending().and(Sort.by("createdAt").descending()));
@@ -189,14 +217,21 @@ public class NoticeService {
                 notice.getUpdatedAt()
         ));
     }
-    // 첨부파일 조회
+
+    // 첨부파일 목록 조회
     public List<Attachment> getAttachments(Long noticeId) {
         Notice notice = noticeRepository.findById(noticeId)
                 .orElseThrow(() -> new NoticeNotFoundException(noticeId));
         return attachmentRepository.findByNotice(notice);
     }
 
-    // 수정 페이지용 조회 (조회수 증가X)
+    // ✅ 첨부파일 단건 조회 (다운로드용) - 새로 추가
+    public Attachment getAttachment(Long attachmentId) {
+        return attachmentRepository.findById(attachmentId)
+                .orElseThrow(() -> new RuntimeException("파일을 찾을 수 없습니다. id: " + attachmentId));
+    }
+
+    // 수정 페이지용 조회 (조회수 증가 없음)
     public NoticeDetailResponseDto getNotice(Long id) {
         Notice notice = noticeRepository.findById(id)
                 .orElseThrow(() -> new NoticeNotFoundException(id));
@@ -207,6 +242,7 @@ public class NoticeService {
                 notice.getContent(),
                 notice.getViewCount(),
                 notice.getBadge(),
+                notice.getIsPinned(),
                 notice.getCreatedAt(),
                 notice.getUpdatedAt()
         );
