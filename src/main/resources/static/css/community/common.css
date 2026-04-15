@@ -1,0 +1,38 @@
+:root {
+    --main-navy: #032154;
+    --point-coral: #EB6E57;
+    --soft-mint: #D1E8E4;
+    --bg-gray: #F4F7F9;
+    --border-color: #E2E8F0;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Segoe UI', Arial, Sans-serif;
+    background: #FAF4F0;
+    color: #1e293b;
+    line-height: 1.6;
+}
+
+/* 상단 알림 메시지 (Flash Message) */
+.success-message {
+    background-color: var(--main-navy);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 6px;
+    margin: 15px auto;
+    max-width: 1200px;
+    border-left: 5px solid var(--point-coral);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    animation: fadeOut 3.5s forwards;
+    position: relative;
+    z-index: 9999;
+}
+
+@keyframes fadeOut {
+    0% { opacity: 0; transform: translateY(-10px); }
+    10% { opacity: 1; transform: translateY(0); }
+    85% { opacity: 1; }
+    100% { opacity: 0; pointer-events: none; }
+}

@@ -7,6 +7,7 @@ package com.hometalk.onepass.community.validator;
 import com.hometalk.onepass.community.dto.PostResponseDTO;
 import com.hometalk.onepass.community.dto.PostUserRsDTO;
 import com.hometalk.onepass.community.entity.Post;
+import com.hometalk.onepass.community.exception.UnauthorizedAccessException;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.AccessDeniedException;
@@ -30,7 +31,7 @@ public class PostValidator {
     // 삭제/수정 시 권한이 있는지 확인하고 없으면 에러 발생
     public void validateOwner(Post post, Long currentUserId) {
         if (currentUserId == null || !post.getWriter().getId().equals(currentUserId)) {
-            throw new IllegalStateException("해당 권한이 없습니다.");
+            throw new UnauthorizedAccessException("해당 권한이 없습니다.");
         }
     }
 }

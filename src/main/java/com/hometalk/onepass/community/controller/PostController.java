@@ -2,10 +2,13 @@ package com.hometalk.onepass.community.controller;
 
 import com.hometalk.onepass.community.dto.*;
 import com.hometalk.onepass.community.entity.Post;
+import com.hometalk.onepass.community.enums.PostStatus;
+import com.hometalk.onepass.community.repository.PostRepository;
 import com.hometalk.onepass.community.service.BoardService;
 import com.hometalk.onepass.community.service.CategoryService;
 import com.hometalk.onepass.community.service.PostService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -26,10 +29,11 @@ public class PostController {
     // 게시판별 메인 (카테고리 '전체' 상태)
     @GetMapping("/{boardCode}")
     public String boardMain(@PathVariable String boardCode,
-                            @RequestParam(defaultValue = "0") int page,
+                            @RequestParam(defaultValue = "1") int page,
                             Model model) {
-        // 엔티티가 아닌 DTO를 받음
         BoardResponseDTO board = boardService.findByCode(boardCode);
+        // 사용자의 첫 페이지(1)은 JPA에서 0으로 처리하므로 1씩 빼줘야 함
+        int pageIndex = (page < 1) ? 0 : page - 1;
         return fillCommunityModel(board, null, page, model);
     }
 
@@ -37,10 +41,12 @@ public class PostController {
     @GetMapping("/{boardCode}/{categoryCode:[a-zA-Z]+}")
     public String categoryList(@PathVariable String boardCode,
                                @PathVariable String categoryCode,
-                               @RequestParam(defaultValue = "0") int page,
+                               @RequestParam(defaultValue = "1") int page,
                                Model model) {
         BoardResponseDTO board = boardService.findByCode(boardCode);
-        CategoryResponseDTO category = categoryService.findByCode(categoryCode);
+        CategoryResponseDTO category = "all".equals(categoryCode) ? null
+                                        : categoryService.findByCode(categoryCode);
+        int pageIndex = (page < 1) ? 0 : page - 1;
 
         return fillCommunityModel(board, category, page, model);
     }
@@ -74,7 +80,7 @@ public class PostController {
                 .build();
 
         // 1. 게시글 데이터 가져오기 (tempUser를 넘겨서 editable, admin 여부를 계산함)
-        PostResponseDTO post = postService.postDetail(id, tempUser);
+        PostResponseDTO post = postService.postDetail(id, tempUser, boardCode);
         model.addAttribute("post", post);
 
         // 2. 공통 레이아웃 데이터
@@ -89,26 +95,37 @@ public class PostController {
     public String postForm(@PathVariable String boardCode, Model model) {
         // 1. URL에서 받은 boardCode로 게시판 정보 조회
         BoardResponseDTO board = boardService.findByCode(boardCode);
-
         // 2. 공통 레이아웃(배너) 데이터
         addLayoutAttributes(board, null, model, true); // 배너와 헤더는 나오지만 목록은 안 가져옴
-
         // 3. 폼 입력을 위한 빈 DTO
         model.addAttribute("post", new PostRequestDTO());
+
+        int tempCount = postService.getTempPostCount(boardCode);
+        model.addAttribute("tempCount", tempCount);
         return "community/postForm";
     }
 
     // 게시글 수정 폼
-    @GetMapping("{boardCode}/edit/{id}")
-    public String postForm(@PathVariable String boardCode, @PathVariable Long id, Model model) {
-        PostRequestDTO post = postService.getPostForEdit(id);
-
+    @GetMapping("/{boardCode}/edit/{id}")
+    public String postForm(@PathVariable String boardCode,
+                           @RequestParam(required = false) Long id,
+                           Model model) {
         // 공통 레이아웃(배너) 데이터
         BoardResponseDTO board = boardService.findByCode(boardCode);
         addLayoutAttributes(board, null, model, true); // 배너와 헤더는 나오지만 목록은 안 가져옴
 
-        model.addAttribute("post", post);
-        model.addAttribute("postId", id);
+        // ID가 있으면 - 임시저장 불러오기
+        if (id != null) {
+            PostRequestDTO post = postService.getPostForEdit(id, boardCode);
+            model.addAttribute("post", post);
+            model.addAttribute("postId", id);
+        } else {
+            model.addAttribute("post", new PostRequestDTO());
+            model.addAttribute("postId", null);
+        }
+        int tempCount = postService.getTempPostCount(boardCode);
+        model.addAttribute("tempCount", tempCount);
+
         return "community/postForm";
     }
 
@@ -124,12 +141,26 @@ public class PostController {
  */
     @PostMapping("/{boardCode}/save")
     public String createPost(@PathVariable String boardCode, @ModelAttribute PostRequestDTO dto,
+                             @RequestParam(name = "isTemp", defaultValue = "false") boolean isTemp,
                              RedirectAttributes redirectAttributes) {
-        // [임시] 아직 로그인 기능이 없으므로, DB에 있는 유저 ID 1번이 작성한다고 가정
+
+        // 1. 임시저장 상태 설정
+        dto.setPostStatus(isTemp ? PostStatus.DRAFT : PostStatus.ACTIVE);
+
+        // [임시] 로그인 연동 전이므로 1번 유저로 고정
         Long tempUserId = 1L;
+
+        // 2. 서비스 호출 및 저장
         Long id = postService.postSave(boardCode, dto, tempUserId);
 
-        redirectAttributes.addFlashAttribute("successMessage", "글이 성공적으로 등록되었습니다.");
+        // 3. 상황에 맞는 성공 메시지 추가
+        String msg = isTemp ? "게시글이 임시저장되었습니다." : "글이 성공적으로 등록되었습니다.";
+        redirectAttributes.addFlashAttribute("successMessage", msg);
+
+        // 4. 임시저장 여부에 따른 리다이렉트 분기
+        if (isTemp) {
+            return "redirect:/community/" + boardCode + "/write?id=" + id;
+        }
         return "redirect:/community/" + boardCode + "/" + id;
     }
 
@@ -150,15 +181,8 @@ public class PostController {
         // [임시] 수정 권한 테스트를 위한 고정 ID
         Long tempUserId = 1L;
 
-        try {
-            postService.postUpdate(id, dto, tempUserId);
-            redirectAttributes.addFlashAttribute("successMessage", "게시글이 수정되었습니다.");
-        } catch (Exception e) {
-            // 권한이 없거나 글이 없는 경우 에러 페이지나 메시지 처리
-            redirectAttributes.addFlashAttribute("errorMessage", "수정 권한이 없거나 오류가 발생했습니다.");
-            return "redirect:/community/" + boardCode;
-        }
-
+        postService.postUpdate(id, dto, tempUserId, boardCode);
+        redirectAttributes.addFlashAttribute("successMessage", "게시글이 수정되었습니다.");
         return "redirect:/community/" + boardCode + "/" + id;
     }
 
@@ -178,15 +202,24 @@ public class PostController {
         // [임시] 테스트를 위해 1번 유저라고 가정
         Long tempUserId = 1L;
 
-        postService.deletePost(id, tempUserId);
+        postService.deletePost(id, tempUserId, boardCode);
         redirectAttributes.addFlashAttribute("successMessage", "게시글이 삭제되었습니다.");
         return "redirect:/community/" + boardCode;
+    }
+
+    @GetMapping("/{boardCode}/temp-list")
+    @ResponseBody // JSON으로 반환
+    public List<PostListResponse> getTempPosts(@PathVariable String boardCode) {
+        Long tempUserId = 1L; // 테스트용 ID
+        return postService.getTempPosts(boardCode, tempUserId);
     }
 
 
     // 공통 데이터 method
     private void addLayoutAttributes(BoardResponseDTO board, CategoryResponseDTO category,
                                      Model model, boolean isWriteMode) {
+        if (board == null) return;
+
         model.addAttribute("board", board);
         model.addAttribute("category", category);
         model.addAttribute("boards", boardService.findAll()); // 게시판 헤더용
@@ -206,14 +239,28 @@ public class PostController {
 
     // 공통 method - 배너 가져올 페이지/기능들에 모두 쓰임
     private String fillCommunityModel(BoardResponseDTO board, CategoryResponseDTO category, int page, Model model) {
+        if (board == null) {
+            return "redirect:/community";    // 게시판 정보 없으면 메인 페이지
+        }
+        if (category == null) {
+            model.addAttribute("categoryCode", "all");
+            model.addAttribute("categoryId", null);
+        } else {
+            model.addAttribute("categoryCode", category.getCode());
+            model.addAttribute("categoryId", category.getId());
+        }
+
         // 공통 레이아웃 데이터 채우기
         addLayoutAttributes(board, category, model, false);
 
         // 목록 페이지 전용 데이터 채우기
-        model.addAttribute("posts", postService.postList(board.getId(),
-                (category != null ? category.getId() : null), page));
-        model.addAttribute("currentPage", page);
+        Page<PostListResponse> postsPage = postService.postList(board.getId(),
+                                           (category != null ? category.getId() : null),
+                                           page);
 
+        model.addAttribute("posts", postsPage.getContent());    // List<PostListReponse>
+        model.addAttribute("page", postsPage);                  // 현재 페이지, 총 페이지 등
+        model.addAttribute("currentPage", page + 1);                // 현재 페이지 번호
         return "community/postList";
     }
 }

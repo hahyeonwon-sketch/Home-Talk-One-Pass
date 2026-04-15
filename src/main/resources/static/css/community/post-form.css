@@ -1,0 +1,42 @@
+.container {
+    width: 90%; max-width: 1200px; margin: 40px auto;
+    padding: 30px; background: #ffffff; border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.header-row {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    border-bottom: 2px solid var(--main-navy); margin-bottom: 30px; padding-bottom: 10px;
+}
+
+.form-inline-group { display: flex; gap: 15px; margin-bottom: 20px; }
+.category-select { flex: 0 0 180px; }
+.title-input-wrapper { flex: 1; position: relative; }
+
+select, input[type="text"], textarea {
+    width: 100%; padding: 12px 15px; border: 1px solid #ddd;
+    border-radius: 6px; font-size: 16px;
+}
+
+/* 버튼 그룹 */
+.button-group {
+    display: flex; justify-content: space-between; align-items: center;
+    border-top: 1px solid var(--border-color); padding-top: 25px; margin-top: 20px;
+}
+
+.button-group .right-buttons { display: flex; gap: 10px; }
+
+button, .btn-cancel {
+    padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; border: none;
+}
+
+.btn-submit { background-color: var(--main-navy); color: white; }
+.btn-temp { background-color: var(--point-coral); color: white; }
+.btn-sub { background-color: var(--soft-mint); color: var(--main-navy); }
+
+/* 임시저장 모달 */
+.temp-modal {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;
+}
+.modal-content { background: white; padding: 25px; border-radius: 10px; width: 400px; }

@@ -1,0 +1,21 @@
+.post-detail-container {
+    width: 90%; max-width: 1200px; margin: 40px auto;
+    padding: 30px; background: #ffffff; border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+.post-header .category {
+    display: inline-block; background-color: var(--soft-mint);
+    color: var(--main-navy); padding: 5px 12px; border-radius: 20px;
+    font-size: 0.8rem; font-weight: bold;
+}
+
+.post-content { margin: 30px 0; line-height: 1.8; color: #334155; }
+
+.post-footer {
+    display: flex; justify-content: space-between; margin-top: 30px;
+    border-top: 1px solid var(--border-color); padding-top: 20px;
+}
+
+.btn-edit { background-color: var(--soft-mint); color: var(--main-navy); text-decoration: none; padding: 10px 20px; border-radius: 8px; }
+.btn-delete { background-color: var(--point-coral); color: white; padding: 10px 20px; border-radius: 8px; border: none; }

@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HomeTOP Community</title>
-    <link rel="stylesheet" href="/css/community/poststyle.css" th:href="@{/css/community/poststyle.css}">
+    <link rel="stylesheet" th:href="@{/css/community/common.css}">
+    <link rel="stylesheet" href="/css/community/poststyle.css" th:href="@{/css/community/post-list.css}">
 </head>
 <body>
     <div th:replace="~{community/fragments/boardListHeader :: boardListHeader(boards=${boards}, boardId=${boardId})}"></div>
@@ -34,6 +35,8 @@
                 </tr>
             </tbody>
         </table>
+
+        <div th:replace="~{community/fragments/postpaging :: pagination(page=${page}, boardCode=${boardCode}, categoryCode=${categoryCode})}"></div>
     </div>
     <p th:if="${#lists.isEmpty(posts)}" class="no-data">게시글이 없습니다.<br>새 게시글을 작성해보세요!</p>
     <div >

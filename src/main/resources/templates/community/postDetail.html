@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HomeTOP Community</title>
-    <link rel="stylesheet" href="/css/community/poststyle.css" th:href="@{/css/community/poststyle.css}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/community/common.css}">
+    <link rel="stylesheet" href="/css/community/poststyle.css" th:href="@{/css/community/post-detail.css}">
 </head>
 <body>
 <div th:replace="~{community/fragments/boardListHeader :: boardListHeader(boards=${boards}, boardId=${boardId})}"></div>
