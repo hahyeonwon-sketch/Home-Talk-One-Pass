@@ -29,10 +29,6 @@ public class Household {
     @Column(name = "ho", nullable = false, length = 20)
     private String ho;
 
-<<<<<<< HEAD
-
-=======
->>>>>>> ddf16275461c4446aa7120be356ae46b7b83da92
     @Column(name = "post_num", nullable = false)
     private String postNum;
 
@@ -40,11 +36,7 @@ public class Household {
     private List<User> users = new ArrayList<>();
 
     @Builder
-<<<<<<< HEAD
     public Household(String buildingName, String dong, String ho, String postNum) {
-=======
-    public Household(String buildingName, String dong, String ho, Integer postNum) {
->>>>>>> ddf16275461c4446aa7120be356ae46b7b83da92
         this.buildingName = buildingName;
         this.dong = dong;
         this.ho = ho;

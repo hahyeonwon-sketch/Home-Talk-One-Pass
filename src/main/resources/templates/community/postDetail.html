@@ -56,7 +56,8 @@
                 <a th:href="@{/community/{code}/edit/{id}(code=${board.code}, id=${post.id})}" class="btn-edit">수정</a>
                 <form th:action="@{/community/{code}/delete/{id}(code=${boardCode}, id=${post.id})}"
                       method="post" style="display:inline;" id="deleteForm">
-                    <button type="button" class="btn-delete" onclick="confirmDelete()">삭제</button>
+                    <button type="button" class="btn-delete"
+                            id="btn-delete" th:data-id="${post.id}">삭제</button>
                 </form>
             </div>
         </div>
@@ -67,12 +68,6 @@
         </div>
     </div>
 
-    <script>
-        function confirmDelete() {
-            if (confirm("정말로 이 게시글을 삭제하시겠습니까? \n삭제된 글은 목록에서 사라집니다.")) {
-                document.getElementById('deleteForm').submit();
-            }
-        }
-    </script>
+    <script th:src="@{/js/community/post.js}" defer></script>
 </body>
 </html>
