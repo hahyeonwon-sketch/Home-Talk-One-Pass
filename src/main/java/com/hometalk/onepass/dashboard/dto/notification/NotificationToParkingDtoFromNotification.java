@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @Builder
-public class NotificationToParkingDto {
+public class NotificationToParkingDtoFromNotification {
 
     private Long id;
     private User user;                  // 등록한 회원 ID FK

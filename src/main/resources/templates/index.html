@@ -15,7 +15,8 @@
         <div class="main-wrapper" style="flex: 1; display: flex; flex-direction: column;">
 
             <!-- 상단 헤더 -->
-            <div th:replace="~{fragments/header_currentMenuView :: path(currentPath01='home', currentPath02='')}"></div>
+            <div th:replace="~{fragments/headerCurrentMenuView :: path(paths=${ {'home'} })}"></div>
+<!--            <div th:replace="~{fragments/headerCurrentMenuView :: path(currentPath01='home', currentPath02='', currentPath03='')}"></div>-->
 
             <!-- 메인 콘텐츠 -->
             <main class="content" style="flex: 1;">
