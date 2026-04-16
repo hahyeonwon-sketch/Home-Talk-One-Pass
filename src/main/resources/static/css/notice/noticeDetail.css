@@ -1,3 +1,11 @@
+:root {
+    --main-navy: #032154;
+    --sub-blue: #3C6ABC;
+    --point-coral: #EB6E57;
+    --text-dark: #170124;
+    --border-color: #E2E8F0;
+}
+
 .notice-table {
     width: 100%;
     border-collapse: collapse;
@@ -37,55 +45,38 @@
     font-size: 12px;
 }
 
-.admin-buttons {
-    display: flex;
-    justify-content: flex-end;
-    gap: 8px;
-    margin: 14px 0;
-}
-
-.btn-edit {
-    background: var(--main-navy);
-    color: white;
-    border: none;
-    border-radius: 6px;
-    padding: 7px 18px;
-    font-size: 13px;
-    cursor: pointer;
-    text-decoration: none;
-    transition: background 0.2s;
-}
-
-.btn-edit:hover {
-    background: var(--sub-blue);
-}
-
-.btn-delete {
-    background: white;
-    color: var(--point-coral);
-    border: 1px solid var(--point-coral);
-    border-radius: 6px;
-    padding: 7px 18px;
-    font-size: 13px;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.btn-delete:hover {
-    background: var(--point-coral);
-    color: white;
-}
-
 .notice-box {
-    min-height: 300px;
-    padding: 24px;
+    min-height: 150px;
+    padding: 24px 4px;
     margin: 16px 0;
-    border: 1px solid var(--border-color);
-    border-radius: 10px;
     font-size: 14px;
     line-height: 1.9;
     color: var(--text-dark);
-    background: #fafafa;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.attachment-box {
+    padding: 14px 16px;
+    margin: 0 0 20px 0;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+}
+
+.attachment-title {
+    font-weight: 700;
+    color: var(--main-navy);
+    margin-bottom: 8px;
+    font-size: 13px;
+}
+
+.attachment-link {
+    color: var(--sub-blue);
+    text-decoration: none;
+    font-size: 13px;
+}
+
+.attachment-link:hover {
+    text-decoration: underline;
 }
 
 .notice-nav-table {
@@ -121,7 +112,7 @@
     text-align: center;
     color: var(--sub-blue);
     font-weight: 600;
-    font-size: 12px;
+    font-size: 13px;
     background: #f5f7fa;
 }
 
@@ -149,13 +140,57 @@
     color: var(--sub-blue);
 }
 
-.btn-list {
+.admin-buttons {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 16px;
+}
+
+.btn-back {
     background: white;
-    color: #032154;
-    border: 1px solid #032154;
-    border-radius: 8px;
-    padding: 8px 18px;
+    color: #666;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 7px 18px;
     font-size: 13px;
     cursor: pointer;
     text-decoration: none;
+    transition: background 0.2s;
+}
+
+.btn-back:hover {
+    background: #f5f5f5;
+}
+
+.btn-edit {
+    background: var(--main-navy);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 7px 18px;
+    font-size: 13px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.2s;
+}
+
+.btn-edit:hover {
+    background: var(--sub-blue);
+}
+
+.btn-delete {
+    background: white;
+    color: var(--point-coral);
+    border: 1px solid var(--point-coral);
+    border-radius: 6px;
+    padding: 7px 18px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-delete:hover {
+    background: var(--point-coral);
+    color: white;
 }

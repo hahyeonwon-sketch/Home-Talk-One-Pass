@@ -29,14 +29,14 @@
     background: var(--main-navy);
     color: white;
     padding: 10px 12px;
-    font-size: 13px;
+    font-size: 14px;
     text-align: center;
 }
 
 .notice-list td {
     border-bottom: 1px solid var(--border-color);
     padding: 10px 12px;
-    font-size: 13px;
+    font-size: 15px;
 }
 
 .notice-list td:first-child {

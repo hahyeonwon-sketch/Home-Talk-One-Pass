@@ -15,19 +15,13 @@
 
 <div class="main-layout" style="display:flex; min-height:100vh;">
 
-    <!-- 1. 왼쪽 사이드바 -->
     <div th:replace="~{fragments/sidebar :: sidebar(currentPage='notice')}"></div>
 
-    <!-- 2. 오른쪽 영역 (헤더 + 본문) -->
     <div class="main-wrapper" style="flex:1; display:flex; flex-direction:column;">
 
-        <!-- 상단 헤더 -->
         <div th:replace="~{fragments/header_menu :: header_menu(currentPath01='notice', currentPath02='')}"></div>
-
-        <!-- 상단 메뉴 -->
         <div th:replace="~{fragments/header-menu/parkingCategoryMenu :: categoryMenu}"></div>
 
-        <!-- 본문 -->
         <div class="container">
 
             <table class="notice-table">
@@ -37,54 +31,35 @@
                     </td>
                     <td th:text="${notice.title}">공지 제목</td>
                     <td th:text="${#temporals.format(notice.createdAt, 'yyyy-MM-dd HH:mm')}">작성일시</td>
-                    <td th:text="${notice.updatedAt != null
-                               && !notice.updatedAt.toLocalDate().isEqual(notice.createdAt.toLocalDate())
-                               ? #temporals.format(notice.updatedAt, 'yyyy-MM-dd HH:mm') : '-'}">수정일시</td>
+                    <td th:text="${notice.updatedAt != null ? #temporals.format(notice.updatedAt, 'yyyy-MM-dd HH:mm') : '-'}">수정일시</td>
                     <td th:text="${notice.viewCount}">조회수</td>
                 </tr>
             </table>
 
-            <div class="admin-buttons">
-                <a th:href="@{/notice}" class="btn-list">← 뒤로가기</a>
-                <a th:href="@{/notice/{id}/edit(id=${notice.id})}" class="btn-edit" sec:authorize="hasRole('ADMIN')">수정</a>
-                <form th:action="@{/notice/{id}/delete(id=${notice.id})}" method="post" style="display:inline;" sec:authorize="hasRole('ADMIN')">
-                    <button type="button" class="btn-delete"
-                            onclick="if(confirm('삭제하시겠습니까?')) this.form.submit()">삭제</button>
-                </form>
-            </div>
-
-            <!-- 본문 내용 -->
             <div class="notice-box">
                 <p th:text="${notice.content}" style="white-space: pre-line;"></p>
             </div>
 
-            <!-- ✅ 첨부파일 영역 -->
-            <div th:if="${attachments != null and !attachments.isEmpty()}"
-                 style="margin: 12px 0; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px;">
-                <p style="font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--main-navy);">📎 첨부파일</p>
-                <ul style="list-style: none; display: flex; flex-direction: column; gap: 4px;">
-                    <li th:each="file : ${attachments}">
-                        <a th:href="@{/notice/download/{id}(id=${file.id})}"
-                           th:text="${file.fileName}"
-                           style="font-size: 13px; color: #333; text-decoration: none;">
-                        </a>
-                    </li>
-                </ul>
+            <div class="attachment-box" th:if="${attachments != null && !attachments.isEmpty()}">
+                <div class="attachment-title">📎 첨부파일</div>
+                <div th:each="attachment : ${attachments}">
+                    <a th:href="@{/notice/download/{id}(id=${attachment.id})}"
+                       th:text="${attachment.fileName}"
+                       class="attachment-link"></a>
+                    <br>
+                    <img th:if="${attachment.fileName.contains('.jpg') or attachment.fileName.contains('.jpeg') or attachment.fileName.contains('.png')}"
+                         th:src="@{/uploads/{fileName}(fileName=${attachment.fileName})}"
+                         style="max-width: 100%; margin-top: 8px; border-radius: 8px;">
+                </div>
             </div>
 
-            <!-- 이전글/다음글 -->
             <table class="notice-nav-table">
                 <tr>
                     <td>이전글</td>
                     <th:block th:if="${preNotice != null}">
-                        <td>
-                            <a th:href="@{/notice/{id}(id=${preNotice.id})}"
-                               th:text="${preNotice.title}"></a>
-                        </td>
+                        <td><a th:href="@{/notice/{id}(id=${preNotice.id})}" th:text="${preNotice.title}"></a></td>
                         <td th:text="${#temporals.format(preNotice.createdAt, 'yyyy-MM-dd')}"></td>
-                        <td th:text="${preNotice.updatedAt != null
-                                   && !preNotice.updatedAt.toLocalDate().isEqual(preNotice.createdAt.toLocalDate())
-                                   ? #temporals.format(preNotice.updatedAt, 'yyyy-MM-dd') : '-'}"></td>
+                        <td th:text="${preNotice.updatedAt != null ? #temporals.format(preNotice.updatedAt, 'yyyy-MM-dd') : '-'}"></td>
                         <td th:text="${preNotice.viewCount}"></td>
                     </th:block>
                     <th:block th:if="${preNotice == null}">
@@ -94,14 +69,9 @@
                 <tr>
                     <td>다음글</td>
                     <th:block th:if="${nextNotice != null}">
-                        <td>
-                            <a th:href="@{/notice/{id}(id=${nextNotice.id})}"
-                               th:text="${nextNotice.title}"></a>
-                        </td>
+                        <td><a th:href="@{/notice/{id}(id=${nextNotice.id})}" th:text="${nextNotice.title}"></a></td>
                         <td th:text="${#temporals.format(nextNotice.createdAt, 'yyyy-MM-dd')}"></td>
-                        <td th:text="${nextNotice.updatedAt != null
-                                   && !nextNotice.updatedAt.toLocalDate().isEqual(nextNotice.createdAt.toLocalDate())
-                                   ? #temporals.format(nextNotice.updatedAt, 'yyyy-MM-dd') : '-'}"></td>
+                        <td th:text="${nextNotice.updatedAt != null ? #temporals.format(nextNotice.updatedAt, 'yyyy-MM-dd') : '-'}"></td>
                         <td th:text="${nextNotice.viewCount}"></td>
                     </th:block>
                     <th:block th:if="${nextNotice == null}">
@@ -109,6 +79,17 @@
                     </th:block>
                 </tr>
             </table>
+
+            <div class="admin-buttons">
+                <a th:href="@{/notice}" class="btn-back">← 뒤로가기</a>
+                <div sec:authorize="hasRole('ADMIN')" style="display:flex; gap:8px;">
+                    <a th:href="@{/notice/{id}/edit(id=${notice.id})}" class="btn-edit">수정</a>
+                    <form th:action="@{/notice/{id}/delete(id=${notice.id})}" method="post" style="display:inline;">
+                        <button type="button" class="btn-delete"
+                                onclick="if(confirm('삭제하시겠습니까?')) this.form.submit()">삭제</button>
+                    </form>
+                </div>
+            </div>
 
         </div>
     </div>
