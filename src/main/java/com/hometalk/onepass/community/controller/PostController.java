@@ -1,10 +1,12 @@
 package com.hometalk.onepass.community.controller;
 
+import com.hometalk.onepass.community.dto.CommentRsDTO;
 import com.hometalk.onepass.community.dto.request.PostRequestDTO;
 import com.hometalk.onepass.community.dto.response.*;
 import com.hometalk.onepass.community.enums.PostStatus;
 import com.hometalk.onepass.community.service.BoardService;
 import com.hometalk.onepass.community.service.CategoryService;
+import com.hometalk.onepass.community.service.CommentService;
 import com.hometalk.onepass.community.service.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -22,6 +24,7 @@ public class PostController {
     private final PostService postService;
     private final BoardService boardService;
     private final CategoryService categoryService;
+    private final CommentService commentService;
 
     // 게시판 목록
     // 게시판별 메인 (카테고리 '전체' 상태)
@@ -97,6 +100,9 @@ public class PostController {
 
         model.addAttribute("currentCategoryCode", categoryCode);
 
+        // 댓글
+        List<CommentRsDTO> comments = commentService.findAllByPostId(id);
+        model.addAttribute("comments", comments);
         return "community/postDetail";
     }
 
