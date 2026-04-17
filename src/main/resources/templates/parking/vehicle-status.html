@@ -22,10 +22,11 @@
   <div class="main-wrapper" style="flex: 1; display: flex; flex-direction: column;">
 
     <!-- 상단 헤더 -->
-    <div th:replace="~{fragments/header_menu :: header_menu(currentPath01='parking', currentPath02='status')}"></div>
+    <div th:replace="~{fragments/headerCurrentMenuView :: path(paths=${ {'parking', 'status'} })}"></div>
+<!--    <div th:replace="~{fragments/headerCurrentMenuView :: path(currentPath01='parking', currentPath02='status')}"></div>-->
 
     <!-- 상단 메뉴 -->
-    <div th:replace="~{fragments/header-menu/parkingCategoryMenu :: categoryMenu}"></div>
+    <div th:replace="~{fragments/headerCategoryMenu :: parking}"></div>
 
     <!-- 메인 콘텐츠 -->
     <main class="content" style="flex: 1;">
