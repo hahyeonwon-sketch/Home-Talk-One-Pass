@@ -1,16 +1,3 @@
-
-<!--<!DOCTYPE html>-->
-<!--<html lang="ko" xmlns:th="http://www.thymeleaf.org">-->
-<!--<head th:fragment="head(pageTitle)">-->
-<!--    <meta charset="UTF-8">-->
-<!--    <meta name="viewport" content="width=device-width, initial-scale=1.0">-->
-<!--    <title th:text="${pageTitle} + ' | Hometop' ">Title</title>-->
-<!--    <link rel="stylesheet" th:href="@{/css/style.css}">-->
-<!--</head>-->
-<!--</html>-->
-
-
-
 <!DOCTYPE html>
 <html lang="ko" xmlns:th="` http://www.thymeleaf.org">
 <!--
@@ -26,7 +13,8 @@
       - 사이드바 (모든 페이지에 동일)
       -> 데이터가 필요 없고, 어디서든 같은 내용을 보여줄 때
 -->
-<header th:fragment="header_menu(currentPath01, currentPath02)" class="site-header" style="display: flex; flex-direction: column; padding: 0;">
+<header th:fragment="path(paths)" th:with="len=${paths != null ? #lists.size(paths) : 0}"
+        class="site-header" style="display: flex; flex-direction: column; padding: 0;">
 
     <div class="header-top-row" style="width: 100%; display: flex; justify-content: flex-end; padding: 10px 40px; background-color: #ffffff;">
         <nav class="menu" style="margin-top: 20px;">    <!-- 20px만큼 위를 띄움 -->
@@ -52,36 +40,37 @@
             <!-- 1. 고정 홈 아이콘/텍스트 -->
             <!--            <span style="color: #999;">홈</span>-->
 
-            <!-- 2. 사이드 메뉴(대분류) 표시 -->
-            <span style="color: #0526ad; font-weight: 500">
-                    <th:block th:if="${currentPath01 != null}">
-<!--                    <span style="margin: 0 10px; color: #ccc;">&gt;</span>-->
-                        <span th:if="${currentPath01 == 'auth'}">로그인</span>
-                        <span th:if="${currentPath01 == 'notification'}">알람 목록</span>
-                        <span th:if="${currentPath01 == 'parking'}">주차</span>
-                        <span th:if="${currentPath01 == 'home'}">대시보드</span>
+            <th:block th:each="p, iter : ${paths}">
 
-                     </th:block>
-            </span>
+                <!-- 2. 사이드 메뉴(대분류) 표시 -->
+                <!-- index가 0일 때만 실행되는 블록 -->
+                <th:block th:if="${iter.index == 0}">
+                    <span style="color: #0526ad; font-weight: 500" th:switch="${p}">
+                        <span th:case="'home'">대시보드</span>
+                        <span th:case="'notification'">알람 목록</span>
+                        <span th:case="'parking'">주차</span>
+                        <span th:case="'billing'">관리비</span>
+                        <span th:case="'notice'">일정관리</span>
+                    </span>
+                </th:block>
 
+                <!-- 3. 상세 메뉴(소분류) 표시 -->
+                <th:block th:if="${iter.index >= 1}">    <!-- 메뉴경로 > 표시  -->
+                    <span style="margin: 0 10px; color: #2ea5ef;">&gt;</span>
 
-            <!-- 3. 상세 메뉴(소분류) 표시 (현재 페이지가 상세 페이지일 때만 출력) -->
-            <th:block th:if="${currentPath01 != 'home' && currentPath01 != null}">
-                <span style="margin: 0 10px; color: #2ea5ef;">&gt;</span>
-                <strong style="color: #0526ad; font-weight: 700;">
+                    <th:block th:with="fontWeight=${iter.index == len - 1? 700 : 500}">     <!-- 최종 경로라면 700 적용으로 찐하게 아니라면 500 적용 -->
+                        <span th:style="'color: #0526ad; font-weight: ' + ${fontWeight}" th:switch="${p}">
 
-                    <!-- 알림 목록 -->
-                    <th:block th:if="${currentPath01 == 'notification'}">
-                        <span th:if="${currentPath02 == ''}">전체 보기</span>
+                             <!-- 주차 목록 -->
+                            <span th:case="'status'">조회</span>
+                            <span th:case="'register'">등록</span>
+                            <span th:case="'reservationRegister'">예약 등록</span>
+                            <span th:case="'reservationRegisterForm'">예약 추가</span>
+
+                        </span>
                     </th:block>
 
-                    <!-- 주차 목록 -->
-                    <th:block th:if="${currentPath01 == 'parking'}">
-                        <span th:if="${currentPath02 == 'status'}">조회</span>
-                        <span th:if="${currentPath02 == 'register'}">등록</span>
-                    </th:block>
-
-                </strong>
+                </th:block>
             </th:block>
 
         </div>

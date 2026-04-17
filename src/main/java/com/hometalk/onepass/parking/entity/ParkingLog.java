@@ -24,7 +24,7 @@ public class ParkingLog extends BaseTimeEntity {
     @JoinColumn(name = "vehicle_id")
     private Vehicle vehicle;
 
-    @Column(name= "vehicle_number", nullable = false, length = 20)
+    @Column(name = "vehicle_number", nullable = false, length = 20)
     private String vehicleNumber;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -59,9 +59,7 @@ public class ParkingLog extends BaseTimeEntity {
     @Column(nullable = false)
     private ParkingStatus status;
 
-    /**
-     * 생성자 (입차 처리)
-     */
+    // ─── 입차 처리 ───────────────────────────────────────────────
     public ParkingLog(Vehicle vehicle, String vehicleNumber, Household household,
                       VisitReservation reservation, User staff, EntryType entryType) {
 
@@ -78,8 +76,8 @@ public class ParkingLog extends BaseTimeEntity {
         this.reservation = reservation;
         this.staff = staff;
         this.entryType = entryType;
-        this.entryTime = LocalDateTime.now();
-        this.status = ParkingStatus.PARKED;
+        this.entryTime = LocalDateTime.now(); // 입차 시각
+        this.status = ParkingStatus.PARKED;   // 초기 상태
 
         // 예약 차량이면 상태 변경
         if (this.reservation != null) {
@@ -87,23 +85,19 @@ public class ParkingLog extends BaseTimeEntity {
         }
     }
 
-    /**
-     * 출차 처리
-     */
+    // ─── 출차 처리 ───────────────────────────────────────────────
     public void exit(int totalMinutes, int appliedMinutes) {
 
-        if (this.status != ParkingStatus.PARKED && this.status != ParkingStatus.OVERSTAY) {
-            throw new IllegalStateException("주차 중인 차량만 출차 처리할 수 있습니다.");
+        // 엔티티가 상태를 책임짐
+        if (this.status != ParkingStatus.PARKED) {
+            throw new IllegalStateException("이미 출차된 차량입니다.");
         }
-
         if (totalMinutes < 0) {
             throw new IllegalArgumentException("총 주차 시간은 0 이상이어야 합니다.");
         }
-
         if (appliedMinutes < 0) {
             throw new IllegalArgumentException("티켓 적용 시간은 0 이상이어야 합니다.");
         }
-
         if (appliedMinutes > totalMinutes) {
             throw new IllegalArgumentException("티켓 적용 시간은 총 주차 시간을 초과할 수 없습니다.");
         }
@@ -120,9 +114,7 @@ public class ParkingLog extends BaseTimeEntity {
         }
     }
 
-    /**
-     * 세대 매칭 (수동 입차 대응)
-     */
+    // ─── 세대 매칭 ───────────────────────────────────────────────
     public void matchHousehold(Household household) {
         if (household == null) {
             throw new IllegalArgumentException("세대 정보는 필수입니다.");
