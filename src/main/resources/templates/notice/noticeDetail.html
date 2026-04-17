@@ -1,99 +1,135 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>공지 상세 | Home talk</title>
-    <link rel="stylesheet" th:href="@{/css/dashboard/style.css}">
-    <link rel="stylesheet" th:href="@{/css/notice/notice-common.css}">
-    <link rel="stylesheet" th:href="@{/css/notice/noticeDetail.css}">
+    <title>공지 상세</title>
+    <style>
+
+        .notice-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid #ddd;
+        }
+
+        .notice-table td {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+        }
+
+        .badge-important {
+            width: 80px;
+            text-align: center;
+        }
+
+        .badge-important span {
+            background-color: rgb(174, 34, 41);
+            border-radius: 15px;
+            padding: 3px 12px;
+            font-size: 11px;
+            color: white;
+        }
+
+        .notice-title {
+            width: auto;
+        }
+
+        .create, .update {
+            width: 120px;
+            text-align: center;
+        }
+
+        .notice-view {
+            width: 80px;
+            text-align: center;
+        }
+
+
+
+
+        .notice-box {
+            border: 1px solid #ddd;
+            min-height: 300px;
+            padding: 20px;
+            margin: 10px 0;
+        }
+
+        .notice-nav-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .notice-nav-table td {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+        }
+
+        .notice-nav-table tr td:first-child {
+            width: 60px;
+            text-align: center;
+        }
+
+        .notice-nav-title {
+            width: auto;
+        }
+
+        .notice-nav-created, .notice-nav-updated {
+            width: 120px;
+            text-align: center;
+        }
+
+        .notice-nav-view {
+            width: 80px;
+            text-align: center;
+        }
+
+
+    </style>
+
 </head>
-
 <body>
+<div th:replace="fragments/noticeHeader :: notice-page-header"></div>
 
-<div class="main-layout" style="display:flex; min-height:100vh;">
 
-    <div th:replace="~{fragments/sidebar :: sidebar(currentPage='notice')}"></div>
+<table class="notice-table">
+    <tr>
+        <td class="badge-important"><span>중요</span></td>
+        <td class="notice-title">공지 제목</td>
+        <td class="create">작성일시</td>
+        <td class="update">수정일시</td>
+        <td class="notice-view">3,021</td>
+    </tr>
+</table>
 
-    <div class="main-wrapper" style="flex:1; display:flex; flex-direction:column;">
+<hr>
 
-        <div th:replace="~{fragments/header_menu :: header_menu(currentPath01='notice', currentPath02='')}"></div>
-        <div th:replace="~{fragments/header-menu/parkingCategoryMenu :: categoryMenu}"></div>
 
-        <div class="container">
-
-            <table class="notice-table">
-                <tr>
-                    <td th:class="'badge-' + ${notice.badge != null ? notice.badge.name().toLowerCase() : 'normal'}">
-                        <span th:text="${notice.badge != null ? notice.badge.label : '일반'}"></span>
-                    </td>
-                    <td th:text="${notice.title}">공지 제목</td>
-                    <td th:text="${#temporals.format(notice.createdAt, 'yyyy-MM-dd HH:mm')}">작성일시</td>
-                    <td th:text="${notice.updatedAt != null ? #temporals.format(notice.updatedAt, 'yyyy-MM-dd HH:mm') : '-'}">수정일시</td>
-                    <td th:text="${notice.viewCount}">조회수</td>
-                </tr>
-            </table>
-
-            <div class="notice-box">
-                <p th:text="${notice.content}" style="white-space: pre-line;"></p>
-            </div>
-
-            <div class="attachment-box" th:if="${attachments != null && !attachments.isEmpty()}">
-                <div class="attachment-title">📎 첨부파일</div>
-                <div th:each="attachment : ${attachments}">
-                    <a th:href="@{/notice/download/{id}(id=${attachment.id})}"
-                       th:text="${attachment.fileName}"
-                       class="attachment-link"></a>
-                    <br>
-                    <img th:if="${attachment.fileName.contains('.jpg') or attachment.fileName.contains('.jpeg') or attachment.fileName.contains('.png')}"
-                         th:src="@{/uploads/{fileName}(fileName=${attachment.fileName})}"
-                         style="max-width: 100%; margin-top: 8px; border-radius: 8px;">
-                </div>
-            </div>
-
-            <table class="notice-nav-table">
-                <tr>
-                    <td>이전글</td>
-                    <th:block th:if="${preNotice != null}">
-                        <td><a th:href="@{/notice/{id}(id=${preNotice.id})}" th:text="${preNotice.title}"></a></td>
-                        <td th:text="${#temporals.format(preNotice.createdAt, 'yyyy-MM-dd')}"></td>
-                        <td th:text="${preNotice.updatedAt != null ? #temporals.format(preNotice.updatedAt, 'yyyy-MM-dd') : '-'}"></td>
-                        <td th:text="${preNotice.viewCount}"></td>
-                    </th:block>
-                    <th:block th:if="${preNotice == null}">
-                        <td colspan="4"></td>
-                    </th:block>
-                </tr>
-                <tr>
-                    <td>다음글</td>
-                    <th:block th:if="${nextNotice != null}">
-                        <td><a th:href="@{/notice/{id}(id=${nextNotice.id})}" th:text="${nextNotice.title}"></a></td>
-                        <td th:text="${#temporals.format(nextNotice.createdAt, 'yyyy-MM-dd')}"></td>
-                        <td th:text="${nextNotice.updatedAt != null ? #temporals.format(nextNotice.updatedAt, 'yyyy-MM-dd') : '-'}"></td>
-                        <td th:text="${nextNotice.viewCount}"></td>
-                    </th:block>
-                    <th:block th:if="${nextNotice == null}">
-                        <td colspan="4"></td>
-                    </th:block>
-                </tr>
-            </table>
-
-            <div class="admin-buttons">
-                <a th:href="@{/notice}" class="btn-back">← 뒤로가기</a>
-                <div sec:authorize="hasRole('ADMIN')" style="display:flex; gap:8px;">
-                    <a th:href="@{/notice/{id}/edit(id=${notice.id})}" class="btn-edit">수정</a>
-                    <form th:action="@{/notice/{id}/delete(id=${notice.id})}" method="post" style="display:inline;">
-                        <button type="button" class="btn-delete"
-                                onclick="if(confirm('삭제하시겠습니까?')) this.form.submit()">삭제</button>
-                    </form>
-                </div>
-            </div>
-
+<div class="notice-box">
+    <div class="content">
+        <div class="image">
+            <img src="" alt="사진" width="200" height="150">
         </div>
+        <p>공지 내용</p>
     </div>
 </div>
+
+
+<table class="notice-nav-table">
+    <tr class="prev-notice">
+        <td>이전글</td>
+        <td class="notice-nav-title">이전글 제목</td>
+        <td class="notice-nav-created">게시일시</td>
+        <td class="notice-nav-updated">수정일시</td>
+        <td class="notice-nav-view">조회수</td>
+    </tr>
+    <tr class="next-notice">
+        <td>다음글</td>
+        <td class="notice-nav-title">다음글 제목</td>
+        <td class="notice-nav-created">게시일시</td>
+        <td class="notice-nav-updated">수정일시</td>
+        <td class="notice-nav-view">조회수</td>
+    </tr>
+</table>
 
 </body>
 </html>

@@ -1,6 +1,5 @@
 package com.hometalk.onepass.notice.entity;
 
-import com.hometalk.onepass.auth.entity.User;
 import com.hometalk.onepass.common.entity.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -11,10 +10,7 @@ public class Notice extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
+    private Long userId;
 
     @Column(nullable = false, length = 100)
     private String title;
