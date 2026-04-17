@@ -55,15 +55,16 @@
             <td th:text="${vehicle.model}"></td>
             <td th:text="${vehicle.vehicleType}"></td>
             <td>
-          <span th:with="status=${vehicle.status.name()}"
-                th:text="${status == 'APPROVED'} ? '승인완료' : (${status == 'PENDING'} ? '승인대기' : '반려')"
-                th:class="${status == 'APPROVED'} ? 'status approved' : (${status == 'PENDING'} ? 'status pending' : 'status rejected')">
-          </span>
+                            <span th:text="${vehicle.status == 'APPROVED'} ? '승인완료' :
+                                          (${vehicle.status == 'PENDING'} ? '승인대기' : '반려')"
+                                  th:class="${vehicle.status == 'APPROVED'} ? 'status approved' :
+                                            (${vehicle.status == 'PENDING'} ? 'status pending' : 'status rejected')">
+                            </span>
             </td>
-            <td th:text="${vehicle.user.name}"></td>
+            <td th:text="${vehicle.userName}"></td>
             <td>
               <button type="button"
-                      th:if="${vehicle.status.name() == 'REJECTED'}"
+                      th:if="${vehicle.status == 'REJECTED'}"
                       class="reapply-btn"
                       th:attr="data-vehicle=${vehicle.vehicleId}"
                       onclick="goReapply(this.getAttribute('data-vehicle'))">
@@ -88,7 +89,8 @@
 
         <!-- 차량 추가 버튼 -->
         <div class="form-actions">
-          <button type="button" onclick="location.href='/parking/vehicle/register'">+ 차량 추가</button>
+          <button type="button"
+                  th:onclick="'location.href=\'' + @{/parking/vehicle/register} + '\''">+ 차량 추가</button>
         </div>
       </div>
     </main>
@@ -99,15 +101,16 @@
   </div>
 </div>
 
-<script>
+<script th:inline="javascript">
   const csrfToken = document.querySelector('meta[name="_csrf"]').content;
   const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+  const contextPath = /*[[@{/}]]*/ '/';
   let selectedVehicleId = null;
 
   function goReapply(vehicleId) {
       selectedVehicleId = vehicleId;
 
-      fetch(`/parking/vehicle/reject-reason/${vehicleId}`, {
+      fetch(`${contextPath}parking/vehicle/reject-reason/${vehicleId}`, {
           headers: {
               [csrfHeader]: csrfToken
           }
@@ -134,7 +137,7 @@
   }
 
   function goReapplyFromModal() {
-      location.href = `/parking/vehicle/reapply/${selectedVehicleId}`;
+      location.href = `${contextPath}parking/vehicle/reapply/${selectedVehicleId}`;
   }
 </script>
 
