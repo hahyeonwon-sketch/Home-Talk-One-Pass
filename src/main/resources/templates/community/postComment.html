@@ -13,8 +13,13 @@
         </form>
     </div>
 
+    <div class="comment-count-header" style="margin-bottom: 10px; font-weight: bold; color: var(--main-navy);">
+        댓글 <span id="total-comment-count" th:text="${comments.size()}">0</span>개
+    </div>
+
     <div class="comment-list">
-        <div th:each="comment : ${comments}" class="comment-item">
+        <div th:each="comment, iterStat : ${comments}" class="comment-item"
+             th:classappend="${iterStat.index >= 10} ? 'review-hidden'">
             <div class="comment-info" th:id="|meta-${comment.id}|">
                 <div class="info-left">
                     <strong th:text="${comment.nickname}">작성자</strong>
@@ -42,6 +47,12 @@
                     </div>
                 </form>
             </div>
+        </div>
+
+        <div th:if="${comments.size() > 10}" style="text-align: center; margin-top: 20px;">
+            <button type="button" class="btn-more" id="btnMoreComments" onclick="showAllComments()">
+                + 더보기
+            </button>
         </div>
 
         <div th:if="${#lists.isEmpty(comments)}" class="no-comment">
