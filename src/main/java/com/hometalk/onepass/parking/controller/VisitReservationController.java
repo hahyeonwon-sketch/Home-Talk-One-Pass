@@ -84,6 +84,13 @@ public class VisitReservationController {
         return ResponseEntity.ok().build();
     }
 
+    @GetMapping("/visit/pending/{householdId}")
+    @ResponseBody
+    public ResponseEntity<List<VisitReservationResponse>> getPendingConfirm(
+            @PathVariable Long householdId) {
+        return ResponseEntity.ok(visitReservationService.getPendingConfirmReservations(householdId));
+    }
+
     // 상태별 예약 목록 조회 (JSON)
     @GetMapping("/visit/list/{householdId}")
     @ResponseBody
