@@ -14,7 +14,6 @@ import java.util.List;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Household {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -31,7 +30,7 @@ public class Household {
     @Column(name = "ho", nullable = false, length = 20)
     private String ho;
 
-    @NotNull
+
     @Column(name = "post_num", nullable = false)
     private String postNum;
 
