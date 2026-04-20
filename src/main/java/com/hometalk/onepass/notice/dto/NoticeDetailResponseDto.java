@@ -23,6 +23,8 @@ public class NoticeDetailResponseDto {
 
     private Badge badge;
 
+    private Boolean isPinned;
+
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;

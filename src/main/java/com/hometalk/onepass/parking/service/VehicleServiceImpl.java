@@ -41,8 +41,11 @@ public class VehicleServiceImpl implements VehicleService {
         User user = null;
         Household household = null;
 
+        // 차량번호 정규화
+        String vehicleNumber = request.getVehicleNumber().replace(" ", "");
+
         // 차량 번호 중복 확인
-        if (vehicleRepository.existsByVehicleNumber(request.getVehicleNumber())) {
+        if (vehicleRepository.existsByVehicleNumber(vehicleNumber)) {
             throw new IllegalArgumentException("이미 등록된 차량 번호입니다.");
         }
 
@@ -50,7 +53,7 @@ public class VehicleServiceImpl implements VehicleService {
         Vehicle vehicle = new Vehicle(
                 household,
                 user,
-                request.getVehicleNumber(),
+                vehicleNumber, // 정규화된 차량번호
                 request.getModel(),
                 request.getVehicleType()
         );
@@ -166,7 +169,6 @@ public class VehicleServiceImpl implements VehicleService {
         approval.reject(user, rejectReason);
         approval.getVehicle().reject();
     }
-
 
     @Override
     @Transactional(readOnly = true)
