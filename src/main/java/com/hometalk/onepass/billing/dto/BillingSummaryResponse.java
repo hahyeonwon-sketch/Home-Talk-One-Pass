@@ -26,12 +26,13 @@ public class BillingSummaryResponse {
     private final Long billingId;
     private final String dong;
     private final String ho;
-    private final String unit;          // 추가 - "101동 1204호"
+    private final String householdId;          // 추가 - "101동 1204호"
     private final String residentName;
     private final String billingMonth;
     private final LocalDate dueDate;
     private final BigDecimal totalAmount;
     private final BillingStatus status;
+    private final String upsertType; // "INSERT" or "UPDATE"
 
     // 입주민 목록용
     public static BillingSummaryResponse from(Billing billing) {
@@ -39,7 +40,7 @@ public class BillingSummaryResponse {
                 .billingId(billing.getId())
                 .dong(billing.getHousehold().getDong())
                 .ho(billing.getHousehold().getHo())
-                .unit(billing.getHousehold().getDong() + " " + billing.getHousehold().getHo())
+                .householdId(billing.getHousehold().getDong() + " " + billing.getHousehold().getHo())
                 .billingMonth(billing.getBillingMonth())
                 .dueDate(billing.getDueDate())
                 .totalAmount(billing.getTotalAmount())
@@ -53,7 +54,7 @@ public class BillingSummaryResponse {
                 .billingId(billing.getId())
                 .dong(billing.getHousehold().getDong())
                 .ho(billing.getHousehold().getHo())
-                .unit(billing.getHousehold().getDong() + " " + billing.getHousehold().getHo())
+                .householdId(billing.getHousehold().getDong() + " " + billing.getHousehold().getHo())
                 .residentName(residentName)
                 .billingMonth(billing.getBillingMonth())
                 .dueDate(billing.getDueDate())
@@ -61,4 +62,24 @@ public class BillingSummaryResponse {
                 .status(billing.getStatus())
                 .build();
     }
+
+    // 엑셀 미리보기용 생성 메서드
+    public static BillingSummaryResponse preview(
+            Long billingId,
+            String dong,
+            String ho,
+            String billingMonth,
+            BigDecimal totalAmount
+    ) {
+        return BillingSummaryResponse.builder()
+                .billingId(billingId)
+                .dong(dong)
+                .ho(ho)
+                .householdId(dong + " " + ho)
+                .billingMonth(billingMonth)
+                .totalAmount(totalAmount)
+                .upsertType(billingId != null ? "UPDATE" : "INSERT")
+                .build();
+    }
+
 }
