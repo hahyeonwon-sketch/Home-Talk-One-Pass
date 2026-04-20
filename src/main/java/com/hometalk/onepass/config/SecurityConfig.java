@@ -1,6 +1,7 @@
 package com.hometalk.onepass.config;
 
 
+import com.hometalk.onepass.auth.config.OAuth2LoginSuccessHandler;
 import com.hometalk.onepass.auth.service.Oauth2UserServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -15,6 +16,7 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     private final Oauth2UserServiceImpl oauthUserService;
+    private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -39,6 +41,8 @@ public class SecurityConfig {
                         .userInfoEndpoint(userInfo -> userInfo
                                 .userService(oauthUserService)
                         )
+                        .successHandler(oAuth2LoginSuccessHandler) // 핸들러 등록
+                        .userInfoEndpoint(userInfo -> userInfo.userService(oauthUserService))
                         .defaultSuccessUrl("/index", true)
                 )
                 .logout(logout -> logout
