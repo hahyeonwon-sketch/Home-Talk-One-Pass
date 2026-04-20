@@ -49,7 +49,7 @@ public class NoticeService {
     }
 
     public Page<NoticeListResponseDto> getNoticeList(int page) {
-        Pageable pageable = PageRequest.of(page, 10,
+        Pageable pageable = PageRequest.of(page, 15,
                 Sort.by("isPinned").descending().and(Sort.by("createdAt").descending()));
         Page<Notice> notices = noticeRepository.findAll(pageable);
         return notices.map(notice -> new NoticeListResponseDto(

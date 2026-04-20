@@ -13,15 +13,15 @@
 
 <body>
 
-<!-- 헤더 -->
-<div th:replace="~{fragments/headerCurrentMenuView :: path(paths=#{'notice'})}"></div>
-
 <div class="main-layout" style="display:flex; min-height:100vh;">
 
     <!-- 사이드바 -->
     <div th:replace="~{fragments/sidebar :: sidebar(currentPage='notice')}"></div>
 
     <div class="main-wrapper" style="flex:1; display:flex; flex-direction:column;">
+
+        <!-- 헤더 -->
+        <div th:replace="~{fragments/headerCurrentMenuView :: path(paths=#{'notice'})}"></div>
 
         <div class="container">
 
@@ -44,18 +44,22 @@
                 </thead>
                 <tbody>
                 <tr th:each="notice : ${notices.content}">
-
                     <td th:class="'badge-' + ${notice.badge.name().toLowerCase()}">
                         <span th:text="${notice.badge.label}">분류</span>
                     </td>
-                    <!-- 제목 클릭 시 상세 페이지 이동 -->
                     <td>
                         <a th:href="@{/notice/{id}(id=${notice.id})}" th:text="${notice.title}">제목</a>
                     </td>
-                    <td th:text="${#temporals.format(notice.createdAt, 'yyyy-MM-dd')}"></td>
                     <!-- 수정일시 -->
+                    <td th:text="${#temporals.format(notice.createdAt, 'yyyy-MM-dd')}"></td>
                     <td th:text="${notice.updatedAt != null ? #temporals.format(notice.updatedAt, 'yyyy-MM-dd') : '-'}"></td>
                     <td th:text="${notice.viewCount}"></td>
+                </tr>
+
+                <tr th:each="i : ${#numbers.sequence(1, 15 - notices.content.size())}"
+                    th:if="${notices.content.size() < 15}"
+                    class="empty-row">
+                    <td></td><td></td><td></td><td></td><td></td>
                 </tr>
                 </tbody>
             </table>

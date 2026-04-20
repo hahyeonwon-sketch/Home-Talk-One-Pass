@@ -60,6 +60,13 @@
 
 .notice-list tr:hover { background-color: #f9f9f9; }
 
+.notice-list tbody tr {
+    height: 48px;
+}
+.empty-row td {
+    border-bottom: 1px solid var(--border-color);
+}
+
 .bottom-wrap {
     display: flex;
     justify-content: center;

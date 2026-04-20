@@ -5,7 +5,9 @@ import com.hometalk.onepass.notice.dto.NoticeListResponseDto;
 import com.hometalk.onepass.notice.dto.NoticeRequestDto;
 import com.hometalk.onepass.notice.entity.Attachment;
 import com.hometalk.onepass.notice.service.NoticeService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
@@ -16,9 +18,14 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @Controller
 @RequestMapping("/notice")
@@ -26,6 +33,9 @@ import java.util.List;
 public class NoticeController {
 
     private final NoticeService noticeService;
+
+    @Value("${file.upload.path}")
+    private String uploadPath;
 
     // 목록
     @GetMapping
@@ -53,12 +63,12 @@ public class NoticeController {
         NoticeDetailResponseDto notice = noticeService.getNoticeDetail(id);
         NoticeListResponseDto preNotice = noticeService.getPreNotice(id);
         NoticeListResponseDto nextNotice = noticeService.getNextNotice(id);
-        List<Attachment> attachments = noticeService.getAttachments(id); // 추가
+        List<Attachment> attachments = noticeService.getAttachments(id);
 
         model.addAttribute("notice", notice);
         model.addAttribute("preNotice", preNotice);
         model.addAttribute("nextNotice", nextNotice);
-        model.addAttribute("attachments", attachments); // 추가
+        model.addAttribute("attachments", attachments);
         return "notice/noticeDetail";
     }
 
@@ -88,8 +98,8 @@ public class NoticeController {
     @PostMapping("/{id}/edit")
     public String noticeEdit(@PathVariable Long id,
                              @ModelAttribute NoticeRequestDto noticeRequestDto,
-                             @RequestParam(required = false) MultipartFile file) { // 추가
-        noticeService.updateNotice(id, noticeRequestDto, file); // file 추가
+                             @RequestParam(required = false) MultipartFile file) {
+        noticeService.updateNotice(id, noticeRequestDto, file);
         return "redirect:/notice/" + id;
     }
 
@@ -116,5 +126,28 @@ public class NoticeController {
                 .header(HttpHeaders.CONTENT_DISPOSITION,
                         "attachment; filename=\"" + attachment.getFileName() + "\"")
                 .body(resource);
+    }
+
+    // 에디터 이미지 업로드
+    @PostMapping("/image-upload")
+    @ResponseBody
+    public Map<String, String> uploadImage(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
+        try {
+            File dir = new File(uploadPath);
+            if (!dir.exists()) dir.mkdirs();
+
+            String original = file.getOriginalFilename();
+            String fileName = UUID.randomUUID() + "_" + (original != null ? original : "image");
+            String filePath = uploadPath + "/" + fileName;
+
+            file.transferTo(new File(filePath).getAbsoluteFile());
+
+            String contextPath = request.getContextPath();
+            Map<String, String> result = new HashMap<>();
+            result.put("url", contextPath + "/uploads/" + fileName);
+            return result;
+        } catch (IOException e) {
+            throw new RuntimeException("이미지 업로드 실패: " + e.getMessage());
+        }
     }
 }
