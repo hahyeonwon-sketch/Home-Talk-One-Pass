@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>공지 작성 | Home talk</title>
+    <title>공지 수정 | Home talk</title>
     <link rel="stylesheet" th:href="@{/css/dashboard/style.css}">
     <link rel="stylesheet" th:href="@{/css/notice/notice-common.css}">
     <link rel="stylesheet" th:href="@{/css/notice/noticeForm.css}">
@@ -23,34 +23,37 @@
     <div class="main-wrapper" style="flex:1; display:flex; flex-direction:column;">
 
         <div class="container">
-            <h2>공지 작성</h2>
+            <h2>공지 수정</h2>
 
-            <!-- 공지 작성 폼 -->
-            <form th:action="@{/notice/write}" method="post" enctype="multipart/form-data" id="noticeForm">
+            <!-- 공지 수정 폼 -->
+            <form th:action="@{/notice/{id}/edit(id=${notice.id})}" method="post" enctype="multipart/form-data">
 
                 <!-- 분류 선택 -->
                 <div class="form-group">
                     <label for="badge">분류</label>
                     <select id="badge" name="badge" required>
                         <option value="">분류 선택</option>
-                        <option value="IMPORTANT">중요</option>
-                        <option value="FACILITY">시설</option>
-                        <option value="SAFETY">안전</option>
-                        <option value="NORMAL">일반</option>
+                        <option value="IMPORTANT" th:selected="${notice.badge.name() == 'IMPORTANT'}">중요</option>
+                        <option value="FACILITY"  th:selected="${notice.badge.name() == 'FACILITY'}">시설</option>
+                        <option value="SAFETY"    th:selected="${notice.badge.name() == 'SAFETY'}">안전</option>
+                        <option value="NORMAL"    th:selected="${notice.badge.name() == 'NORMAL'}">일반</option>
                     </select>
                 </div>
 
                 <!-- 제목 입력 -->
                 <div class="form-group">
                     <label for="title">제목</label>
-                    <input type="text" id="title" name="title" placeholder="제목을 입력하세요 (최대 100자)" maxlength="100" required>
-                    <small><span id="charCount">0</span>/100</small>
+                    <input type="text" id="title" name="title"
+                           th:value="${notice.title}"
+                           placeholder="제목을 입력하세요 (최대 100자)" maxlength="100" required>
+                    <small><span id="charCount" th:text="${notice.title.length()}">0</span>/100</small>
                 </div>
 
                 <div class="form-group notice-content-wrap">
                     <!-- 본문 -->
                     <label>내용</label>
-                    <textarea name="content" rows="15" placeholder="내용을 입력하세요" required></textarea>
+                    <textarea name="content" rows="15" required
+                              th:text="${notice.content}"></textarea>
 
                     <!-- 일정 등록 모달 -->
                     <div class="schedule-modal" id="scheduleModal">
@@ -93,28 +96,37 @@
                 </div>
 
                 <div class="button-group">
-                    <!-- 파일 업로드 -->
+                    <!-- 파일 업로드  -->
                     <div class="button-group-left">
                         <input type="file" id="file" name="file">
                         <label for="file" class="btn btn-file">파일 올리기</label>
+                        <span id="fileName" class="file-name"></span>
                     </div>
                     <div class="button-group-right">
                         <!-- 상단 고정 -->
                         <div class="checkbox-group">
-                            <input type="checkbox" id="isPinned" name="isPinned" value="true">
+                            <input type="checkbox" id="isPinned" name="isPinned" value="true"
+                                   th:checked="${notice.isPinned}">
                             <label for="isPinned">상단 고정</label>
                         </div>
                         <!-- 일정 등록 모달 -->
                         <button type="button" class="btn-schedule"
                                 onclick="document.getElementById('scheduleModal').classList.add('open')">일정 등록</button>
-                        <!-- 목록으로 돌아가기 -->
-                        <a th:href="@{/notice}" class="btn btn-cancel" onclick="return confirmCancel()">목록</a>
-                        <!-- 게시 -->
-                        <button type="submit" class="btn-submit">게시</button>
+                        <!-- 상세 페이지로 취소 -->
+                        <a th:href="@{/notice/{id}(id=${notice.id})}" class="btn btn-cancel">취소</a>
+                        <!-- 수정 완료 -->
+                        <button type="submit" class="btn-submit">수정 완료</button>
                     </div>
                 </div>
 
             </form>
+
+            <!-- 삭제 -->
+            <form th:action="@{/notice/{id}/delete(id=${notice.id})}" method="post" style="margin-top:10px;">
+                <button type="button" class="btn-delete"
+                        onclick="if(confirm('삭제하시겠습니까?')) this.form.submit()">삭제</button>
+            </form>
+
         </div>
     </div>
 </div>
@@ -125,14 +137,10 @@
         document.getElementById('charCount').innerText = this.value.length;
     });
 
-    // 목록 이동 전 확인 팝업
-    function confirmCancel() {
-        if (confirm("작성 중인 내용을 중단하고 목록으로 돌아가시겠습니까?")) {
-            return true;
-        } else {
-            return false;
-        }
-    }
+    // 파일명 표시
+    document.getElementById('file').addEventListener('change', function() {
+        document.getElementById('fileName').innerText = this.files[0]?.name || '';
+    });
 </script>
 
 </body>
