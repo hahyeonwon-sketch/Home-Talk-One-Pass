@@ -57,7 +57,7 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         if (socialAccount.isEmpty()) {
             // 신규 유저 -> 추가 정보 입력 페이지로 이동
             // 파라미터에 platform 정보도 포함하여 전송 (가입 완료 시 필요)
-            String redirectUrl = String.format("/signup/social?email=%s&platform=%s&platformId=%s",
+            String redirectUrl = String.format("/register/social?email=%s&platform=%s&platformId=%s",
                     email, platform, platformId);
             getRedirectStrategy().sendRedirect(request, response, redirectUrl);
         } else {

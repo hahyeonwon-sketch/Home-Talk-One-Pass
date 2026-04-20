@@ -10,6 +10,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 
+
 @RequiredArgsConstructor
 @Configuration
 @EnableWebSecurity
@@ -23,7 +24,7 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth
                         // 1. "/" 경로와 정적 리소스(css, js 등)는 모두에게 허용
-                        .requestMatchers("/", "/auth", "/auth/loginimage/**", "/auth/signup", "/auth/login", "/auth/register/**").permitAll()
+                        .requestMatchers( "/auth", "/auth/loginimage/**", "/auth/signup", "/auth/login", "/auth/register/**", "/templates/**").permitAll()
 
                         // 2. 그 외의 모든 요청은 인증(로그인)이 필요함
                         .anyRequest().authenticated()
@@ -46,8 +47,9 @@ public class SecurityConfig {
                         .defaultSuccessUrl("/index", true)
                 )
                 .logout(logout -> logout
+                        .logoutUrl("/auth/logout")
                         .logoutSuccessUrl("/auth") // 로그아웃 성공 시 이동할 페이지
-                        .permitAll()
+                        .invalidateHttpSession(true) // 세션 무효화
                 );
 
         return http.build();

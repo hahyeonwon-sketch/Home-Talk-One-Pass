@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>추가 정보 입력 - Home Talk</title>
     <style>
-        .container { max-width: 400px; margin: 50px auto; font-family: sans-serif; }
+        .auth-container { max-width: 400px; margin: 50px auto; font-family: sans-serif; }
         .form-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 5px; font-weight: bold; }
         input[readonly] { background-color: #eee; cursor: not-allowed; }
@@ -13,11 +13,11 @@
     </style>
 </head>
 <body>
-<div class="container">
+<div class="auth-container">
     <h2>🎉 가입을 환영합니다!</h2>
     <p>서비스 이용을 위해 추가 정보를 입력해주세요.</p>
     <hr>
-    <form th:action="@{/signup/extra}" method="post">
+    <form th:action="@{/auth/register/social}" method="post">
         <div class="form-group">
             <label>이메일</label>
             <input type="email" name="email" th:value="${email}" readonly>
