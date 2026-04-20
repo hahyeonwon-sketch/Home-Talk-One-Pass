@@ -1,10 +1,11 @@
 package com.hometalk.onepass.notice.dto;
 
 import com.hometalk.onepass.notice.entity.Badge;
-import com.hometalk.onepass.notice.entity.Notice;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -25,4 +26,11 @@ public class NoticeRequestDto {
     @NotNull
     private Badge badge;
 
+    // 일정 관련 (선택사항)
+    private String scheduleName;
+    private LocalDateTime scheduleStartAt;
+    private LocalDateTime scheduleEndAt;
+    private String scheduleInfo;
+    private String scheduleLocation;
+    private String scheduleReferenceUrl;
 }

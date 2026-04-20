@@ -51,6 +51,7 @@
                     <input type="hidden" name="content" id="content">
                     <div id="editor" style="height: 300px;"></div>
 
+                    <!-- 일정 등록 모달 -->
                     <div class="schedule-modal" id="scheduleModal">
                         <div class="modal-header">
                             <span>일정 등록</span>
@@ -66,29 +67,55 @@
                                     <td>시작</td>
                                     <td>
                                         <input type="date" name="startDate">
-                                        <select name="startHour"><option>00</option></select>
-                                        <select name="startMinute"><option>00</option></select>
+                                        <select name="startHour">
+                                            <option th:each="h : ${#numbers.sequence(0, 23)}"
+                                                    th:value="${#strings.toString(h).length() == 1 ? '0' + h : h}"
+                                                    th:text="${#strings.toString(h).length() == 1 ? '0' + h : h}"></option>
+                                        </select>
+                                        <select name="startMinute">
+                                            <option value="00">00</option>
+                                            <option value="30">30</option>
+                                        </select>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td>종료</td>
                                     <td>
                                         <input type="date" name="endDate">
-                                        <select name="endHour"><option>23</option></select>
-                                        <select name="endMinute"><option>59</option></select>
+                                        <select name="endHour">
+                                            <option th:each="h : ${#numbers.sequence(0, 23)}"
+                                                    th:value="${#strings.toString(h).length() == 1 ? '0' + h : h}"
+                                                    th:text="${#strings.toString(h).length() == 1 ? '0' + h : h}"></option>
+                                        </select>
+                                        <select name="endMinute">
+                                            <option value="00">00</option>
+                                            <option value="30">30</option>
+                                        </select>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td>설명</td>
-                                    <td><textarea name="scheduleDesc"></textarea></td>
+                                    <td><textarea name="scheduleInfo"></textarea></td>
+                                </tr>
+                                <tr>
+                                    <td>장소</td>
+                                    <td><input type="text" name="scheduleLocation" placeholder="장소를 입력하세요."></td>
+                                </tr>
+                                <tr>
+                                    <td>참고 URL</td>
+                                    <td><input type="text" name="scheduleReferenceUrl" placeholder="참고 URL을 입력하세요."></td>
                                 </tr>
                             </table>
                             <div class="modal-bottom">
-                                <button type="button" class="btn-register">등록</button>
+                                <button type="button" class="btn-register" onclick="document.getElementById('scheduleModal').classList.remove('open')">등록</button>
                             </div>
                         </div>
                     </div>
                 </div>
+
+                <!-- 일정 hidden inputs -->
+                <input type="hidden" id="scheduleStartAt" name="scheduleStartAt">
+                <input type="hidden" id="scheduleEndAt" name="scheduleEndAt">
 
                 <div class="button-group">
                     <div class="button-group-left">
@@ -97,6 +124,7 @@
                     </div>
                     <div class="button-group-right">
                         <div class="checkbox-group">
+                            <input type="hidden" name="isPinned" value="false">
                             <input type="checkbox" id="isPinned" name="isPinned" value="true">
                             <label for="isPinned">상단 고정</label>
                         </div>
@@ -109,8 +137,15 @@
 
             </form>
         </div>
+
+        <footer th:replace="~{fragments/footer :: footer}"></footer>
+
     </div>
 </div>
+
+<script th:inline="javascript">
+    var imageUploadUrl = /*[[@{/notice/image-upload}]]*/ '/notice/image-upload';
+</script>
 
 <script>
     var quill = new Quill('#editor', {
@@ -141,7 +176,7 @@
                             var headers = {};
                             headers[csrfHeader] = csrfToken;
 
-                            fetch('/hometop/notice/image-upload', {
+                            fetch(imageUploadUrl, {
                                 method: 'POST',
                                 headers: headers,
                                 body: formData
@@ -163,6 +198,7 @@
     });
 
     document.getElementById('noticeForm').addEventListener('submit', function(e) {
+        // content 처리
         var content = quill.root.innerHTML;
         if (content === '<p><br></p>') {
             alert('내용을 입력해주세요.');
@@ -170,6 +206,21 @@
             return;
         }
         document.getElementById('content').value = content;
+
+        // 일정 날짜 조합
+        var startDate = document.querySelector('[name="startDate"]').value;
+        var startHour = document.querySelector('[name="startHour"]').value;
+        var startMinute = document.querySelector('[name="startMinute"]').value;
+        var endDate = document.querySelector('[name="endDate"]').value;
+        var endHour = document.querySelector('[name="endHour"]').value;
+        var endMinute = document.querySelector('[name="endMinute"]').value;
+
+        if (startDate) {
+            document.getElementById('scheduleStartAt').value = startDate + 'T' + startHour + ':' + startMinute + ':00';
+        }
+        if (endDate) {
+            document.getElementById('scheduleEndAt').value = endDate + 'T' + endHour + ':' + endMinute + ':00';
+        }
     });
 
     function confirmCancel() {

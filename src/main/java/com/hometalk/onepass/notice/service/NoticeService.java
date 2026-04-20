@@ -73,11 +73,13 @@ public class NoticeService {
         User user = account.getUser();
 
         Notice notice = new Notice();
-        notice.setTitle(noticeRequestDto.getTitle());
-        notice.setContent(noticeRequestDto.getContent());
-        notice.setIsPinned(Boolean.TRUE.equals(noticeRequestDto.getIsPinned()));
-        notice.setBadge(noticeRequestDto.getBadge());
-        notice.setUser(user);
+        notice.create(
+                noticeRequestDto.getTitle(),
+                noticeRequestDto.getContent(),
+                Boolean.TRUE.equals(noticeRequestDto.getIsPinned()),
+                noticeRequestDto.getBadge(),
+                user
+        );
         noticeRepository.save(notice);
 
         if (file != null && !file.isEmpty()) {
@@ -97,11 +99,7 @@ public class NoticeService {
 
             file.transferTo(new File(filePath).getAbsoluteFile());
 
-            Attachment attachment = new Attachment();
-            attachment.setNotice(notice);
-            attachment.setFileName(original != null ? original : "file");
-            attachment.setFilePath(filePath);
-            attachment.setFileSize(file.getSize());
+            Attachment attachment = new Attachment(notice, original != null ? original : "file", filePath, file.getSize());
             attachmentRepository.save(attachment);
 
         } catch (IOException e) {
@@ -117,16 +115,20 @@ public class NoticeService {
             throw new IllegalArgumentException("분류를 선택해주세요.");
         }
 
-        notice.setTitle(noticeRequestDto.getTitle());
-        notice.setContent(noticeRequestDto.getContent());
-        notice.setIsPinned(Boolean.TRUE.equals(noticeRequestDto.getIsPinned()));
-        notice.setBadge(noticeRequestDto.getBadge());
-        noticeRepository.save(notice);
+        notice.update(
+                noticeRequestDto.getTitle(),
+                noticeRequestDto.getContent(),
+                Boolean.TRUE.equals(noticeRequestDto.getIsPinned()),
+                noticeRequestDto.getBadge()
+        );
 
         if (file != null && !file.isEmpty()) {
             List<Attachment> existing = attachmentRepository.findByNotice(notice);
             for (Attachment att : existing) {
-                new File(att.getFilePath()).delete();
+                File attFile = new File(att.getFilePath());
+                if (attFile.exists()) {
+                    attFile.delete();
+                }
             }
             attachmentRepository.deleteByNotice(notice);
             saveFile(file, notice);
@@ -140,7 +142,10 @@ public class NoticeService {
 
         List<Attachment> attachments = attachmentRepository.findByNotice(notice);
         for (Attachment attachment : attachments) {
-            new File(attachment.getFilePath()).delete();
+            File attFile = new File(attachment.getFilePath());
+            if (attFile.exists()) {
+                attFile.delete();
+            }
         }
         attachmentRepository.deleteByNotice(notice);
         noticeRepository.delete(notice);
@@ -150,8 +155,7 @@ public class NoticeService {
         Notice notice = noticeRepository.findById(id)
                 .orElseThrow(() -> new NoticeNotFoundException(id));
 
-        notice.setViewCount(notice.getViewCount() + 1);
-        noticeRepository.save(notice);
+        notice.increaseViewCount();
 
         return new NoticeDetailResponseDto(
                 notice.getId(),
@@ -194,7 +198,7 @@ public class NoticeService {
     }
 
     public Page<NoticeListResponseDto> searchNotice(String keyword, int page) {
-        Pageable pageable = PageRequest.of(page, 10,
+        Pageable pageable = PageRequest.of(page, 15,
                 Sort.by("isPinned").descending().and(Sort.by("createdAt").descending()));
         Page<Notice> notices = noticeRepository.findByTitleContainingOrContentContaining(keyword, keyword, pageable);
         return notices.map(notice -> new NoticeListResponseDto(
@@ -233,5 +237,10 @@ public class NoticeService {
                 notice.getCreatedAt(),
                 resolveUpdatedAt(notice)
         );
+    }
+
+    public Notice getNoticeEntity(Long id) {
+        return noticeRepository.findById(id)
+                .orElseThrow(() -> new NoticeNotFoundException(id));
     }
 }

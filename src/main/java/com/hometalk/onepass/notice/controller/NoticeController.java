@@ -4,8 +4,10 @@ import com.hometalk.onepass.notice.dto.NoticeDetailResponseDto;
 import com.hometalk.onepass.notice.dto.NoticeListResponseDto;
 import com.hometalk.onepass.notice.dto.NoticeRequestDto;
 import com.hometalk.onepass.notice.entity.Attachment;
+import com.hometalk.onepass.notice.entity.Notice;
+import com.hometalk.onepass.notice.repository.NoticeRepository;
 import com.hometalk.onepass.notice.service.NoticeService;
-import jakarta.servlet.http.HttpServletRequest;
+import com.hometalk.onepass.schedule.service.ScheduleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
@@ -18,6 +20,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -33,11 +36,12 @@ import java.util.UUID;
 public class NoticeController {
 
     private final NoticeService noticeService;
+    private final ScheduleService scheduleService; // 일정 서비스 추가
 
     @Value("${file.upload.path}")
     private String uploadPath;
 
-    // 목록
+    // ── 목록 ──────────────────────────────────────────────────────────────────
     @GetMapping
     public String noticeList(@RequestParam(defaultValue = "0") int page,
                              @RequestParam(required = false) String keyword,
@@ -57,7 +61,7 @@ public class NoticeController {
         return "notice/noticeList";
     }
 
-    // 상세
+    // ── 상세 ──────────────────────────────────────────────────────────────────
     @GetMapping("/{id}")
     public String noticeDetail(@PathVariable Long id, Model model) {
         NoticeDetailResponseDto notice = noticeService.getNoticeDetail(id);
@@ -72,21 +76,37 @@ public class NoticeController {
         return "notice/noticeDetail";
     }
 
-    // 작성 페이지
+    // ── 작성 페이지 ───────────────────────────────────────────────────────────
     @GetMapping("/write")
     public String noticeWriteForm() {
         return "notice/noticeForm";
     }
 
-    // 작성 처리
+    // ── 작성 처리 ─────────────────────────────────────────────────────────────
+    // 공지 저장 후 일정 데이터 있으면 일정도 같이 저장
     @PostMapping("/write")
     public String noticeWrite(@ModelAttribute NoticeRequestDto noticeRequestDto,
                               @RequestParam(required = false) MultipartFile file) {
-        Long id = noticeService.createNotice(noticeRequestDto, file);
-        return "redirect:/notice/" + id;
+
+        // 1. 공지 저장
+        Long noticeId = noticeService.createNotice(noticeRequestDto, file);
+
+        // 2. 일정 데이터 있으면 일정도 저장 (선택사항)
+        Notice notice = noticeService.getNoticeEntity(noticeId);
+        scheduleService.createScheduleWithNotice(
+                notice,
+                noticeRequestDto.getScheduleName(),
+                noticeRequestDto.getScheduleStartAt(),
+                noticeRequestDto.getScheduleEndAt(),
+                noticeRequestDto.getScheduleInfo(),
+                noticeRequestDto.getScheduleLocation(),
+                noticeRequestDto.getScheduleReferenceUrl()
+        );
+
+        return "redirect:/notice/" + noticeId;
     }
 
-    // 수정 페이지
+    // ── 수정 페이지 ───────────────────────────────────────────────────────────
     @GetMapping("/{id}/edit")
     public String noticeEditForm(@PathVariable Long id, Model model) {
         NoticeDetailResponseDto notice = noticeService.getNoticeForEdit(id);
@@ -94,7 +114,7 @@ public class NoticeController {
         return "notice/noticeEdit";
     }
 
-    // 수정 처리
+    // ── 수정 처리 ─────────────────────────────────────────────────────────────
     @PostMapping("/{id}/edit")
     public String noticeEdit(@PathVariable Long id,
                              @ModelAttribute NoticeRequestDto noticeRequestDto,
@@ -103,14 +123,14 @@ public class NoticeController {
         return "redirect:/notice/" + id;
     }
 
-    // 삭제
+    // ── 삭제 ──────────────────────────────────────────────────────────────────
     @PostMapping("/{id}/delete")
     public String noticeDelete(@PathVariable Long id) {
         noticeService.deleteNotice(id);
         return "redirect:/notice";
     }
 
-    // 파일 다운로드
+    // ── 파일 다운로드 ─────────────────────────────────────────────────────────
     @GetMapping("/download/{attachmentId}")
     public ResponseEntity<Resource> downloadFile(@PathVariable Long attachmentId) {
         Attachment attachment = noticeService.getAttachment(attachmentId);
@@ -128,10 +148,11 @@ public class NoticeController {
                 .body(resource);
     }
 
-    // 에디터 이미지 업로드
+    // ── 에디터 이미지 업로드 ──────────────────────────────────────────────────
     @PostMapping("/image-upload")
     @ResponseBody
-    public Map<String, String> uploadImage(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
+    public Map<String, String> uploadImage(@RequestParam("file") MultipartFile file,
+                                           HttpServletRequest request) {
         try {
             File dir = new File(uploadPath);
             if (!dir.exists()) dir.mkdirs();

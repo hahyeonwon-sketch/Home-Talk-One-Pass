@@ -50,7 +50,6 @@
                     <td>
                         <a th:href="@{/notice/{id}(id=${notice.id})}" th:text="${notice.title}">제목</a>
                     </td>
-                    <!-- 수정일시 -->
                     <td th:text="${#temporals.format(notice.createdAt, 'yyyy-MM-dd')}"></td>
                     <td th:text="${notice.updatedAt != null ? #temporals.format(notice.updatedAt, 'yyyy-MM-dd') : '-'}"></td>
                     <td th:text="${notice.viewCount}"></td>
@@ -65,7 +64,6 @@
             </table>
 
             <div class="bottom-wrap">
-                <!-- 페이지네이션 -->
                 <div class="pagination">
                     <a th:if="${currentPage > 0}"
                        th:href="@{/notice(page=${currentPage - 1}, keyword=${keyword != null ? keyword : ''})}">
@@ -80,7 +78,6 @@
                         &gt;
                     </a>
                 </div>
-                <!-- 제목 검색 -->
                 <form th:action="@{/notice}" method="get" class="notice-search">
                     <input type="text" name="keyword" th:value="${keyword}" placeholder="제목 검색">
                     <button type="submit" class="btn-search">🔍</button>
@@ -88,9 +85,12 @@
             </div>
 
         </div>
+
+        <!-- 푸터: main-wrapper 안, container 밖 -->
+        <footer th:replace="~{fragments/footer :: footer}"></footer>
+
     </div>
 </div>
 
-<footer th:replace="~{fragments/footer :: footer}"></footer>
 </body>
 </html>

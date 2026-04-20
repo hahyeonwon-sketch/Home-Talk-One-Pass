@@ -100,6 +100,8 @@
                     </div>
                     <div class="button-group-right">
                         <div class="checkbox-group">
+                            <!-- checkbox null 방지 -->
+                            <input type="hidden" name="isPinned" value="false">
                             <input type="checkbox" id="isPinned" name="isPinned" value="true"
                                    th:checked="${notice.isPinned}">
                             <label for="isPinned">상단 고정</label>
@@ -113,11 +115,13 @@
 
             </form>
         </div>
+        <footer th:replace="~{fragments/footer :: footer}"></footer>
     </div>
 </div>
 
 <script th:inline="javascript">
-    var savedContent = [[${notice.content}]];
+    var savedContent = /*[[${notice.content}]]*/ '';
+    var imageUploadUrl = /*[[@{/notice/image-upload}]]*/ '/notice/image-upload';
 </script>
 
 <script>
@@ -149,7 +153,7 @@
                             var headers = {};
                             headers[csrfHeader] = csrfToken;
 
-                            fetch('/hometop/notice/image-upload', {
+                            fetch(imageUploadUrl, {
                                 method: 'POST',
                                 headers: headers,
                                 body: formData
