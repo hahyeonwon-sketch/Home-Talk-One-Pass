@@ -1,6 +1,8 @@
 package com.hometalk.onepass.notice.repository;
 
 import com.hometalk.onepass.notice.entity.Notice;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -16,5 +18,5 @@ public interface NoticeRepository extends JpaRepository<Notice, Long> {
     List<Notice> findAllByOrderByIsPinnedDescCreatedAtDesc();
 
     // 제목, 내용 키워드 검색
-    List<Notice> findByTitleContainingOrContentContaining(String title, String content);
+    Page<Notice> findByTitleContainingOrContentContaining(String title, String content, Pageable pageable);
 }
