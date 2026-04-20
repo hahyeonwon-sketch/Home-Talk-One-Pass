@@ -44,14 +44,13 @@
             <td th:text="${reservation.purpose}"></td>
             <td th:text="${#temporals.format(reservation.reservedAt, 'yyyy.MM.dd HH:mm')}"></td>
             <td>
-                <span th:text="${reservation.status == 'RESERVED'} ? '예약중' :
-                               (${reservation.status == 'ENTERED'} ? '입차완료' : '취소됨')"
-                      th:class="${reservation.status == 'RESERVED'} ? 'status reserved' :
-                                (${reservation.status == 'ENTERED'} ? 'status entered' : 'status cancelled')">
+                <span th:text="${reservation.status}"
+                      th:class="${reservation.status == '예약중'} ? 'status reserved' :
+                                (${reservation.status == '입차완료'} ? 'status entered' : 'status cancelled')">
                 </span>
             </td>
             <td>
-                <th:block th:if="${reservation.status == 'RESERVED'}">
+                <th:block th:if="${reservation.status == '예약중'}">
                     <button type="button"
                             th:onclick="'location.href=\'' + @{/parking/visit/update/} + ${reservation.reservationId} + '\''">
                         수정
@@ -59,9 +58,6 @@
                     <button type="button" class="cancel-btn"
                             th:attr="data-id=${reservation.reservationId}"
                             onclick="cancelReservation(this)">취소</button>
-                    <button type="button" class="enter-btn"
-                            th:attr="data-id=${reservation.reservationId}"
-                            onclick="enterReservation(this)">입차</button>
                 </th:block>
             </td>
         </tr>
@@ -99,34 +95,6 @@
         }).catch(err => {
             console.error(err);
             alert('취소 처리 중 오류가 발생했습니다.');
-        });
-    }
-
-    function enterReservation(btn) {
-        const reservationId = btn.getAttribute('data-id');
-        if (!confirm('입차 처리하시겠습니까?')) return;
-
-        fetch(`${contextPath}parking/visit/enter/${reservationId}`, {
-            method: 'POST',
-            headers: {
-                [csrfHeader]: csrfToken
-            }
-        }).then(async res => {
-            if (res.ok) {
-                const row = document.getElementById(`row-${reservationId}`);
-                if (!row) return;
-                const statusCell = row.querySelector('td:nth-child(4) span');
-                const actionCell = row.querySelector('td:nth-child(5)');
-                statusCell.textContent = '입차완료';
-                statusCell.className = 'status entered';
-                actionCell.innerHTML = '';
-            } else {
-                const msg = await res.text();
-                alert(msg || '입차 처리 중 오류가 발생했습니다.');
-            }
-        }).catch(err => {
-            console.error(err);
-            alert('입차 처리 중 오류가 발생했습니다.');
         });
     }
 </script>
