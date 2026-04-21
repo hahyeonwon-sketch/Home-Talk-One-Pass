@@ -1,6 +1,6 @@
 package com.hometalk.onepass.dashboard.service.notification;
 
-import com.hometalk.onepass.dashboard.entity.notification.response.NotificationCommonResponseDto;
+import com.hometalk.onepass.dashboard.dto.notification.response.NotificationCommonResponseDto;
 import java.util.List;
 
 public interface NotificationService {

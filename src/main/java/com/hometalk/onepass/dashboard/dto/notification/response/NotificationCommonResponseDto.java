@@ -1,4 +1,4 @@
-package com.hometalk.onepass.dashboard.entity.notification.response;
+package com.hometalk.onepass.dashboard.dto.notification.response;
 
 import com.hometalk.onepass.dashboard.entity.notification.NotificationCommon;
 import lombok.Builder;

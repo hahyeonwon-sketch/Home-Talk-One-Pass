@@ -7,6 +7,8 @@ import com.hometalk.onepass.billing.entity.BillingStatus;
 import com.hometalk.onepass.common.entity.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -63,6 +65,7 @@ public class NotificationToBilling extends BaseTimeEntity{
     @Column(name = "due_date", nullable = false)
     private LocalDate dueDate;      // 납기일
 
+    @JdbcTypeCode(SqlTypes.JSON)
     private List<BillingDetailResponse.ItemDetail> billingItems =  new ArrayList<>();      // 전기료, 수도료, 청소비 등 항목명, 개별 항목 금액
 
     public void initBillingItems(List<BillingDetail> details) {

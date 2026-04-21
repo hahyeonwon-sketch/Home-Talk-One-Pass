@@ -1,7 +1,7 @@
 package com.hometalk.onepass.dashboard.service.notification.impl;
 
 
-import com.hometalk.onepass.dashboard.entity.notification.response.NotificationCommonResponseDto;
+import com.hometalk.onepass.dashboard.dto.notification.response.NotificationCommonResponseDto;
 import com.hometalk.onepass.dashboard.repository.notification.NotificationRepository;
 import com.hometalk.onepass.dashboard.service.notification.NotificationService;
 import lombok.RequiredArgsConstructor;
