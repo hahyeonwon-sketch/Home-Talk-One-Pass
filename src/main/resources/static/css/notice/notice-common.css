@@ -22,13 +22,12 @@ body {
 }
 
 .container {
-    max-width: 100%;
-    margin: 20px;
+    max-width: 1100px;
+    margin: 40px auto;
     background: white;
-    padding: 24px;
-    border-radius: 15px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-    min-height: calc(100vh - 150px);
+    padding: 40px;
+    border-radius: 16px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
 }
 
 .badge-important span {
