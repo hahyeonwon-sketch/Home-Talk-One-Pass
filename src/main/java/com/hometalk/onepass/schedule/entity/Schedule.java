@@ -39,6 +39,7 @@ public class Schedule extends BaseTimeEntity {
     @Column(nullable = false)
     private LocalDateTime startAt; // 필수
 
+    @Column(nullable = false)
     private LocalDateTime endAt;
 
     @Builder
