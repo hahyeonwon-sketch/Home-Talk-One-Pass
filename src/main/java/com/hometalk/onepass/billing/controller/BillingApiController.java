@@ -127,9 +127,10 @@ public class BillingApiController {
     @DeleteMapping("/admin/month/{billingMonth}")
     public ResponseEntity<Map<String, Integer>> deleteByMonth(
             @PathVariable String billingMonth,
-            @RequestParam(defaultValue = "1") Long adminId  // TODO: CustomUserDetails로 교체
+            @RequestParam(required = false) String dong,
+            @RequestParam(defaultValue = "1") Long adminId
     ) {
-        int deleted = billingService.deleteByBillingMonth(billingMonth, adminId);
+        int deleted = billingService.deleteByBillingMonth(billingMonth, dong, adminId);
         return ResponseEntity.ok(Map.of("deleted", deleted));
     }
 

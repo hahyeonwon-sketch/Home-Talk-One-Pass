@@ -39,6 +39,9 @@ public interface BillingRepository extends JpaRepository<Billing, Long> {
     // 해당 월 데이터 (전체 세대) 삭제
     List<Billing> findAllByBillingMonth(String billingMonth);
 
+    // 동별 해당 월 데이터 (특정 동 모든 세대) 삭제
+    List<Billing> findAllByBillingMonthAndHousehold_Dong(String billingMonth, String dong);
+
     // 이번 달 청구서 단건
     Optional<Billing> findByHousehold_IdAndBillingMonth(Long householdId, String billingMonth);
 

@@ -21,7 +21,7 @@
     <div class="main-wrapper" style="flex:1; display:flex; flex-direction:column;">
 
         <!-- 헤더 -->
-        <div th:replace="~{fragments/header_menu :: header_menu(currentPath01='billing', currentPath02='')}"></div>
+        <div th:replace="~{fragments/headerCurrentMenuView :: path(paths=${ {'billing'} })}"></div>
 
         <!-- 카테고리 바 (빈 바 고정) -->
         <header class="category-menu-bar">&nbsp;</header>

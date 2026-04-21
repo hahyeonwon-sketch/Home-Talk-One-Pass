@@ -89,29 +89,26 @@ public class BillingService {
 // ─────────────────────────────────────────────
 
     @Transactional
-    public int deleteByBillingMonth(String billingMonth, Long adminId) {
-        List<Billing> billings = billingRepository.findAllByBillingMonth(billingMonth);
+    public int deleteByBillingMonth(String billingMonth, String dong, Long adminId) {
+        List<Billing> billings = (dong != null && !dong.isBlank())
+                ? billingRepository.findAllByBillingMonthAndHousehold_Dong(billingMonth, dong)
+                : billingRepository.findAllByBillingMonth(billingMonth);
+
         if (billings.isEmpty()) return 0;
 
-        int count = billings.size();
-
-        // 1) billing_detail 삭제
         for (Billing b : billings) {
             billingDetailRepository.deleteByBilling_Id(b.getId());
         }
-
-        // 2) billing 본체 삭제
         billingRepository.deleteAll(billings);
 
-        // 3) 삭제 로그 기록 (UPLOAD action으로 통합 — 감사용)
-        //    별도 DELETE enum 추가를 원하면 BillingActionType에 DELETE 추가
         billingLogRepository.save(BillingLog.builder()
                 .billing(null)
                 .userId(adminId)
                 .actionType(BillingActionType.UPLOAD)
                 .build());
 
-        return count;
+        return billings.size();
+
     }
 
     // ─────────────────────────────────────────────

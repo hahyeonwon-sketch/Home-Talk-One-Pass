@@ -127,6 +127,7 @@ public class BillingUploadService {
                         .dueDate(row.getDueDate())
                         .totalAmount(row.getTotalAmount())
                         .status(BillingStatus.UNPAID)
+                        .lastUploadType("INSERT")
                         .build());
                 insertCount++;
             }

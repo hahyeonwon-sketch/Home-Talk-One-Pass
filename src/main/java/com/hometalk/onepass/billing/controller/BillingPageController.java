@@ -73,7 +73,7 @@ public class BillingPageController {
 
 
     // ─────────────────────────────────────────────
-    // 관리자 고지서 업로드 페이지
+    // 관리자 고지서 업로드 페이지 탭2개 (파일 업로드 / DB저장 후 확인)
     // ─────────────────────────────────────────────
 
     @GetMapping("/admin/upload")
@@ -82,6 +82,14 @@ public class BillingPageController {
         model.addAttribute("menu",        "billing");
         model.addAttribute("contextPath", "/hometop");
         return "billing/billing_admin_upload";
+    }
+
+    @GetMapping("/admin/monthly")
+    public String monthlyPage(Model model, HttpServletRequest request) {
+        model.addAttribute("currentUri", request.getRequestURI());
+        model.addAttribute("menu",        "billing");
+        model.addAttribute("contextPath", "/hometop");
+        return "billing/billing_admin_monthly";
     }
 
 

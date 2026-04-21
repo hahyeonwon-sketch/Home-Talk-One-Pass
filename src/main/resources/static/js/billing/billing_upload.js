@@ -1,8 +1,6 @@
 /* ================================================================
-   billing_upload.js
-   관리자 고지서 업로드 페이지 동작
+   billing_upload.js  —  Tab 1: 고지서 업로드
 ================================================================ */
-
 'use strict';
 
 const ITEM_COLS = [
@@ -13,156 +11,28 @@ const ITEM_COLS = [
     '세대수도료', '공동수도료'
 ];
 
-const YEARS  = [2026,2025,2024,2023,2022,2021,2020,2019,2018];
 const MONTHS = ['1월','2월','3월','4월','5월','6월','7월','8월',
                 '9월','10월','11월','12월'];
 
 let validRows    = [];
-let dbRows       = [];
-let mode         = 'db';
 let billingMonth = null;
-let selYear      = new Date().getFullYear();
-let selMonth     = null;
+let dbHasData    = false;   // 해당 월 DB 데이터 존재 여부
+let mode         = 'preview'; // 'preview' | 'result'
 let selDong      = null;
-let openPanel    = null;
 let sortKey      = null;
 let sortDir      = 1;
+let pendingFile  = null;
+let openDongPanel = false;
 
 /* ================================================================
    초기화
 ================================================================ */
 document.addEventListener('DOMContentLoaded', () => {
     initUploadZone();
-    fetchDbList();
     document.addEventListener('click', e => {
-        if (!e.target.closest('.panel-wrap')) closeAllPanels();
+        if (!e.target.closest('.panel-wrap')) closeDongPanel();
     });
 });
-
-/* ================================================================
-   DB 데이터 조회
-================================================================ */
-async function fetchDbList() {
-    try {
-        const params = new URLSearchParams();
-        if (selYear)  params.set('year', selYear);
-        if (selMonth && selYear) {
-            params.set('month', `${selYear}-${String(selMonth).padStart(2,'0')}`);
-        } else if (selMonth && !selYear) {
-            params.set('month', String(selMonth).padStart(2,'0'));
-        }
-        if (selDong)  params.set('dong', selDong);
-        params.set('size', 200);
-
-        const res  = await fetch(`${CONTEXT_PATH}/api/billing/admin/list?${params}`);
-        const data = await res.json();
-
-const content = data.content || [];
-dbRows = content.map((item, idx) => ({
-    num:           idx + 1,
-    billingId:     item.billingId,
-    household_id:  item.householdId || '—',
-    dong:          item.dong || '—',
-    unit:          (item.dong && item.ho) ? `${item.dong} ${item.ho}` : '—',
-            billing_month: item.billingMonth || '—',
-            total_amount:  item.totalAmount || 0,
-            status:        item.status || '—',
-            valid:         '정상',
-            upsertType:    null,
-            details:       [],
-            fromDb:        true,
-        }));
-
-        mode = 'db';
-        showDbSection();
-    } catch (err) {
-        console.warn('DB 목록 조회 실패', err);
-    }
-}
-
-async function openDbPreview(billingId) {
-    try {
-        const res  = await fetch(`${CONTEXT_PATH}/api/billing/${billingId}/detail`);
-        const data = await res.json();
-
-        document.getElementById('modalHeaderTitle').textContent =
-            `고지서 미리보기 — ${data.dongHo} (${data.billingMonth})`;
-        document.getElementById('modalPeriod').textContent =
-            `부과월: ${data.billingMonth} · 납부기한: ${data.dueDate}`;
-
-        document.getElementById('modalRows').innerHTML = (data.items || []).length
-            ? (data.items || []).map(d =>
-                `<div class="bill-row">
-                    <span>${d.itemName}</span>
-                    <span>${Number(d.itemAmount).toLocaleString()}원</span>
-                </div>`).join('')
-            : '<div style="font-size:13px;color:#aaa;text-align:center;padding:16px 0;">항목 정보 없음</div>';
-
-        document.getElementById('modalTotal').textContent =
-            Number(data.totalAmount).toLocaleString() + '원';
-
-        document.getElementById('previewOverlay').style.display = 'flex';
-    } catch (err) {
-        console.error('미리보기 조회 실패', err);
-    }
-}
-
-/* ================================================================
-   DB 테이블 표시 (UPSERT 컬럼 숨김)
-================================================================ */
-function showDbSection() {
-    document.getElementById('filterBar').style.display       = 'flex';
-    document.getElementById('tableSection').style.display    = 'block';
-    document.getElementById('thUpsert').style.display        = 'none';
-    document.getElementById('btnDeleteMonth').style.display  = '';
-    document.getElementById('btnConfirm').style.display      = 'none';
-    buildDongGridFromDb();
-    renderDbTable();
-}
-
-function renderDbTable() {
-    let rows = dbRows.filter(r => {
-        if (!r.billing_month || r.billing_month === '—') return true;
-        const [y, m] = r.billing_month.split('-').map(Number);
-        if (selYear  && y !== selYear)  return false;
-        if (selMonth && m !== selMonth) return false;
-        if (selDong  && r.dong !== selDong) return false;
-        return true;
-    });
-
-    rows = rows.sort((a, b) => a.unit.localeCompare(b.unit));
-    rows = rows.map((r, i) => ({ ...r, num: i + 1 }));
-
-    document.getElementById('tableMeta').innerHTML =
-        `DB 저장 데이터 · 총 ${rows.length}건`;
-    document.getElementById('tableSummary').innerHTML =
-        `필터 조건으로 조회된 결과입니다.`;
-
-    document.getElementById('tableBody').innerHTML = rows.length
-        ? rows.map(r => `
-        <tr>
-            <td>${r.num}</td>
-            <td>${r.unit}</td>
-            <td>${r.household_id}</td>
-            <td>${r.billing_month}</td>
-            <td>${Number(r.total_amount).toLocaleString()}원</td>
-            <td><span class="badge badge-ok">DB저장</span></td>
-            <td><button class="btn-preview" onclick="openDbPreview(${r.billingId})">미리보기 →</button></td>
-        </tr>`).join('')
-        : `<tr><td colspan="7" style="text-align:center;padding:36px;color:#aaa;">조회된 데이터가 없습니다.</td></tr>`;
-}
-
-function buildDongGridFromDb() {
-    const dongs = [...new Set(dbRows.map(r => r.dong).filter(d => d && d !== '—'))].sort();
-    const grid  = document.getElementById('dongGrid');
-    grid.innerHTML =
-        `<button class="chip full${!selDong ? ' selected' : ''}"
-            onclick="pickDong(null)">전체 동</button>`
-        + dongs.map(d =>
-            `<button class="chip${selDong === d ? ' selected' : ''}"
-                onclick="pickDong('${d}')">${d}</button>`
-        ).join('');
-}
 
 /* ================================================================
    업로드 존
@@ -173,7 +43,7 @@ function initUploadZone() {
     if (!zone || !fileInput) return;
 
     zone.addEventListener('click', () => fileInput.click());
-    zone.addEventListener('dragover',  e  => { e.preventDefault(); zone.classList.add('drag-over'); });
+    zone.addEventListener('dragover',  e => { e.preventDefault(); zone.classList.add('drag-over'); });
     zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
     zone.addEventListener('drop', e => {
         e.preventDefault();
@@ -189,33 +59,64 @@ function initUploadZone() {
 /* ================================================================
    파일 처리
 ================================================================ */
-function handleFile(file) {
-    // 기존 데이터가 있는 경우 안전장치
-    if (validRows.length > 0) {
-        if (!confirm("현재 검증 중인 목록을 지우고 새로운 파일을 업로드하시겠습니까?")) {
-            return;
-        }
-        validRows = []; // 초기화
+async function handleFile(file) {
+    const nameMatch = file.name.match(/(\d{4})[_-](\d{2})/);
+    billingMonth    = nameMatch ? `${nameMatch[1]}-${nameMatch[2]}` : null;
+
+    if (!billingMonth) {
+        alert('파일명에서 연도_월을 찾을 수 없습니다.\n예: 2026_01.xlsx');
+        return;
     }
 
-    const nameMatch = file.name.match(/(\d{4})[_-](\d{2})/);
-    billingMonth = nameMatch ? `${nameMatch[1]}-${nameMatch[2]}` : null;
+    try {
+        const res  = await fetch(`${CONTEXT_PATH}/api/billing/admin/upload/check?billingMonth=${billingMonth}`);
+        const data = await res.json();
+        dbHasData  = data.exists;
+
+        if (dbHasData) {
+            pendingFile = file;
+            document.getElementById('dupMsg').textContent =
+                `${billingMonth} 관리비 고지서가 이미 업로드되어 있습니다.`;
+            document.getElementById('dupOverlay').style.display = 'flex';
+            return;
+        }
+    } catch (err) {
+        console.warn('중복 확인 실패', err);
+        dbHasData = false;
+    }
+
     processFile(file);
 }
 
+function cancelDup() {
+    document.getElementById('dupOverlay').style.display = 'none';
+    pendingFile  = null;
+    billingMonth = null;
+    dbHasData    = false;
+}
+
+function confirmDup() {
+    document.getElementById('dupOverlay').style.display = 'none';
+    if (pendingFile) {
+        processFile(pendingFile);
+        pendingFile = null;
+    }
+}
+
+/* ================================================================
+   SheetJS 파싱
+================================================================ */
 function processFile(file) {
     const reader = new FileReader();
     reader.onload = async e => {
         const wb      = XLSX.read(e.target.result, { type: 'binary' });
         const allRows = [];
-
         wb.SheetNames.forEach(sheetName => {
             const ws   = wb.Sheets[sheetName];
             const rows = XLSX.utils.sheet_to_json(ws, { raw: true, defval: '' });
             const dong = sheetName.replace(/동$/, '') + '동';
             rows.forEach(row => allRows.push({ ...row, _dong: dong }));
         });
-
         await runValidation(allRows);
     };
     reader.readAsBinaryString(file);
@@ -226,26 +127,24 @@ function processFile(file) {
 ================================================================ */
 async function runValidation(rows) {
     const trimmedRows = rows.map(row => {
-        const trimmed = {};
-        Object.keys(row).forEach(key => { trimmed[key.trim()] = row[key]; });
-        return trimmed;
+        const t = {};
+        Object.keys(row).forEach(k => { t[k.trim()] = row[k]; });
+        return t;
     });
 
     validRows = trimmedRows.map((row, idx) => {
-        const dongHo      = String(row['동/호'] ?? '').trim();
-        const total       = parseFloat(String(row['당월부과액']).replace(/,/g, '')) || 0;
-        const dong        = row._dong || '';
-        const hoPart      = dongHo.split('-')[1] || '';
-        const unit        = dongHo ? `${dong} ${hoPart}호` : dongHo;
-        const householdId = dongHo;
-        const month       = billingMonth || '';
+        const dongHo = String(row['동/호'] ?? '').trim();
+        const total  = parseFloat(String(row['당월부과액']).replace(/,/g, '')) || 0;
+        const dong   = row._dong || '';
+        const hoPart = dongHo.split('-')[1] || '';
+        const unit   = dongHo ? `${dong} ${hoPart}호` : dongHo;
+        const month  = billingMonth || '';
 
         const details = ITEM_COLS
-            .map(col => {
-                const raw = row[col];
-                const amt = parseFloat(String(raw).replace(/,/g, '')) || 0;
-                return { item_name: col, item_amount: amt };
-            })
+            .map(col => ({
+                item_name:   col,
+                item_amount: parseFloat(String(row[col]).replace(/,/g, '')) || 0
+            }))
             .filter(d => d.item_amount > 0);
 
         let valid = '정상';
@@ -254,139 +153,141 @@ async function runValidation(rows) {
         else if (details.length === 0) valid = '항목 누락';
 
         return {
-            num:           idx + 1,
-            household_id:  householdId,
+            num:          idx + 1,
+            household_id: dongHo,
             dong,
             unit,
             billing_month: month,
             total_amount:  total,
             valid,
-            upsertType:    null,   // ← fetchAndSetUpsertTypes에서 결정
+            upsertType:    null,
             details,
-            fromDb:        false,
         };
     });
 
-    await fetchAndSetUpsertTypes();
+    // DB 데이터 있을 때만 UPSERT 비교
+    if (dbHasData) await fetchAndSetUpsertTypes();
 
-    if (billingMonth) {
-        const parts = billingMonth.split('-');
-        selYear  = Number(parts[0]);
-        selMonth = Number(parts[1]);
-        document.getElementById('lblYear').textContent  = selYear + '년';
-        document.getElementById('lblMonth').textContent = MONTHS[selMonth - 1];
-    }
-
-    mode = 'excel';
-    showExcelSection();
+    selDong  = null;
+    sortKey  = null;
+    sortDir  = 1;
+    mode     = 'preview';
+    buildDongGrid();
+    showPreviewSection();
 }
 
 /* ================================================================
-   UPSERT 타입 확정 (실제 값 비교)
-   - DB에 없음       → INSERT
-   - DB에 있고 다름  → UPDATE
-   - DB에 있고 같음  → SKIP (변경없음, 서버 미전송)
+   UPSERT 타입 결정 (DB 있을 때만 호출)
+   - DB에 없는 세대   → INSERT
+   - DB에 있고 값 다름 → UPDATE
+   - DB에 있고 값 같음 → null (서버 미전송, 표시 없음)
 ================================================================ */
-/* UPSERT 타입 확정
-   - DB에 데이터 없음: INSERT
-   - DB에 데이터 있음 + 금액/항목 다름: UPDATE
-   - DB에 데이터 있음 + 금액/항목 동일: SKIP (변경없음)
-*/
 async function fetchAndSetUpsertTypes() {
-    if (!billingMonth) return;
-
-    const dbBillingsById = new Map();
+    const dbMap = new Map();
 
     try {
-        // 해당 월의 데이터를 가져옴 (전체 삭제 전이라면 데이터가 존재함)
-        const listRes = await fetch(`${CONTEXT_PATH}/api/billing/admin/list?month=${billingMonth}&size=500`);
-        if (listRes.ok) {
-            const listData = await listRes.json();
-            const dbItems  = listData.content || [];
+        const listRes = await fetch(
+            `${CONTEXT_PATH}/api/billing/admin/list?month=${billingMonth}&size=500`
+        );
+        if (!listRes.ok) return;
 
-            await Promise.all(dbItems.map(async item => {
-                const key = item.householdId; // DTO에서 받은 "101-102" 형태
-                if (!key) return;
+        const dbItems = (await listRes.json()).content || [];
 
-                // 상세 항목 비교를 위해 상세 API 호출
+        await Promise.all(dbItems.map(async item => {
+            if (!item.billingId || !item.unit) return;
+            try {
                 const detRes = await fetch(`${CONTEXT_PATH}/api/billing/${item.billingId}/detail`);
-                if (detRes.ok) {
-                    const detail = await detRes.json();
-                    dbBillingsById.set(key, {
-                        totalAmount: Number(item.totalAmount),
-                        items: detail.items // [{itemName, itemAmount}, ...]
-                    });
-                }
-            }));
-        }
-    } catch (err) { console.warn('비교 대상 조회 실패', err); }
+                if (!detRes.ok) return;
+                const det = await detRes.json();
+                dbMap.set(item.unit, {
+                    totalAmount: Number(item.totalAmount) || 0,
+                    items: (det.items || []).map(i => ({
+                        itemName:   i.itemName,
+                        itemAmount: Number(i.itemAmount) || 0
+                    }))
+                });
+            } catch (e) { /* 개별 실패 무시 */ }
+        }));
+    } catch (err) {
+        console.warn('UPSERT 비교 실패, 비교 없이 진행', err);
+    }
 
     validRows = validRows.map(r => {
         if (r.valid !== '정상') return { ...r, upsertType: null };
 
-        const dbRow = dbBillingsById.get(r.household_id);
-
-        // 1. DB에 없으면 신규
+        const dbRow = dbMap.get(r.unit);
         if (!dbRow) return { ...r, upsertType: 'INSERT' };
 
-        // 2. DB에 있으면 데이터 비교
-        const isSame = isSameBillingData(
-            { totalAmount: r.total_amount, items: r.details.map(d => ({
-                itemName: d.item_name, itemAmount: d.item_amount
-            })) },
+        const same = isSame(
+            { totalAmount: r.total_amount,
+              items: r.details.map(d => ({ itemName: d.item_name, itemAmount: d.item_amount })) },
             dbRow
         );
-
-        // 같으면 SKIP(변경없음), 다르면 UPDATE(수정됨)
-        return { ...r, upsertType: isSame ? 'SKIP' : 'UPDATE' };
+        return { ...r, upsertType: same ? null : 'UPDATE' };
     });
 }
 
-/* ================================================================
-   두 고지서 데이터가 실질적으로 같은지 비교
-   - totalAmount 다르면 다름
-   - items 개수 다르면 다름
-   - itemName별 itemAmount 다르면 다름
-================================================================ */
-function isSameBillingData(excel, db) {
+function isSame(excel, db) {
     if (Number(excel.totalAmount) !== Number(db.totalAmount)) return false;
     if (excel.items.length !== db.items.length) return false;
-
-    const dbMap = new Map(db.items.map(i => [i.itemName, Number(i.itemAmount)]));
+    const map = new Map(db.items.map(i => [i.itemName, Number(i.itemAmount)]));
     for (const it of excel.items) {
-        if (dbMap.get(it.itemName) !== Number(it.itemAmount)) return false;
+        if (map.get(it.itemName) !== Number(it.itemAmount)) return false;
     }
     return true;
 }
 
 /* ================================================================
-   엑셀 테이블 표시
+   미리보기 섹션 표시
 ================================================================ */
-function showExcelSection() {
-    document.getElementById('filterBar').style.display       = 'flex';
-    document.getElementById('tableSection').style.display    = 'block';
-    document.getElementById('thUpsert').style.display        = '';
-    document.getElementById('btnDeleteMonth').style.display  = 'none';
-    document.getElementById('btnConfirm').style.display      = '';
-    buildDongGrid();
+function showPreviewSection() {
+    document.getElementById('uploadDoneBanner').style.display = 'none';
+    document.getElementById('uploadZone').style.display       = '';
+    document.getElementById('filterBar').style.display        = 'flex';
+    document.getElementById('tableSection').style.display     = 'block';
+    document.getElementById('tableActions').style.display     = 'flex';
+    document.getElementById('tableTitle').textContent         =
+        '유효성 검사 + 고지서 미리보기 + 업로드 확정';
+
+    // UPSERT 컬럼: DB 있을 때만 표시
+    document.getElementById('thUpsert').style.display = dbHasData ? '' : 'none';
+
     renderTable();
 }
 
-function renderTable() {
-    if (mode === 'db') { renderDbTable(); return; }
+/* ================================================================
+   결과 섹션 표시 (업로드 확정 후)
+================================================================ */
+function showResultSection(insertCount, updateCount) {
+    mode = 'result';
 
-    let rows = validRows.filter(r => {
-        const [y, m] = r.billing_month.split('-').map(Number);
-        if (selYear  && y !== selYear)  return false;
-        if (selMonth && m !== selMonth) return false;
-        if (selDong  && r.dong !== selDong) return false;
-        return true;
-    });
+    // 완료 배너 표시
+    document.getElementById('uploadDoneBanner').style.display = 'flex';
+    document.getElementById('uploadDoneMsg').textContent      =
+        `${billingMonth} 업로드 완료 — 신규 ${insertCount}건 · 변경 ${updateCount}건`;
+
+    // 업로드 존 숨김
+    document.getElementById('uploadZone').style.display   = 'none';
+
+    // 확정 버튼 숨김
+    document.getElementById('tableActions').style.display = 'none';
+
+    // UPSERT 컬럼 항상 표시 (결과 확인)
+    document.getElementById('thUpsert').style.display = '';
+    document.getElementById('tableTitle').textContent  = '업로드 결과 (읽기 전용)';
+
+    renderTable();
+}
+
+/* ================================================================
+   테이블 렌더링
+================================================================ */
+function renderTable() {
+    let rows = validRows.filter(r => !selDong || r.dong === selDong);
 
     if (sortKey) {
         rows = [...rows].sort((a, b) => {
-            const av = a[sortKey] ?? '';
-            const bv = b[sortKey] ?? '';
+            const av = a[sortKey] ?? '', bv = b[sortKey] ?? '';
             if (av < bv) return -sortDir;
             if (av > bv) return  sortDir;
             return 0;
@@ -397,136 +298,102 @@ function renderTable() {
 
     const totalCount  = validRows.length;
     const errorCount  = validRows.filter(r => r.valid !== '정상').length;
+    const normalCount = totalCount - errorCount;
     const insertCount = validRows.filter(r => r.upsertType === 'INSERT').length;
     const updateCount = validRows.filter(r => r.upsertType === 'UPDATE').length;
-    const skipCount   = validRows.filter(r => r.upsertType === 'SKIP').length;
+    const noChangeCount = validRows.filter(r => r.valid === '정상' && !r.upsertType).length;
 
-    document.getElementById('tableMeta').innerHTML =
-        `총 ${totalCount}세대 (필터: ${rows.length}건) · <span class="meta-error">오류 ${errorCount}건</span>`;
-    document.getElementById('tableSummary').innerHTML =
-        `신규 ${insertCount} · 변경 ${updateCount} · 변경없음 ${skipCount} · 오류 ${errorCount}`;
+    const showUpsert = dbHasData || mode === 'result';
 
-    // 저장할 것(INSERT + UPDATE)이 0건이면 확정 버튼 비활성화
-    const savableCount = insertCount + updateCount;
-    const btnConfirm   = document.getElementById('btnConfirm');
-    const disabled     = errorCount > 0 || savableCount === 0;
-    btnConfirm.disabled = disabled;
-    btnConfirm.classList.toggle('disabled', disabled);
+    if (mode === 'preview') {
+        document.getElementById('tableMeta').innerHTML =
+            `총 ${totalCount}세대 · <span class="meta-error">오류 ${errorCount}건</span>`;
+        document.getElementById('tableSummary').innerHTML = dbHasData
+            ? `변경 ${updateCount} · 신규 ${insertCount} · 변경없음 ${noChangeCount} · 오류 ${errorCount}`
+            : `정상 ${normalCount} · 오류 ${errorCount}`;
+
+        // ★ 필터된 행 기준으로 버튼 활성화 판단
+        const filteredRows  = selDong ? validRows.filter(r => r.dong === selDong) : validRows;
+        const filteredError = filteredRows.filter(r => r.valid !== '정상').length;
+        const filteredNormal = filteredRows.filter(r => r.valid === '정상').length;
+        const filteredInsert = filteredRows.filter(r => r.upsertType === 'INSERT').length;
+        const filteredUpdate = filteredRows.filter(r => r.upsertType === 'UPDATE').length;
+        const savable  = dbHasData ? filteredInsert + filteredUpdate : filteredNormal;
+        const disabled = filteredError > 0 || savable === 0;
+
+        const btn = document.getElementById('btnConfirm');
+        btn.disabled = disabled;
+        btn.classList.toggle('disabled', disabled);
+    } else {
+        document.getElementById('tableMeta').innerHTML     = `업로드 결과 · 총 ${totalCount}세대`;
+        document.getElementById('tableSummary').innerHTML  =
+            `신규 ${insertCount} · 변경 ${updateCount} · 변경없음 ${noChangeCount}`;
+    }
 
     document.getElementById('tableBody').innerHTML = rows.map(r => {
         const isError = r.valid !== '정상';
+
         const validCell = isError
             ? `<span class="badge badge-error">${r.valid}</span>`
             : `<span class="badge badge-ok">정상</span>`;
+
         const previewCell = isError
             ? `<button class="btn-preview disabled-preview" disabled>미리보기 불가</button>`
             : `<button class="btn-preview" onclick="openPreview('${r.household_id}','${r.billing_month}')">미리보기 →</button>`;
 
-        let upsertCell;
-        if (!r.upsertType)                      upsertCell = '—';
-        else if (r.upsertType === 'INSERT')     upsertCell = `<span class="badge badge-insert">신규 INSERT</span>`;
-        else if (r.upsertType === 'UPDATE')     upsertCell = `<span class="badge badge-update">기존 UPDATE</span>`;
-        else /* SKIP */                         upsertCell = `<span class="badge badge-skip">변경없음</span>`;
+        let upsertTd = '';
+        if (showUpsert) {
+            let cell = '—';
+            if (r.upsertType === 'INSERT') cell = `<span class="badge badge-insert">신규 INSERT</span>`;
+            if (r.upsertType === 'UPDATE') cell = `<span class="badge badge-update">기존 UPDATE</span>`;
+            upsertTd = `<td>${cell}</td>`;
+        }
 
         return `
         <tr class="${isError ? 'row-error' : ''}">
             <td>${r.num}</td>
             <td>${r.unit}</td>
-            <td>${r.household_id}</td>
             <td>${r.billing_month}</td>
             <td>${isError ? '—' : Number(r.total_amount).toLocaleString() + '원'}</td>
             <td>${validCell}</td>
             <td>${previewCell}</td>
-            <td>${upsertCell}</td>
+            ${upsertTd}
         </tr>`;
     }).join('');
 }
 
 /* ================================================================
-   필터 패널
+   동 필터
 ================================================================ */
 function buildDongGrid() {
     const dongs = [...new Set(validRows.map(r => r.dong))].sort();
-    const grid  = document.getElementById('dongGrid');
-    grid.innerHTML =
-        `<button class="chip full${!selDong ? ' selected' : ''}"
-            onclick="pickDong(null)">전체 동</button>`
+    document.getElementById('dongGrid').innerHTML =
+        `<button class="chip full${!selDong ? ' selected' : ''}" onclick="pickDong(null)">전체 동</button>`
         + dongs.map(d =>
-            `<button class="chip${selDong === d ? ' selected' : ''}"
-                onclick="pickDong('${d}')">${d}</button>`
+            `<button class="chip${selDong === d ? ' selected' : ''}" onclick="pickDong('${d}')">${d}</button>`
         ).join('');
 }
 
-function buildYearGrid() {
-    document.getElementById('yearGrid').innerHTML =
-        `<button class="chip full${selYear === null ? ' selected' : ''}"
-            onclick="pickYear(null)">전체</button>`
-        + YEARS.map(y =>
-            `<button class="chip${y === selYear ? ' selected' : ''}"
-                onclick="pickYear(${y})">${y}년</button>`
-        ).join('');
+function toggleDongPanel() {
+    const panel = document.getElementById('panelDong');
+    const btn   = document.getElementById('btnDong');
+    openDongPanel = !openDongPanel;
+    panel.style.display = openDongPanel ? 'block' : 'none';
+    btn.classList.toggle('active', openDongPanel);
 }
 
-function buildMonthGrid() {
-    document.getElementById('monthGrid').innerHTML =
-        `<button class="chip full${selMonth === null ? ' selected' : ''}"
-            onclick="pickMonth(null)">전체</button>`
-        + MONTHS.map((m, i) =>
-            `<button class="chip${selMonth === i + 1 ? ' selected' : ''}"
-                onclick="pickMonth(${i + 1})">${m}</button>`
-        ).join('');
-}
-
-function togglePanel(name) {
-    if (openPanel === name) { closeAllPanels(); return; }
-    closeAllPanels();
-    openPanel = name;
-    if (name === 'year')  buildYearGrid();
-    if (name === 'month') buildMonthGrid();
-    const panelMap = { year:'panelYear', month:'panelMonth', dong:'panelDong' };
-    const btnMap   = { year:'btnYear',   month:'btnMonth',   dong:'btnDong'  };
-    document.getElementById(panelMap[name]).style.display = 'block';
-    document.getElementById(btnMap[name]).classList.add('active');
-}
-
-function closeAllPanels() {
-    ['panelYear','panelMonth','panelDong'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.style.display = 'none';
-    });
-    ['btnYear','btnMonth','btnDong'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.classList.remove('active');
-    });
-    openPanel = null;
-}
-
-function pickYear(y) {
-    selYear = y;
-    selDong = null;
-    document.getElementById('lblYear').textContent = y ? y + '년' : '전체';
-    document.getElementById('lblDong').textContent = '전체 동';
-    closeAllPanels();
-    if (mode === 'db') fetchDbList();
-    else { buildDongGrid(); renderTable(); }
-}
-
-function pickMonth(m) {
-    selMonth = m;
-    selDong  = null;
-    document.getElementById('lblMonth').textContent = m ? MONTHS[m - 1] : '전체 월';
-    document.getElementById('lblDong').textContent  = '전체 동';
-    closeAllPanels();
-    if (mode === 'db') fetchDbList();
-    else { buildDongGrid(); renderTable(); }
+function closeDongPanel() {
+    document.getElementById('panelDong').style.display = 'none';
+    document.getElementById('btnDong').classList.remove('active');
+    openDongPanel = false;
 }
 
 function pickDong(d) {
     selDong = d;
-    document.getElementById('lblDong').textContent = d ? d : '전체 동';
-    closeAllPanels();
-    if (mode === 'db') { buildDongGridFromDb(); renderDbTable(); }
-    else               { buildDongGrid();        renderTable();   }
+    document.getElementById('lblDong').textContent = d || '전체 동';
+    closeDongPanel();
+    buildDongGrid();
+    renderTable();
 }
 
 function sortBy(key) {
@@ -543,13 +410,12 @@ function openPreview(hid, month) {
     if (!row || row.valid !== '정상') return;
 
     const [y, m] = month.split('-').map(Number);
-    const lastDay = new Date(y, m, 0).getDate();
+    const last   = new Date(y, m, 0).getDate();
 
     document.getElementById('modalHeaderTitle').textContent =
         `고지서 미리보기 — ${row.unit} (${month})`;
     document.getElementById('modalPeriod').textContent =
-        `부과월: ${month} · 납부기한: ${month.replace('-', '.')}.${String(lastDay).padStart(2,'0')}`;
-
+        `부과월: ${month} · 납부기한: ${month.replace('-','.')}.${String(last).padStart(2,'0')}`;
     document.getElementById('modalRows').innerHTML = row.details.length
         ? row.details.map(d =>
             `<div class="bill-row">
@@ -557,10 +423,8 @@ function openPreview(hid, month) {
                 <span>${Number(d.item_amount).toLocaleString()}원</span>
             </div>`).join('')
         : '<div style="font-size:13px;color:#aaa;text-align:center;padding:16px 0;">항목 정보 없음</div>';
-
     document.getElementById('modalTotal').textContent =
         Number(row.total_amount).toLocaleString() + '원';
-
     document.getElementById('previewOverlay').style.display = 'flex';
 }
 
@@ -568,38 +432,42 @@ function closePreview(e) {
     if (e && e.target !== document.getElementById('previewOverlay')) return;
     closePreviewBtn();
 }
-
 function closePreviewBtn() {
     document.getElementById('previewOverlay').style.display = 'none';
 }
 
 /* ================================================================
-   업로드 확정 → 팝업
+   업로드 확정 팝업
 ================================================================ */
 function confirmUpload() {
-    const errorCount  = validRows.filter(r => r.valid !== '정상').length;
-    const insertCount = validRows.filter(r => r.upsertType === 'INSERT').length;
-    const updateCount = validRows.filter(r => r.upsertType === 'UPDATE').length;
-    const skipCount   = validRows.filter(r => r.upsertType === 'SKIP').length;
-    const savableCount = insertCount + updateCount;
+    // ★ selDong 필터 적용
+    const targetRows = selDong
+        ? validRows.filter(r => r.dong === selDong)
+        : validRows;
 
-    if (errorCount > 0) return;
+    const errorCount  = targetRows.filter(r => r.valid !== '정상').length;
+    const normalCount = targetRows.filter(r => r.valid === '정상').length;
+    const insertCount = targetRows.filter(r => r.upsertType === 'INSERT').length;
+    const updateCount = targetRows.filter(r => r.upsertType === 'UPDATE').length;
+    const savable     = dbHasData ? insertCount + updateCount : normalCount;
 
-    // 저장할 게 0건 → 팝업 없이 알림만
-    if (savableCount === 0) {
-        alert(`변경된 내용이 없습니다.\n(${skipCount}세대 모두 DB와 동일)`);
+    if (errorCount > 0) {
+        alert(`${selDong ? selDong + '에 ' : ''}오류가 있는 세대가 있습니다. 확인 후 다시 시도해 주세요.`);
+        return;
+    }
+    if (savable === 0) {
+        alert('변경된 내용이 없습니다.\n(모든 세대가 DB와 동일)');
         return;
     }
 
-    const hasUpdate = updateCount > 0;
-
+    const dongLabel = selDong ? ` (${selDong})` : '';
     document.getElementById('confirmTitle').textContent =
-        hasUpdate ? '업로드 확정 (변경 포함)' : '업로드 확정';
+        updateCount > 0 ? `업로드 확정${dongLabel} (변경 포함)` : `업로드 확정${dongLabel}`;
     document.getElementById('confirmMsg').textContent =
-        `${billingMonth} 관리비 고지서를 저장하시겠습니까?`;
-    document.getElementById('confirmMsgWarn').textContent = hasUpdate
-        ? `신규 ${insertCount}건 · 변경 ${updateCount}건 · 변경없음 ${skipCount}건 (생략)`
-        : `총 ${insertCount}세대 신규 등록`;
+        `${billingMonth}${dongLabel} 관리비 고지서를 저장하시겠습니까?`;
+    document.getElementById('confirmMsgWarn').textContent = dbHasData
+        ? `신규 ${insertCount}건 · 변경 ${updateCount}건`
+        : `총 ${savable}세대 신규 등록`;
 
     document.getElementById('confirmOverlay').style.display = 'flex';
 }
@@ -609,131 +477,77 @@ function cancelConfirm() {
 }
 
 /* ================================================================
-   업로드 확정 API 호출 → DB 모드 즉시 전환
-   ★ SKIP 행은 서버로 안 보냄 (DB 쿼리 절약)
+   업로드 확정 API
 ================================================================ */
 async function doConfirmUpload() {
     const confirmBtn = document.querySelector('#confirmOverlay .btn-point');
     if (confirmBtn) confirmBtn.disabled = true;
 
-    const uploadRows = validRows
-        .filter(r => r.valid === '정상' && (r.upsertType === 'INSERT' || r.upsertType === 'UPDATE'))
+    // ★ selDong 필터 적용
+    const targetRows = selDong
+        ? validRows.filter(r => r.dong === selDong)
+        : validRows;
+
+    const uploadRows = targetRows
+        .filter(r => {
+            if (r.valid !== '정상') return false;
+            if (dbHasData) return r.upsertType === 'INSERT' || r.upsertType === 'UPDATE';
+            return true;
+        })
         .map(r => ({
             householdId:  r.household_id,
             billingMonth: r.billing_month,
-            dueDate:      lastDayOfMonth(r.billing_month),
+            dueDate:      lastDay(r.billing_month),
             totalAmount:  r.total_amount,
-            items: r.details.map(d => ({
-                itemName:   d.item_name,
-                itemAmount: d.item_amount
-            }))
+            items: r.details.map(d => ({ itemName: d.item_name, itemAmount: d.item_amount }))
         }));
 
     try {
         const res = await fetch(
             `${CONTEXT_PATH}/api/billing/admin/upload/confirm?adminId=1`,
             {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    [CSRF_HEADER]: CSRF_TOKEN
-                },
-                body: JSON.stringify(uploadRows),
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json', [CSRF_HEADER]: CSRF_TOKEN },
+                body:    JSON.stringify(uploadRows),
             }
         );
         if (!res.ok) throw new Error('업로드 실패');
         const data = await res.json();
 
         document.getElementById('confirmOverlay').style.display = 'none';
-
-        showToast(`업로드 완료 — 신규 ${data.insertCount}건 · 변경 ${data.updateCount}건`);
-
-        validRows = [];
-        sortKey   = null;
-        sortDir   = 1;
-        mode      = 'db';
-        await fetchDbList();
+        showResultSection(data.insertCount, data.updateCount);
 
     } catch (err) {
         console.error('업로드 확정 실패', err);
-        alert('업로드 중 오류가 발생했습니다. 다시 시도해 주세요.');
+        alert('업로드 중 오류가 발생했습니다.');
     } finally {
         if (confirmBtn) confirmBtn.disabled = false;
     }
 }
 
 /* ================================================================
-   월별 전체 삭제
+   초기화
 ================================================================ */
-async function deleteCurrentMonth() {
-    const monthToDelete = selMonth && selYear
-        ? `${selYear}-${String(selMonth).padStart(2,'0')}`
-        : null;
+function resetUpload() {
+    validRows    = [];
+    billingMonth = null;
+    dbHasData    = false;
+    mode         = 'preview';
+    selDong      = null;
+    sortKey      = null;
+    sortDir      = 1;
 
-    if (!monthToDelete) {
-        alert('삭제할 월을 먼저 필터로 선택해 주세요.\n(연도 + 월 둘 다 선택 필요)');
-        return;
-    }
-
-    const rowCount = dbRows.filter(r => r.billing_month === monthToDelete).length;
-    if (rowCount === 0) {
-        alert(`${monthToDelete} 데이터가 없습니다.`);
-        return;
-    }
-
-    const confirmed = confirm(
-        `정말 ${monthToDelete} 관리비 데이터를 전체 삭제하시겠습니까?\n\n`
-        + `총 ${rowCount}세대의 고지서가 삭제됩니다.\n`
-        + `이 작업은 되돌릴 수 없습니다.`
-    );
-    if (!confirmed) return;
-
-    try {
-        const res = await fetch(
-            `${CONTEXT_PATH}/api/billing/admin/month/${monthToDelete}?adminId=1`,
-            {
-                method: 'DELETE',
-                headers: { [CSRF_HEADER]: CSRF_TOKEN }
-            }
-        );
-        if (!res.ok) throw new Error('삭제 실패');
-        const data = await res.json();
-
-        alert(`${monthToDelete} 데이터 ${data.deleted}건이 삭제되었습니다.`);
-        fetchDbList();
-    } catch (err) {
-        console.error('월별 삭제 실패', err);
-        alert('삭제 중 오류가 발생했습니다.');
-    }
-}
-
-/* ================================================================
-   토스트
-================================================================ */
-function showToast(msg) {
-    const toast = document.createElement('div');
-    toast.textContent = msg;
-    toast.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: #2c8a3e;
-        color: white;
-        padding: 12px 20px;
-        border-radius: 6px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-        z-index: 10000;
-        font-size: 13px;
-    `;
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 3000);
+    document.getElementById('uploadZone').style.display      = '';
+    document.getElementById('uploadDoneBanner').style.display = 'none';
+    document.getElementById('filterBar').style.display       = 'none';
+    document.getElementById('tableSection').style.display    = 'none';
+    document.getElementById('fileInput').value               = '';
 }
 
 /* ================================================================
    유틸
 ================================================================ */
-function lastDayOfMonth(billingMonth) {
-    const [y, m] = billingMonth.split('-').map(Number);
-    const last   = new Date(y, m, 0).getDate();
-    return `${billingMonth}-${String(last).padStart(2, '0')}`;
+function lastDay(bm) {
+    const [y, m] = bm.split('-').map(Number);
+    return `${bm}-${String(new Date(y, m, 0).getDate()).padStart(2,'0')}`;
 }
