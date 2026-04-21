@@ -234,3 +234,29 @@
     margin-right: 5px;
     vertical-align: middle;
 }
+
+.main-layout, .right-section, .main-wrapper {
+    max-height: none !important;
+    height: auto !important;
+    overflow: visible !important;
+}
+
+
+.main-layout .content {
+    min-height: auto !important;
+    height: auto !important;
+}
+
+
+.page-footer {
+    display: block;
+    width: 100%;
+    visibility: visible !important;
+    opacity: 1 !important;
+    margin-top: 30px !important;
+    padding-bottom: 50px !important;
+}
+
+.pagination-wrapper {
+    width: 100% !important;
+}
