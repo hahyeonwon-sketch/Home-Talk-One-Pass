@@ -33,7 +33,6 @@
                     <label for="badge">분류</label>
                     <select id="badge" name="badge" required>
                         <option value="">분류 선택</option>
-                        <option value="IMPORTANT" th:selected="${notice.badge.name() == 'IMPORTANT'}">중요</option>
                         <option value="FACILITY"  th:selected="${notice.badge.name() == 'FACILITY'}">시설</option>
                         <option value="SAFETY"    th:selected="${notice.badge.name() == 'SAFETY'}">안전</option>
                         <option value="NORMAL"    th:selected="${notice.badge.name() == 'NORMAL'}">일반</option>
@@ -160,21 +159,17 @@
 </script>
 
 <script>
-    // ── 유틸 함수 ─────────────────────────────────────────────────────────────
     function formatDate(year, month, day) {
         return year + '-' + pad(month) + '-' + pad(day);
     }
 
     function pad(n) { return n < 10 ? '0' + n : '' + n; }
 
-    // LocalDateTime 객체에서 날짜/시간 추출
     function extractDate(dt) {
         if (!dt) return '';
-        // 객체 형태 { year, monthValue, dayOfMonth, hour, minute }
         if (typeof dt === 'object' && dt.year) {
             return formatDate(dt.year, dt.monthValue, dt.dayOfMonth);
         }
-        // 문자열 형태 "2026-04-28T09:00:00"
         return dt.substring(0, 10);
     }
 
@@ -190,7 +185,6 @@
         return dt.substring(14, 16);
     }
 
-    // ── Quill 에디터 ──────────────────────────────────────────────────────────
     var quill = new Quill('#editor', {
         theme: 'snow',
         modules: {
@@ -239,7 +233,6 @@
         if (savedContent) quill.root.innerHTML = savedContent;
     }, 100);
 
-    // ── 기존 일정 데이터 모달에 채워넣기 ─────────────────────────────────────
     if (linkedSchedule) {
         document.getElementById('scheduleName').value = linkedSchedule.title || '';
         document.getElementById('scheduleInfo').value = linkedSchedule.info || '';
@@ -260,7 +253,6 @@
         document.getElementById('scheduleEndMinute').value = '00';
     }
 
-    // ── 이벤트 ───────────────────────────────────────────────────────────────
     document.getElementById('title').addEventListener('input', function() {
         document.getElementById('charCount').innerText = this.value.length;
     });

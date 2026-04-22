@@ -14,8 +14,6 @@
 
 
     /* 배지 색 */
-    --badge-important:      #fdecea;
-    --badge-important-font: #EB6E57;
     --badge-facility:       #d2eed8;
     --badge-facility-font:  #6c977a;
     --badge-safety:         #fff8e1;
@@ -146,6 +144,23 @@
     flex-direction: column;
     align-items: center;
     gap: 10px;
+}
+
+.cal-badge-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(0,0,0,0.07);
+}
+
+.legend-item {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-weight: 600;
+    opacity: 0.85;
 }
 
 .cal-nav-year {
@@ -314,7 +329,6 @@
 .cal-more { font-size: 10px; color: #94a3b8; padding: 1px 8px; cursor: pointer; }
 
 /* 배지 색 */
-.badge-important { background: var(--badge-important); color: var(--badge-important-font); }
 .badge-facility  { background: var(--badge-facility);  color: var(--badge-facility-font); }
 .badge-safety    { background: var(--badge-safety);    color: var(--badge-safety-font); }
 .badge-normal    { background: var(--badge-normal);    color: var(--badge-normal-font); }

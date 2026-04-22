@@ -41,6 +41,12 @@
             </div>
           </div>
           <div class="cal-today-badges" id="todayBadges"></div>
+          <div class="cal-badge-legend">
+            <span class="legend-item badge-important">중요</span>
+            <span class="legend-item badge-facility">시설</span>
+            <span class="legend-item badge-safety">안전</span>
+            <span class="legend-item badge-normal">일반</span>
+          </div>
         </div>
 
         <div class="cal-nav-card">
@@ -148,7 +154,6 @@
               <td>
                 <select id="formBadge">
                   <option value="">선택 안함</option>
-                  <option value="IMPORTANT">중요</option>
                   <option value="FACILITY">시설</option>
                   <option value="SAFETY">안전</option>
                   <option value="NORMAL">일반</option>
@@ -211,7 +216,6 @@
   var WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
 
   var BADGE_LABEL = {
-      'IMPORTANT': '중요',
       'FACILITY': '시설',
       'SAFETY': '안전',
       'NORMAL': '일반'

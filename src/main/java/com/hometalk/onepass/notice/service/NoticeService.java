@@ -11,6 +11,7 @@ import com.hometalk.onepass.notice.entity.Notice;
 import com.hometalk.onepass.notice.exception.NoticeNotFoundException;
 import com.hometalk.onepass.notice.repository.AttachmentRepository;
 import com.hometalk.onepass.notice.repository.NoticeRepository;
+import com.hometalk.onepass.schedule.repository.ScheduleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -37,6 +38,7 @@ public class NoticeService {
     private final NoticeRepository noticeRepository;
     private final AttachmentRepository attachmentRepository;
     private final LocalAccountRepository localAccountRepository;
+    private final ScheduleRepository scheduleRepository; // ← 추가
 
     @Value("${file.upload.path}")
     private String uploadPath;
@@ -144,6 +146,10 @@ public class NoticeService {
     public void deleteNotice(Long id) {
         Notice notice = noticeRepository.findById(id)
                 .orElseThrow(() -> new NoticeNotFoundException(id));
+
+        // 연결된 일정 먼저 삭제 (외래키 제약 해결) ← 추가
+        scheduleRepository.findFirstByNotice(notice)
+                .ifPresent(scheduleRepository::delete);
 
         List<Attachment> attachments = attachmentRepository.findByNotice(notice);
         for (Attachment attachment : attachments) {
