@@ -31,7 +31,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-@Transactional  // 기본: 쓰기 트랜잭션 (create, update, delete에 적용)
+@Transactional
 public class NoticeService {
 
     private final NoticeRepository noticeRepository;
@@ -132,9 +132,7 @@ public class NoticeService {
             List<Attachment> existing = attachmentRepository.findByNotice(notice);
             for (Attachment att : existing) {
                 File attFile = new File(att.getFilePath());
-                if (attFile.exists()) {
-                    attFile.delete();
-                }
+                if (attFile.exists()) attFile.delete();
             }
             attachmentRepository.deleteByNotice(notice);
             saveFile(file, notice);
@@ -150,9 +148,7 @@ public class NoticeService {
         List<Attachment> attachments = attachmentRepository.findByNotice(notice);
         for (Attachment attachment : attachments) {
             File attFile = new File(attachment.getFilePath());
-            if (attFile.exists()) {
-                attFile.delete();
-            }
+            if (attFile.exists()) attFile.delete();
         }
         attachmentRepository.deleteByNotice(notice);
         noticeRepository.delete(notice);
@@ -208,12 +204,22 @@ public class NoticeService {
                 .orElse(null);
     }
 
-    // ── 키워드 검색 ───────────────────────────────────────────────────────────
+    // ── 키워드 검색 (타입 분기) ───────────────────────────────────────────────
     @Transactional(readOnly = true)
-    public Page<NoticeListResponseDto> searchNotice(String keyword, int page) {
+    public Page<NoticeListResponseDto> searchNotice(String keyword, String searchType, int page) {
         Pageable pageable = PageRequest.of(page, 10,
                 Sort.by("isPinned").descending().and(Sort.by("createdAt").descending()));
-        Page<Notice> notices = noticeRepository.findByTitleContainingOrContentContaining(keyword, keyword, pageable);
+
+        Page<Notice> notices;
+
+        if ("title".equals(searchType)) {
+            // 제목만 검색
+            notices = noticeRepository.findByTitleContaining(keyword, pageable);
+        } else {
+            // 제목+내용 검색 (기본값)
+            notices = noticeRepository.findByTitleContainingOrContentContaining(keyword, keyword, pageable);
+        }
+
         return notices.map(notice -> new NoticeListResponseDto(
                 notice.getId(),
                 notice.getTitle(),

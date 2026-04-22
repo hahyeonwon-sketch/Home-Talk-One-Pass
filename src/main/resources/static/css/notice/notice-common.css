@@ -12,10 +12,14 @@
     --border-color:        #E2E8F0;
 
     /* 배지 색 */
-    --badge-important: #e38d8c;
-    --badge-facility:  #8bd492;
-    --badge-safety:    #ecb373;
-    --badge-normal:    #879ce8;
+    --badge-important: #fdecea;
+    --badge-important-font: #EB6E57;
+    --badge-facility:  #d2eed8;
+    --badge-facility-font: #6c977a;
+    --badge-safety: #fff8e1;
+    --badge-safety-font: #b8860b;
+    --badge-normal:    #e6f4f5;
+    --badge-normal-font: #2a9da4;
 }
 
 * {
@@ -47,38 +51,38 @@ body {
 /* ── 배지 ──────────────────────────────────────────────────────────────────── */
 .badge-important span {
     background-color: var(--badge-important);
+    color: var(--badge-important-font);
     border-radius: 20px;
     padding: 3px 12px;
     font-size: 11px;
     font-weight: 600;
-    color: white;
 }
 
 .badge-facility span {
     background-color: var(--badge-facility);
+    color: var(--badge-facility-font);
     border-radius: 20px;
     padding: 3px 12px;
     font-size: 11px;
     font-weight: 600;
-    color: white;
 }
 
 .badge-safety span {
     background-color: var(--badge-safety);
+    color: var(--badge-safety-font);
     border-radius: 20px;
     padding: 3px 12px;
     font-size: 11px;
     font-weight: 600;
-    color: white;
 }
 
 .badge-normal span {
     background-color: var(--badge-normal);
+    color: var(--badge-normal-font);
     border-radius: 20px;
     padding: 3px 12px;
     font-size: 11px;
     font-weight: 600;
-    color: white;
 }
 
 /* ── 공통 버튼 ─────────────────────────────────────────────────────────────── */

@@ -27,7 +27,7 @@
 }
 
 .btn-write {
-    background: var(--color-btn);
+    background: var(--color-main);
     color: white;
     border: none;
     border-radius: 8px;
@@ -41,7 +41,7 @@
 }
 
 .btn-write:hover {
-    background: var(--color-btn-secondary);
+    background: var(--color-sub);
     transform: translateY(-1px);
 }
 
@@ -65,11 +65,12 @@
     background: white;
 }
 
-.notice-list th:nth-child(1) { width: 10%; }
-.notice-list th:nth-child(2) { width: auto; }
-.notice-list th:nth-child(3) { width: 12%; }
-.notice-list th:nth-child(4) { width: 12%; }
-.notice-list th:nth-child(5) { width: 8%; }
+.notice-list th:nth-child(1) { width: 5%; }   /* 고정 */
+.notice-list th:nth-child(2) { width: 11%; }  /* 분류 */
+.notice-list th:nth-child(3) { width: auto; } /* 제목 */
+.notice-list th:nth-child(4) { width: 14%; }  /* 작성일시 */
+.notice-list th:nth-child(5) { width: 14%; }  /* 수정일시 */
+.notice-list th:nth-child(6) { width: 8%; }   /* 조회수 */
 
 .notice-list td {
     padding: 0 10px;
@@ -79,6 +80,13 @@
     font-size: 14px;
     vertical-align: middle;
     height: 52px;
+}
+
+/* ── 고정 아이콘 셀 ────────────────────────────────────────────────────────── */
+.pin-cell {
+    text-align: center;
+    vertical-align: middle;
+    padding:10px;
 }
 
 /* ── 제목 셀 ───────────────────────────────────────────────────────────────── */
@@ -92,11 +100,6 @@
 }
 
 .notice-list tbody tr:hover td { background: #fafbff; cursor: pointer; }
-
-/* ── 상단고정 강조 ─────────────────────────────────────────────────────────── */
-.pinned-row td { background: #f8f9ff; }
-.pinned-row:hover td { background: #f0f3ff !important; }
-.pin-icon { font-size: 12px; margin-right: 4px; }
 
 /* ── 빈 행 ─────────────────────────────────────────────────────────────────── */
 .empty-row td {
@@ -142,27 +145,61 @@
     right: 0;
 }
 
-.notice-search input {
+.select-wrapper select.search-select {
+    padding: 8px 10px;
     border: 1px solid var(--border-color);
     border-radius: 8px;
-    padding: 8px 14px;
     font-size: 13px;
+    color: #64748b;
     outline: none;
-    width: 200px;
-    transition: 0.2s;
-}
-
-.notice-search input:focus { border-color: var(--color-main); }
-
-.btn-search {
-    background: var(--color-btn);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 8px 14px;
     cursor: pointer;
-    font-size: 13px;
-    transition: 0.2s;
+    background: white;
+    min-width: unset;
+    width: auto;
 }
 
-.btn-search:hover { background: var(--color-btn-secondary); }
+.select-wrapper select.search-select:focus {
+    border-color: var(--color-main);
+}
+
+.search-input-container {
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+    background: white;
+}
+
+.search-input-container:focus-within {
+    border-color: var(--color-main);
+}
+
+.search-input {
+    border: none;
+    outline: none;
+    padding: 8px 12px;
+    font-size: 13px;
+    width: 180px;
+}
+
+.btn-search-submit {
+    background: none;
+    border: none;
+    padding: 6px 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+.btn-reset-icon {
+    padding: 6px 8px;
+    display: flex;
+    align-items: center;
+    border-left: 1px solid var(--border-color);
+}
+
+.btn-reset-icon:hover svg,
+.btn-search-submit:hover svg {
+    stroke: var(--color-main);
+}

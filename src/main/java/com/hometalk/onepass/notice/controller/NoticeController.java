@@ -44,19 +44,21 @@ public class NoticeController {
     @GetMapping
     public String noticeList(@RequestParam(defaultValue = "0") int page,
                              @RequestParam(required = false) String keyword,
+                             @RequestParam(defaultValue = "tc") String searchType,
                              Model model) {
         Page<NoticeListResponseDto> notices;
 
         if (keyword == null || keyword.trim().isEmpty()) {
             notices = noticeService.getNoticeList(page);
         } else {
-            notices = noticeService.searchNotice(keyword, page);
+            notices = noticeService.searchNotice(keyword, searchType, page);
         }
 
         model.addAttribute("notices", notices);
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", notices.getTotalPages());
         model.addAttribute("keyword", keyword);
+        model.addAttribute("searchType", searchType);
         return "notice/noticeList";
     }
 
@@ -86,10 +88,8 @@ public class NoticeController {
     public String noticeWrite(@ModelAttribute NoticeRequestDto noticeRequestDto,
                               @RequestParam(required = false) MultipartFile file) {
 
-        // 1. 공지 저장
         Long noticeId = noticeService.createNotice(noticeRequestDto, file);
 
-        // 2. 일정 데이터 있으면 일정도 저장 (선택사항)
         Notice notice = noticeService.getNoticeEntity(noticeId);
         scheduleService.createScheduleWithNotice(
                 notice,
