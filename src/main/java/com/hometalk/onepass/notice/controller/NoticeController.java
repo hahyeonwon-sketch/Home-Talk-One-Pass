@@ -6,6 +6,7 @@ import com.hometalk.onepass.notice.dto.NoticeRequestDto;
 import com.hometalk.onepass.notice.entity.Attachment;
 import com.hometalk.onepass.notice.entity.Notice;
 import com.hometalk.onepass.notice.service.NoticeService;
+import com.hometalk.onepass.schedule.dto.ScheduleDetailResponseDto;
 import com.hometalk.onepass.schedule.service.ScheduleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -86,11 +87,17 @@ public class NoticeController {
     // ── 작성 처리 ─────────────────────────────────────────────────────────────
     @PostMapping("/write")
     public String noticeWrite(@ModelAttribute NoticeRequestDto noticeRequestDto,
-                              @RequestParam(required = false) MultipartFile file) {
+                              @RequestParam(required = false) MultipartFile file,
+                              HttpServletRequest request) {
 
         Long noticeId = noticeService.createNotice(noticeRequestDto, file);
 
         Notice notice = noticeService.getNoticeEntity(noticeId);
+        String noticeUrl = request.getScheme() + "://" +
+                request.getServerName() + ":" +
+                request.getServerPort() +
+                request.getContextPath() + "/notice/" + noticeId;
+
         scheduleService.createScheduleWithNotice(
                 notice,
                 noticeRequestDto.getScheduleName(),
@@ -98,7 +105,7 @@ public class NoticeController {
                 noticeRequestDto.getScheduleEndAt(),
                 noticeRequestDto.getScheduleInfo(),
                 noticeRequestDto.getScheduleLocation(),
-                noticeRequestDto.getScheduleReferenceUrl()
+                noticeUrl
         );
 
         return "redirect:/notice/" + noticeId;
@@ -109,6 +116,12 @@ public class NoticeController {
     public String noticeEditForm(@PathVariable Long id, Model model) {
         NoticeDetailResponseDto notice = noticeService.getNoticeForEdit(id);
         model.addAttribute("notice", notice);
+
+        // 연결된 일정 데이터 전달 (있으면)
+        Notice noticeEntity = noticeService.getNoticeEntity(id);
+        ScheduleDetailResponseDto schedule = scheduleService.getScheduleByNotice(noticeEntity);
+        model.addAttribute("linkedSchedule", schedule);
+
         return "notice/noticeEdit";
     }
 
@@ -116,8 +129,27 @@ public class NoticeController {
     @PostMapping("/{id}/edit")
     public String noticeEdit(@PathVariable Long id,
                              @ModelAttribute NoticeRequestDto noticeRequestDto,
-                             @RequestParam(required = false) MultipartFile file) {
+                             @RequestParam(required = false) MultipartFile file,
+                             HttpServletRequest request) {
         noticeService.updateNotice(id, noticeRequestDto, file);
+
+        // 연결된 일정도 같이 수정
+        Notice notice = noticeService.getNoticeEntity(id);
+        String noticeUrl = request.getScheme() + "://" +
+                request.getServerName() + ":" +
+                request.getServerPort() +
+                request.getContextPath() + "/notice/" + id;
+
+        scheduleService.updateScheduleWithNotice(
+                notice,
+                noticeRequestDto.getScheduleName(),
+                noticeRequestDto.getScheduleStartAt(),
+                noticeRequestDto.getScheduleEndAt(),
+                noticeRequestDto.getScheduleInfo(),
+                noticeRequestDto.getScheduleLocation(),
+                noticeUrl
+        );
+
         return "redirect:/notice/" + id;
     }
 

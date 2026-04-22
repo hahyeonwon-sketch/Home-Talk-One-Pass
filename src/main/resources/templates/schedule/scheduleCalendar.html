@@ -117,10 +117,6 @@
               <td class="modal-label">장소</td>
               <td id="detailLocation"></td>
             </tr>
-            <tr id="detailUrlRow">
-              <td class="modal-label">참고 공지</td>
-              <td><a id="detailUrl" href="#" target="_blank" class="detail-link"></a></td>
-            </tr>
             <tr id="detailNoticeRow">
               <td class="modal-label">공지 바로가기</td>
               <td><a id="detailNoticeLink" href="#" class="detail-link">공지 보기 →</a></td>
@@ -343,6 +339,20 @@
           });
   }
 
+  // 날짜를 YYYY-MM-DD 키로 변환
+  function dateKey(year, month, day) {
+      return year + '-' + pad(month) + '-' + pad(day);
+  }
+
+  // 일정이 여러 날에 걸치는지 확인
+  function isMultiDay(s) {
+      var sd = new Date(s.startAt);
+      var ed = s.endAt ? new Date(s.endAt) : sd;
+      sd.setHours(0, 0, 0, 0);
+      ed.setHours(0, 0, 0, 0);
+      return ed > sd;
+  }
+
   function renderCalendar() {
       var body = document.getElementById('calendarBody');
       body.innerHTML = '';
@@ -351,65 +361,192 @@
       var lastDate = new Date(currentYear, currentMonth, 0).getDate();
       var prevLastDate = new Date(currentYear, currentMonth - 1, 0).getDate();
 
+      // 달력 셀 배열 만들기
+      var cells = [];
+
+      // 이전달 빈 칸
       for (var i = 0; i < firstDay; i++) {
-          var cell = document.createElement('div');
-          cell.className = 'cal-cell other-month';
-          var num = document.createElement('div');
-          num.className = 'cal-date-num';
-          num.textContent = prevLastDate - firstDay + 1 + i;
-          cell.appendChild(num);
-          body.appendChild(cell);
+          cells.push({ day: prevLastDate - firstDay + 1 + i, otherMonth: true });
       }
 
+      // 이번달
       for (var d = 1; d <= lastDate; d++) {
-          var cell = document.createElement('div');
-          cell.className = 'cal-cell';
+          cells.push({ day: d, otherMonth: false });
+      }
 
-          var isToday = (d === today.getDate() &&
-                         currentMonth === today.getMonth() + 1 &&
-                         currentYear === today.getFullYear());
-          if (isToday) cell.classList.add('is-today');
+      // 다음달 빈 칸
+      var total = cells.length;
+      var remain = total % 7 === 0 ? 0 : 7 - (total % 7);
+      for (var k = 1; k <= remain; k++) {
+          cells.push({ day: k, otherMonth: true });
+      }
+
+      // 연속 일정 row 배치 계산
+      // rowMap[scheduleId] = row index (0부터)
+      var rowMap = {};
+      var multiDaySchedules = scheduleData.filter(isMultiDay);
+      var singleDaySchedules = scheduleData.filter(function(s) { return !isMultiDay(s); });
+
+      // 각 주(row)별로 row 슬롯 배치
+      var weeks = Math.ceil(cells.length / 7);
+      // weekSlots[week][slot] = scheduleId or null
+      var weekSlots = [];
+      for (var w = 0; w < weeks; w++) {
+          weekSlots.push([null, null, null, null, null, null, null, null, null, null]); // 최대 10개 슬롯
+      }
+
+      multiDaySchedules.forEach(function(s) {
+          var sd = new Date(s.startAt);
+          var ed = s.endAt ? new Date(s.endAt) : sd;
+          sd.setHours(0, 0, 0, 0);
+          ed.setHours(0, 0, 0, 0);
+
+          // 이 일정이 걸치는 주 찾기
+          for (var w = 0; w < weeks; w++) {
+              var weekStart = w * 7;
+              var weekEnd = weekStart + 6;
+
+              // 이 주에 포함되는지 확인
+              var weekStartDate = null;
+              var weekEndDate = null;
+
+              for (var c = weekStart; c <= weekEnd; c++) {
+                  if (c < cells.length && !cells[c].otherMonth) {
+                      var cellDate = new Date(currentYear, currentMonth - 1, cells[c].day);
+                      if (cellDate >= sd && cellDate <= ed) {
+                          if (!weekStartDate) weekStartDate = cellDate;
+                          weekEndDate = cellDate;
+                      }
+                  }
+              }
+
+              if (weekStartDate) {
+                  // 빈 슬롯 찾아서 배치
+                  for (var slot = 0; slot < weekSlots[w].length; slot++) {
+                      if (weekSlots[w][slot] === null) {
+                          weekSlots[w][slot] = s.id;
+                          if (rowMap[s.id] === undefined) rowMap[s.id] = slot;
+                          break;
+                      }
+                  }
+              }
+          }
+      });
+
+      // 셀 DOM 생성
+      var cellDivs = [];
+      cells.forEach(function(cell, idx) {
+          var div = document.createElement('div');
+          div.className = 'cal-cell';
+          if (cell.otherMonth) div.classList.add('other-month');
+
+          if (!cell.otherMonth) {
+              var isToday = (cell.day === today.getDate() &&
+                             currentMonth === today.getMonth() + 1 &&
+                             currentYear === today.getFullYear());
+              if (isToday) div.classList.add('is-today');
+          }
 
           var num = document.createElement('div');
           num.className = 'cal-date-num';
-          num.textContent = d;
-          if (isToday) num.classList.add('today-circle');
-          cell.appendChild(num);
+          num.textContent = cell.day;
+          if (!cell.otherMonth) {
+              var isToday = (cell.day === today.getDate() &&
+                             currentMonth === today.getMonth() + 1 &&
+                             currentYear === today.getFullYear());
+              if (isToday) num.classList.add('today-circle');
+          }
+          div.appendChild(num);
 
-          var daySchedules = scheduleData.filter(function(s) {
+          // 슬롯 컨테이너 (연속 일정 row 고정용)
+          var slotContainer = document.createElement('div');
+          slotContainer.className = 'cal-slot-container';
+          div.appendChild(slotContainer);
+
+          cellDivs.push({ div: div, cell: cell, idx: idx, slotContainer: slotContainer });
+          body.appendChild(div);
+      });
+
+      // 연속 일정 배지 그리기
+      multiDaySchedules.forEach(function(s) {
+          var sd = new Date(s.startAt);
+          var ed = s.endAt ? new Date(s.endAt) : sd;
+          sd.setHours(0, 0, 0, 0);
+          ed.setHours(0, 0, 0, 0);
+
+          var slot = rowMap[s.id] !== undefined ? rowMap[s.id] : 0;
+
+          cellDivs.forEach(function(item) {
+              if (item.cell.otherMonth) return;
+              var cellDate = new Date(currentYear, currentMonth - 1, item.cell.day);
+              cellDate.setHours(0, 0, 0, 0);
+
+              if (cellDate >= sd && cellDate <= ed) {
+                  var badge = createMultiDayBadge(s, cellDate, sd, ed, slot);
+                  ensureSlot(item.slotContainer, slot, badge);
+              }
+          });
+      });
+
+      // 단일 일정 배지 그리기
+      cellDivs.forEach(function(item) {
+          if (item.cell.otherMonth) return;
+          var cellDate = new Date(currentYear, currentMonth - 1, item.cell.day);
+
+          var daySingles = singleDaySchedules.filter(function(s) {
               var sd = new Date(s.startAt);
               return sd.getFullYear() === currentYear &&
                      sd.getMonth() + 1 === currentMonth &&
-                     sd.getDate() === d;
+                     sd.getDate() === item.cell.day;
           });
 
-          var showCount = Math.min(daySchedules.length, 3);
-          for (var j = 0; j < showCount; j++) {
-              cell.appendChild(createBadge(daySchedules[j]));
-          }
-          if (daySchedules.length > 3) {
-              var more = document.createElement('div');
-              more.className = 'cal-more';
-              more.textContent = '+' + (daySchedules.length - 3) + '개 더보기';
-              cell.appendChild(more);
-          }
-
-          body.appendChild(cell);
-      }
-
-      var total = firstDay + lastDate;
-      var remain = total % 7 === 0 ? 0 : 7 - (total % 7);
-      for (var k = 1; k <= remain; k++) {
-          var cell = document.createElement('div');
-          cell.className = 'cal-cell other-month';
-          var num = document.createElement('div');
-          num.className = 'cal-date-num';
-          num.textContent = k;
-          cell.appendChild(num);
-          body.appendChild(cell);
-      }
+          daySingles.forEach(function(s) {
+              var badge = createBadge(s);
+              item.slotContainer.appendChild(badge);
+          });
+      });
   }
 
+  // 슬롯 위치에 배지 삽입 (빈 슬롯은 투명 placeholder로 채움)
+  function ensureSlot(container, slotIndex, badge) {
+      while (container.children.length <= slotIndex) {
+          var placeholder = document.createElement('div');
+          placeholder.className = 'cal-badge-placeholder';
+          container.appendChild(placeholder);
+      }
+      container.replaceChild(badge, container.children[slotIndex]);
+  }
+
+  // 연속 일정 배지 생성
+  function createMultiDayBadge(s, cellDate, startDate, endDate, slot) {
+      var badge = document.createElement('div');
+      badge.className = 'cal-badge cal-badge-multi';
+
+      if (s.badge) badge.classList.add('badge-' + s.badge.toLowerCase());
+      else badge.classList.add('badge-default');
+
+      var isFirst = cellDate.getTime() === startDate.getTime();
+      var isLast = cellDate.getTime() === endDate.getTime();
+
+      if (isFirst && isLast) {
+          // 하루짜리인데 multiDay로 잡힌 경우
+          badge.textContent = s.title;
+      } else if (isFirst) {
+          badge.textContent = s.title;
+          badge.classList.add('multi-start');
+      } else if (isLast) {
+          badge.textContent = '';
+          badge.classList.add('multi-end');
+      } else {
+          badge.textContent = '';
+          badge.classList.add('multi-mid');
+      }
+
+      badge.addEventListener('click', function() { openDetailModal(s.id); });
+      return badge;
+  }
+
+  // 단일 일정 배지 생성
   function createBadge(s) {
       var badge = document.createElement('div');
       badge.className = 'cal-badge';
@@ -426,9 +563,11 @@
 
       var todayList = scheduleData.filter(function(s) {
           var sd = new Date(s.startAt);
-          return sd.getFullYear() === today.getFullYear() &&
-                 sd.getMonth() + 1 === today.getMonth() + 1 &&
-                 sd.getDate() === today.getDate();
+          var ed = s.endAt ? new Date(s.endAt) : sd;
+          var todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+          sd.setHours(0, 0, 0, 0);
+          ed.setHours(23, 59, 59, 999);
+          return todayDate >= sd && todayDate <= ed;
       });
 
       count.textContent = '오늘의 일정 · ' + todayList.length + '건';
@@ -459,19 +598,15 @@
               toggleRow('detailInfoRow', s.info, 'detailInfo', s.info);
               toggleRow('detailLocationRow', s.location, 'detailLocation', s.location);
 
-              var urlRow = document.getElementById('detailUrlRow');
-              if (s.referenceUrl) {
-                  var urlEl = document.getElementById('detailUrl');
-                  urlEl.href = s.referenceUrl;
-                  urlEl.textContent = s.referenceUrl;
-                  urlRow.style.display = '';
-              } else {
-                  urlRow.style.display = 'none';
-              }
-
+              // 공지 바로가기 - referenceUrl로 이동 (같은 탭)
               var noticeRow = document.getElementById('detailNoticeRow');
-              if (s.noticeId) {
-                  document.getElementById('detailNoticeLink').href = contextPath + 'notice/' + s.noticeId;
+              if (s.referenceUrl) {
+                  var link = document.getElementById('detailNoticeLink');
+                  link.href = s.referenceUrl;
+                  noticeRow.style.display = '';
+              } else if (s.noticeId) {
+                  var link = document.getElementById('detailNoticeLink');
+                  link.href = contextPath + 'notice/' + s.noticeId;
                   noticeRow.style.display = '';
               } else {
                   noticeRow.style.display = 'none';
@@ -555,7 +690,6 @@
       if (!startDate) { alert('시작 날짜를 입력해주세요.'); return; }
       if (!endDate) { alert('종료 날짜를 입력해주세요.'); return; }
 
-      // ── 날짜/시간 검증 ──────────────────────────────────────────────────────
       var startAt = new Date(startDate + 'T' +
           document.getElementById('formStartHour').value + ':' +
           document.getElementById('formStartMinute').value + ':00');
@@ -567,7 +701,6 @@
           alert('종료 시간이 시작 시간보다 이후여야 합니다.');
           return;
       }
-      // ───────────────────────────────────────────────────────────────────────
 
       var badgeVal = document.getElementById('formBadge').value;
 

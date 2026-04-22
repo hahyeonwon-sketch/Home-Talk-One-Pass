@@ -52,7 +52,6 @@ public class ScheduleService {
                         schedule.getStartAt(),
                         schedule.getEndAt(),
                         schedule.getNotice() != null ? schedule.getNotice().getId() : null,
-                        // 공지 배지 우선, 없으면 독립 일정 배지
                         schedule.getEffectiveBadge() != null ? schedule.getEffectiveBadge().name() : null
                 ))
                 .collect(Collectors.toList());
@@ -77,6 +76,24 @@ public class ScheduleService {
         );
     }
 
+    // ── 공지로 연결된 일정 상세 조회 ─────────────────────────────────────────
+    @Transactional(readOnly = true)
+    public ScheduleDetailResponseDto getScheduleByNotice(Notice notice) {
+        return scheduleRepository.findFirstByNotice(notice)
+                .map(schedule -> new ScheduleDetailResponseDto(
+                        schedule.getId(),
+                        schedule.getNotice() != null ? schedule.getNotice().getId() : null,
+                        schedule.getTitle(),
+                        schedule.getInfo(),
+                        schedule.getLocation(),
+                        schedule.getReferenceUrl(),
+                        schedule.getStartAt(),
+                        schedule.getEndAt(),
+                        schedule.getEffectiveBadge() != null ? schedule.getEffectiveBadge().name() : null
+                ))
+                .orElse(null);
+    }
+
     // ── 일정 등록 ─────────────────────────────────────────────────────────────
     public Long createSchedule(ScheduleRequestDto dto) {
         User user = getCurrentUser();
@@ -96,7 +113,7 @@ public class ScheduleService {
                 .referenceUrl(dto.getReferenceUrl())
                 .startAt(dto.getStartAt())
                 .endAt(dto.getEndAt())
-                .badge(dto.getBadge()) // 독립 일정 배지
+                .badge(dto.getBadge())
                 .build();
 
         scheduleRepository.save(schedule);
@@ -104,7 +121,6 @@ public class ScheduleService {
     }
 
     // ── 공지 작성 시 일정 자동 등록 ──────────────────────────────────────────
-    // 공지 연동 일정은 공지 배지를 따라가므로 badge 별도 저장 안 함
     public void createScheduleWithNotice(Notice notice, String title,
                                          LocalDateTime startAt, LocalDateTime endAt,
                                          String info, String location, String referenceUrl) {
@@ -122,10 +138,22 @@ public class ScheduleService {
                 .referenceUrl(referenceUrl)
                 .startAt(startAt)
                 .endAt(endAt)
-                .badge(null) // 공지 배지를 따라가므로 null
+                .badge(null)
                 .build();
 
         scheduleRepository.save(schedule);
+    }
+
+    // ── 공지 수정 시 연결된 일정 동기화 ──────────────────────────────────────
+    public void updateScheduleWithNotice(Notice notice, String title,
+                                         LocalDateTime startAt, LocalDateTime endAt,
+                                         String info, String location, String referenceUrl) {
+        if (title == null || title.isBlank()) return;
+        if (startAt == null) return;
+
+        scheduleRepository.findFirstByNotice(notice).ifPresent(schedule -> {
+            schedule.update(title, info, location, referenceUrl, startAt, endAt, null);
+        });
     }
 
     // ── 일정 수정 ─────────────────────────────────────────────────────────────
