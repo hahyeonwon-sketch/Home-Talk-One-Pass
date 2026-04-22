@@ -13,6 +13,8 @@ let selMonth           = null;
 let selDong            = null;
 let openPanel          = null;
 let pendingDeleteMonth = null;
+let sortKey            = null;
+let sortDir            = 1;
 
 /* ================================================================
    초기화
@@ -65,7 +67,7 @@ async function fetchList() {
    테이블 렌더링
 ================================================================ */
 function renderTable() {
-    const rows = billingRows
+      let rows = billingRows
         .filter(r => {
             if (!r.billingMonth || r.billingMonth === '—') return true;
             const [y, m] = r.billingMonth.split('-').map(Number);
@@ -74,7 +76,17 @@ function renderTable() {
             if (selDong  && r.dong !== selDong) return false;
             return true;
         })
-        .map((r, i) => ({ ...r, num: i + 1 }));
+        // ★ 정렬
+        if (sortKey) {
+            rows.sort((a, b) => {
+                const av = a[sortKey] ?? '';
+                const bv = b[sortKey] ?? '';
+                if (av < bv) return -sortDir;
+                if (av > bv) return  sortDir;
+                return 0;
+            });
+        }
+        rows = rows.map((r, i) => ({ ...r, num: i + 1 }));  // 정렬 후 num 할당
 
     document.getElementById('tableMeta').textContent  = `총 ${rows.length}건`;
     document.getElementById('tableSummary').textContent = '';
@@ -320,4 +332,10 @@ function showToast(msg) {
     `;
     document.body.appendChild(t);
     setTimeout(() => t.remove(), 3000);
+}
+
+function sortBy(key) {
+    if (sortKey === key) sortDir *= -1;
+    else { sortKey = key; sortDir = 1; }
+    renderTable();
 }

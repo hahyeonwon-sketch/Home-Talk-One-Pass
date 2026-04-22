@@ -4,6 +4,7 @@ import com.hometalk.onepass.billing.dto.BillingDetailResponse;
 import com.hometalk.onepass.billing.dto.BillingSummaryResponse;
 import com.hometalk.onepass.billing.service.BillingService;
 import com.hometalk.onepass.billing.service.BillingService.AdminBillingStats;
+import com.hometalk.onepass.billing.service.BillingService.AdminDashboardStats;
 import com.hometalk.onepass.billing.service.BillingUploadService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -52,18 +53,20 @@ public class BillingApiController {
     public ResponseEntity<Page<BillingSummaryResponse>> getAdminUnpaid(
             @RequestParam(required = false)    Integer year,
             @RequestParam(required = false)    String  month,
+            @RequestParam(required = false)    String  monthOnly,
             @RequestParam(required = false)    String  dong,
+            @RequestParam(required = false)    String  status,
             @RequestParam(required = false)    Boolean overdueOnly,
             @RequestParam(defaultValue = "20") int     size,
             @RequestParam(defaultValue = "0")  int     page
     ) {
         return ResponseEntity.ok(
-                billingService.getAdminUnpaidList(year, month, dong, overdueOnly, size, page)
+                billingService.getAdminUnpaidList(year, month, monthOnly, dong, status, overdueOnly, size, page)
         );
     }
 
     // ─────────────────────────────────────────────
-    // 관리자: 통계
+    // 관리자: 미납 통계
     //   GET /api/billing/admin/stats?billingMonth=2026-03
     //   → AdminBillingStats { total, paid, unpaid, paidRate }
     // ─────────────────────────────────────────────
@@ -73,6 +76,15 @@ public class BillingApiController {
             @RequestParam String billingMonth
     ) {
         return ResponseEntity.ok(billingService.getAdminStats(billingMonth));
+    }
+    // JS 동적 통계 갱신용
+    @GetMapping("/admin/stats/dashboard")
+    public ResponseEntity<AdminDashboardStats> getDashboardStats(
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) String  month,
+            @RequestParam(required = false) String  dong
+    ) {
+        return ResponseEntity.ok(billingService.getDashboardStats(year, month, dong));
     }
 
     // ─────────────────────────────────────────────
@@ -87,6 +99,29 @@ public class BillingApiController {
     ) {
         billingService.markAsPaid(billingId, adminId);
         return ResponseEntity.ok().build();
+    }
+
+    // ─────────────────────────────────────────────
+    // 관리자: 일괄 납부완료 처리
+    //   POST /api/billing/admin/pay/bulk
+    //   Body: [1, 2, 3, ...]
+    // ─────────────────────────────────────────────
+
+    @PostMapping("/admin/pay/bulk")
+    public ResponseEntity<Map<String, Integer>> markAsPaidBulk(
+            @RequestBody  List<Long> billingIds,
+            @RequestParam(defaultValue = "1") Long adminId
+    ) {
+        int count = 0;
+        for (Long id : billingIds) {
+            try {
+                billingService.markAsPaid(id, adminId);
+                count++;
+            } catch (Exception e) {
+                // 이미 처리된 건은 스킵
+            }
+        }
+        return ResponseEntity.ok(Map.of("processed", count));
     }
 
     // ─────────────────────────────────────────────

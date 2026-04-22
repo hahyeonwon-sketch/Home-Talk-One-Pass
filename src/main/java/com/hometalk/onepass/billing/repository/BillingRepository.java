@@ -119,4 +119,58 @@ public interface BillingRepository extends JpaRepository<Billing, Long> {
     @Modifying
     @Query("UPDATE Billing b SET b.status = :status WHERE b.id = :id")
     void updateStatus(@Param("id") Long id, @Param("status") BillingStatus status);
+
+    // ─────────────────────────────────────────────────────────
+    // 전체 기간 미납 통계
+    // ─────────────────────────────────────────────────────────
+
+    // 전체 UNPAID billing 건수
+    @Query("SELECT COUNT(b) FROM Billing b WHERE b.status = 'UNPAID'")
+    long countAllUnpaid();
+
+    // 전체 기간 미납 세대 수 (중복 제거)
+    @Query("SELECT COUNT(DISTINCT b.household.id) FROM Billing b WHERE b.status = 'UNPAID'")
+    long countDistinctUnpaidHouseholds();
+
+    // 3개월 이상 체납 세대 수
+    @Query("""
+    SELECT COUNT(DISTINCT b.household.id) FROM Billing b
+    WHERE b.status = 'UNPAID'
+      AND b.billingMonth <= :overdueBefore
+    """)
+    long countDistinctOverdueHouseholds(@Param("overdueBefore") String overdueBefore);
+
+    // 필터 기준 납부완료 세대 수
+    @Query("""
+    SELECT COUNT(b) FROM Billing b
+    WHERE (:dong     IS NULL OR b.household.dong = :dong)
+      AND (:yearFrom IS NULL OR b.billingMonth  >= :yearFrom)
+      AND (:yearTo   IS NULL OR b.billingMonth  <= :yearTo)
+      AND (:month    IS NULL OR b.billingMonth   = :month)
+      AND b.status = 'PAID'
+    """)
+    long countPaidWithFilter(
+            @Param("dong")     String dong,
+            @Param("yearFrom") String yearFrom,
+            @Param("yearTo")   String yearTo,
+            @Param("month")    String month
+    );
+
+    // 필터 기준 미납 세대 수
+    @Query("""
+    SELECT COUNT(b) FROM Billing b
+    WHERE (:dong     IS NULL OR b.household.dong = :dong)
+      AND (:yearFrom IS NULL OR b.billingMonth  >= :yearFrom)
+      AND (:yearTo   IS NULL OR b.billingMonth  <= :yearTo)
+      AND (:month    IS NULL OR b.billingMonth   = :month)
+      AND b.status = 'UNPAID'
+    """)
+    long countUnpaidWithFilter(
+            @Param("dong")     String dong,
+            @Param("yearFrom") String yearFrom,
+            @Param("yearTo")   String yearTo,
+            @Param("month")    String month
+    );
+
+
 }

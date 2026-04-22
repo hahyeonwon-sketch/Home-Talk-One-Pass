@@ -126,7 +126,7 @@ body {
 .badge-ok      { background: var(--color-paid-bg);    color: var(--color-paid-text);   }
 
 /* ── 공통 필터 버튼 & 패널 ── */
-.filter-row  { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+.filter-row  { display: flex; gap: 8px; margin: 16px auto; flex-wrap: wrap; }
 .panel-wrap  { position: relative; }
 
 .filter-btn {

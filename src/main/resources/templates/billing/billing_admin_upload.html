@@ -1,5 +1,9 @@
 <!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<!--
+    고지서업로드 페이지 (billing/admin/upload)
+    nav 탭1 - 엑셀파일 업로드, 유효성 검사(금액누락), 고지서 미리보기, DB저장된 월 재업로드시 UPSERT 확인, DB저장
+-->
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -71,7 +75,7 @@
                         <thead>
                         <tr>
                             <th>NUM</th>
-                            <th>동/호</th>
+                            <th class="sortable" onclick="sortBy('unit')">동/호 <span class="sort-icon">▼</span></th>
                             <th>부과월</th>
                             <th class="sortable" onclick="sortBy('total_amount')">청구금액 <span class="sort-icon">▼</span></th>
                             <th class="sortable" onclick="sortBy('valid')">검증 <span class="sort-icon">▼</span></th>
