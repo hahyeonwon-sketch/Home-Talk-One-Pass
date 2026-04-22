@@ -11,8 +11,6 @@
     --color-text:          #170124;
     --border-color:        #E2E8F0;
 
-
-
     /* 배지 색 */
     --badge-facility:       #d2eed8;
     --badge-facility-font:  #6c977a;
@@ -31,6 +29,9 @@
     display: flex;
     gap: 16px;
     margin-bottom: 24px;
+    max-width: 1500px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 /* ── 오늘 카드 ─────────────────────────────────────────────────────────────── */
@@ -38,10 +39,11 @@
     flex: 1;
     background: #f2ece8;
     border-radius: 16px;
-    padding: 24px 28px;
+    padding: 20px 28px;
     color: #fff;
     position: relative;
     overflow: hidden;
+     max-width: 1300px;
 }
 
 .cal-today-top {
@@ -50,9 +52,8 @@
     align-items: flex-start;
     margin-bottom: 14px;
 }
-
 .cal-today-label {
-    font-size: 11px;
+    font-size: 15px;
     font-weight: 700;
     letter-spacing: 2px;
     color: #888;
@@ -60,21 +61,22 @@
 }
 
 .cal-today-date-num {
-    font-size: 52px;
+    font-size: 58px;
     font-weight: 800;
     line-height: 1;
-    margin-bottom: 2px;
+    margin-bottom: 4px;
     color: #595959;
 }
 
 .cal-today-weekday {
-    font-size: 13px;
+    font-size: 17px;
     color: #888;
-    margin-bottom: 8px;
+    padding-top: 10px;
+    margin-bottom: 6px;
 }
 
 .cal-today-count {
-    font-size: 12px;
+    font-size: 16px;
     color: #888;
 }
 
@@ -91,7 +93,7 @@
     color: white;
     border: none;
     border-radius: 20px;
-    padding: 7px 16px;
+    padding: 10px 19px;
     font-size: 13px;
     cursor: pointer;
     font-weight: 600;
@@ -106,7 +108,7 @@
     color: white;
     border: none;
     border-radius: 20px;
-    padding: 7px 16px;
+    padding: 10px 19px;
     font-size: 13px;
     cursor: pointer;
     font-weight: 700;
@@ -116,26 +118,25 @@
 
 .cal-add-btn:hover { background: #879aaa; }
 
-.cal-today-badges {
+/* ── 배지 범례 ─────────────────────────────────────────────────────────────── */
+.cal-badge-legend {
     display: flex;
-    flex-wrap: wrap;
     gap: 6px;
+    align-items: center;
+    justify-content: flex-end;
+    margin-top: 80px;
 }
 
-.today-badge {
-    font-size: 12px;
-    padding: 4px 12px;
+.legend-item {
+    font-size: 13px;
+    padding: 4px 14px;
     border-radius: 20px;
-    cursor: pointer;
-    font-weight: 500;
-    transition: opacity 0.15s;
+    font-weight: 600;
 }
-
-.today-badge:hover { opacity: 0.82; }
 
 /* ── 네비 카드 ─────────────────────────────────────────────────────────────── */
 .cal-nav-card {
-    width: 210px;
+    width: 245px;
     background: var(--color-btn-secondary);
     border-radius: 16px;
     padding: 20px 18px;
@@ -146,25 +147,8 @@
     gap: 10px;
 }
 
-.cal-badge-legend {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin-top: 10px;
-    padding-top: 10px;
-    border-top: 1px solid rgba(0,0,0,0.07);
-}
-
-.legend-item {
-    font-size: 11px;
-    padding: 2px 8px;
-    border-radius: 20px;
-    font-weight: 600;
-    opacity: 0.85;
-}
-
 .cal-nav-year {
-    font-size: 13px;
+    font-size: 17px;
     color: white;
     font-weight: 600;
 }
@@ -173,6 +157,7 @@
     display: flex;
     align-items: center;
     gap: 14px;
+    justify-content: center;
 }
 
 .cal-nav-btn {
@@ -180,8 +165,8 @@
     border: none;
     color: #fff;
     border-radius: 50%;
-    width: 30px; height: 30px;
-    font-size: 15px;
+    width: 35px; height: 35px;
+    font-size: 18px;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -192,13 +177,14 @@
 .cal-nav-btn:hover { background: rgba(255,255,255,0.35); }
 
 .cal-nav-month-num {
-    font-size: 32px;
+    font-size: 38px;
     font-weight: 800;
 }
 
 .cal-nav-selects {
     display: flex;
     gap: 6px;
+    margin-top: 60px;
 }
 
 .cal-select {
@@ -222,6 +208,9 @@
     overflow: hidden;
     box-shadow: 0 2px 12px rgba(0,0,0,0.07);
     border: 1px solid var(--border-color);
+    max-width: 1500px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .cal-day-header {
@@ -239,8 +228,8 @@
 .cal-day-header.sat { color: var(--color-sub); }
 
 .cal-cell {
-    min-height: 110px;
-    padding: 8px 0 8px 0;  /* 좌우 패딩 제거 */
+    min-height: 150px;
+    padding: 8px 0 8px 0;
     border-right: 1px solid #f0f3f8;
     border-bottom: 1px solid #f0f3f8;
     background: #fff;
@@ -264,7 +253,7 @@
     justify-content: center;
     border-radius: 50%;
     margin-bottom: 4px;
-    margin-left: 6px; /* 날짜 숫자만 왼쪽 여백 */
+    margin-left: 6px;
 }
 
 .cal-date-num.today-circle {

@@ -38,14 +38,12 @@
               <button class="cal-today-btn" id="goToday">오늘로 이동</button>
               <button class="cal-add-btn" id="btnAddSchedule"
                       sec:authorize="hasRole('ADMIN')">+ 일정 등록</button>
+              <div class="cal-badge-legend">
+                <span class="legend-item badge-facility">시설</span>
+                <span class="legend-item badge-safety">안전</span>
+                <span class="legend-item badge-normal">일반</span>
+              </div>
             </div>
-          </div>
-          <div class="cal-today-badges" id="todayBadges"></div>
-          <div class="cal-badge-legend">
-            <span class="legend-item badge-important">중요</span>
-            <span class="legend-item badge-facility">시설</span>
-            <span class="legend-item badge-safety">안전</span>
-            <span class="legend-item badge-normal">일반</span>
           </div>
         </div>
 
@@ -343,12 +341,10 @@
           });
   }
 
-  // 날짜를 YYYY-MM-DD 키로 변환
   function dateKey(year, month, day) {
       return year + '-' + pad(month) + '-' + pad(day);
   }
 
-  // 일정이 여러 날에 걸치는지 확인
   function isMultiDay(s) {
       var sd = new Date(s.startAt);
       var ed = s.endAt ? new Date(s.endAt) : sd;
@@ -365,38 +361,28 @@
       var lastDate = new Date(currentYear, currentMonth, 0).getDate();
       var prevLastDate = new Date(currentYear, currentMonth - 1, 0).getDate();
 
-      // 달력 셀 배열 만들기
       var cells = [];
 
-      // 이전달 빈 칸
       for (var i = 0; i < firstDay; i++) {
           cells.push({ day: prevLastDate - firstDay + 1 + i, otherMonth: true });
       }
-
-      // 이번달
       for (var d = 1; d <= lastDate; d++) {
           cells.push({ day: d, otherMonth: false });
       }
-
-      // 다음달 빈 칸
       var total = cells.length;
       var remain = total % 7 === 0 ? 0 : 7 - (total % 7);
       for (var k = 1; k <= remain; k++) {
           cells.push({ day: k, otherMonth: true });
       }
 
-      // 연속 일정 row 배치 계산
-      // rowMap[scheduleId] = row index (0부터)
       var rowMap = {};
       var multiDaySchedules = scheduleData.filter(isMultiDay);
       var singleDaySchedules = scheduleData.filter(function(s) { return !isMultiDay(s); });
 
-      // 각 주(row)별로 row 슬롯 배치
       var weeks = Math.ceil(cells.length / 7);
-      // weekSlots[week][slot] = scheduleId or null
       var weekSlots = [];
       for (var w = 0; w < weeks; w++) {
-          weekSlots.push([null, null, null, null, null, null, null, null, null, null]); // 최대 10개 슬롯
+          weekSlots.push([null, null, null, null, null, null, null, null, null, null]);
       }
 
       multiDaySchedules.forEach(function(s) {
@@ -405,12 +391,9 @@
           sd.setHours(0, 0, 0, 0);
           ed.setHours(0, 0, 0, 0);
 
-          // 이 일정이 걸치는 주 찾기
           for (var w = 0; w < weeks; w++) {
               var weekStart = w * 7;
               var weekEnd = weekStart + 6;
-
-              // 이 주에 포함되는지 확인
               var weekStartDate = null;
               var weekEndDate = null;
 
@@ -425,7 +408,6 @@
               }
 
               if (weekStartDate) {
-                  // 빈 슬롯 찾아서 배치
                   for (var slot = 0; slot < weekSlots[w].length; slot++) {
                       if (weekSlots[w][slot] === null) {
                           weekSlots[w][slot] = s.id;
@@ -437,7 +419,6 @@
           }
       });
 
-      // 셀 DOM 생성
       var cellDivs = [];
       cells.forEach(function(cell, idx) {
           var div = document.createElement('div');
@@ -462,7 +443,6 @@
           }
           div.appendChild(num);
 
-          // 슬롯 컨테이너 (연속 일정 row 고정용)
           var slotContainer = document.createElement('div');
           slotContainer.className = 'cal-slot-container';
           div.appendChild(slotContainer);
@@ -471,7 +451,6 @@
           body.appendChild(div);
       });
 
-      // 연속 일정 배지 그리기
       multiDaySchedules.forEach(function(s) {
           var sd = new Date(s.startAt);
           var ed = s.endAt ? new Date(s.endAt) : sd;
@@ -492,7 +471,6 @@
           });
       });
 
-      // 단일 일정 배지 그리기
       cellDivs.forEach(function(item) {
           if (item.cell.otherMonth) return;
           var cellDate = new Date(currentYear, currentMonth - 1, item.cell.day);
@@ -511,7 +489,6 @@
       });
   }
 
-  // 슬롯 위치에 배지 삽입 (빈 슬롯은 투명 placeholder로 채움)
   function ensureSlot(container, slotIndex, badge) {
       while (container.children.length <= slotIndex) {
           var placeholder = document.createElement('div');
@@ -521,7 +498,6 @@
       container.replaceChild(badge, container.children[slotIndex]);
   }
 
-  // 연속 일정 배지 생성
   function createMultiDayBadge(s, cellDate, startDate, endDate, slot) {
       var badge = document.createElement('div');
       badge.className = 'cal-badge cal-badge-multi';
@@ -533,7 +509,6 @@
       var isLast = cellDate.getTime() === endDate.getTime();
 
       if (isFirst && isLast) {
-          // 하루짜리인데 multiDay로 잡힌 경우
           badge.textContent = s.title;
       } else if (isFirst) {
           badge.textContent = s.title;
@@ -550,7 +525,6 @@
       return badge;
   }
 
-  // 단일 일정 배지 생성
   function createBadge(s) {
       var badge = document.createElement('div');
       badge.className = 'cal-badge';
@@ -563,7 +537,6 @@
 
   function renderTodaySchedules() {
       var count = document.getElementById('todayCount');
-      var badges = document.getElementById('todayBadges');
 
       var todayList = scheduleData.filter(function(s) {
           var sd = new Date(s.startAt);
@@ -575,17 +548,6 @@
       });
 
       count.textContent = '오늘의 일정 · ' + todayList.length + '건';
-      badges.innerHTML = '';
-
-      todayList.forEach(function(s) {
-          var b = document.createElement('span');
-          b.className = 'today-badge';
-          if (s.badge) b.classList.add('badge-' + s.badge.toLowerCase());
-          else b.classList.add('badge-default');
-          b.textContent = s.title;
-          b.addEventListener('click', function() { openDetailModal(s.id); });
-          badges.appendChild(b);
-      });
   }
 
   function openDetailModal(id) {
@@ -602,7 +564,6 @@
               toggleRow('detailInfoRow', s.info, 'detailInfo', s.info);
               toggleRow('detailLocationRow', s.location, 'detailLocation', s.location);
 
-              // 공지 바로가기 - referenceUrl로 이동 (같은 탭)
               var noticeRow = document.getElementById('detailNoticeRow');
               if (s.referenceUrl) {
                   var link = document.getElementById('detailNoticeLink');
