@@ -24,10 +24,8 @@
 
     <div class="container">
 
-      <!-- 상단 카드 영역 -->
       <div class="cal-top-wrap">
 
-        <!-- 왼쪽: 오늘 날짜 + 오늘의 일정 + 버튼 -->
         <div class="cal-today-card">
           <div class="cal-today-top">
             <div class="cal-today-info">
@@ -45,7 +43,6 @@
           <div class="cal-today-badges" id="todayBadges"></div>
         </div>
 
-        <!-- 오른쪽: 월 이동 + 드롭박스 -->
         <div class="cal-nav-card">
           <div class="cal-nav-year" id="navYear"></div>
           <div class="cal-nav-month-row">
@@ -74,7 +71,6 @@
 
       </div>
 
-      <!-- 달력 -->
       <div class="cal-grid-wrap">
         <div class="cal-day-header sun">SUN</div>
         <div class="cal-day-header">MON</div>
@@ -122,7 +118,7 @@
               <td id="detailLocation"></td>
             </tr>
             <tr id="detailUrlRow">
-              <td class="modal-label">참고 URL</td>
+              <td class="modal-label">참고 공지</td>
               <td><a id="detailUrl" href="#" target="_blank" class="detail-link"></a></td>
             </tr>
             <tr id="detailNoticeRow">
@@ -151,7 +147,6 @@
               <td class="modal-label">일정명 *</td>
               <td><input type="text" id="formName" placeholder="일정명을 입력하세요."></td>
             </tr>
-            <!-- 공지 연동 일정이면 배지 드롭박스 숨김 (JS로 제어) -->
             <tr id="formBadgeRow">
               <td class="modal-label">분류</td>
               <td>
@@ -216,7 +211,7 @@
   var currentMonth = today.getMonth() + 1;
   var scheduleData = [];
   var editingScheduleId = null;
-  var editingNoticeId = null; // 수정 시 공지 연동 여부 판단용
+  var editingNoticeId = null;
   var WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
 
   var BADGE_LABEL = {
@@ -456,17 +451,9 @@
           .then(function(res) { return res.json(); })
           .then(function(s) {
               editingNoticeId = s.noticeId;
-
               document.getElementById('detailName').textContent = s.title;
-
-              // 배지 표시
               var badgeEl = document.getElementById('detailBadge');
-              if (s.badge) {
-                  badgeEl.textContent = BADGE_LABEL[s.badge] || s.badge;
-              } else {
-                  badgeEl.textContent = '-';
-              }
-
+              badgeEl.textContent = s.badge ? (BADGE_LABEL[s.badge] || s.badge) : '-';
               document.getElementById('detailStart').textContent = formatDateTime(s.startAt);
               document.getElementById('detailEnd').textContent = formatDateTime(s.endAt);
               toggleRow('detailInfoRow', s.info, 'detailInfo', s.info);
@@ -531,7 +518,6 @@
                   document.getElementById('formLocation').value = s.location || '';
                   document.getElementById('formUrl').value = s.referenceUrl || '';
 
-                  // 공지 연동 일정이면 배지 드롭박스 숨김
                   if (s.noticeId) {
                       badgeRow.style.display = 'none';
                   } else {
@@ -549,7 +535,7 @@
           document.getElementById('formLocation').value = '';
           document.getElementById('formUrl').value = '';
           document.getElementById('formBadge').value = '';
-          badgeRow.style.display = ''; // 독립 일정이므로 배지 보여줌
+          badgeRow.style.display = '';
       }
       document.getElementById('formModalOverlay').style.display = 'flex';
   }
@@ -563,10 +549,25 @@
   function submitSchedule() {
       var name = document.getElementById('formName').value.trim();
       if (!name) { alert('일정명을 입력해주세요.'); return; }
+
       var startDate = document.getElementById('formStartDate').value;
       var endDate = document.getElementById('formEndDate').value;
       if (!startDate) { alert('시작 날짜를 입력해주세요.'); return; }
       if (!endDate) { alert('종료 날짜를 입력해주세요.'); return; }
+
+      // ── 날짜/시간 검증 ──────────────────────────────────────────────────────
+      var startAt = new Date(startDate + 'T' +
+          document.getElementById('formStartHour').value + ':' +
+          document.getElementById('formStartMinute').value + ':00');
+      var endAt = new Date(endDate + 'T' +
+          document.getElementById('formEndHour').value + ':' +
+          document.getElementById('formEndMinute').value + ':00');
+
+      if (endAt <= startAt) {
+          alert('종료 시간이 시작 시간보다 이후여야 합니다.');
+          return;
+      }
+      // ───────────────────────────────────────────────────────────────────────
 
       var badgeVal = document.getElementById('formBadge').value;
 
@@ -577,7 +578,7 @@
           info: document.getElementById('formInfo').value,
           location: document.getElementById('formLocation').value,
           referenceUrl: document.getElementById('formUrl').value,
-          badge: badgeVal || null  // 선택 안하면 null
+          badge: badgeVal || null
       };
 
       var csrfToken = document.querySelector('meta[name="_csrf"]').content;

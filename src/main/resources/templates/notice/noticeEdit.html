@@ -67,26 +67,52 @@
                                 <tr>
                                     <td>시작</td>
                                     <td>
-                                        <input type="date" name="startDate">
-                                        <select name="startHour"><option>00</option></select>
-                                        <select name="startMinute"><option>00</option></select>
+                                        <div class="modal-time-row">
+                                            <input type="date" name="startDate">
+                                            <select name="startHour">
+                                                <option th:each="h : ${#numbers.sequence(0, 23)}"
+                                                        th:value="${#strings.toString(h).length() == 1 ? '0' + h : h}"
+                                                        th:text="${#strings.toString(h).length() == 1 ? '0' + h : h}"></option>
+                                            </select>
+                                            <span class="modal-time-sep">:</span>
+                                            <select name="startMinute">
+                                                <option th:each="m : ${#numbers.sequence(0, 59)}"
+                                                        th:value="${#strings.toString(m).length() == 1 ? '0' + m : m}"
+                                                        th:text="${#strings.toString(m).length() == 1 ? '0' + m : m}"></option>
+                                            </select>
+                                        </div>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td>종료</td>
                                     <td>
-                                        <input type="date" name="endDate">
-                                        <select name="endHour"><option>23</option></select>
-                                        <select name="endMinute"><option>59</option></select>
+                                        <div class="modal-time-row">
+                                            <input type="date" name="endDate">
+                                            <select name="endHour">
+                                                <option th:each="h : ${#numbers.sequence(0, 23)}"
+                                                        th:value="${#strings.toString(h).length() == 1 ? '0' + h : h}"
+                                                        th:text="${#strings.toString(h).length() == 1 ? '0' + h : h}"></option>
+                                            </select>
+                                            <span class="modal-time-sep">:</span>
+                                            <select name="endMinute">
+                                                <option th:each="m : ${#numbers.sequence(0, 59)}"
+                                                        th:value="${#strings.toString(m).length() == 1 ? '0' + m : m}"
+                                                        th:text="${#strings.toString(m).length() == 1 ? '0' + m : m}"></option>
+                                            </select>
+                                        </div>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td>설명</td>
                                     <td><textarea name="scheduleDesc"></textarea></td>
                                 </tr>
+                                <tr>
+                                    <td>장소</td>
+                                    <td><input type="text" name="scheduleLocation" placeholder="장소를 입력하세요."></td>
+                                </tr>
                             </table>
                             <div class="modal-bottom">
-                                <button type="button" class="btn-register">등록</button>
+                                <button type="button" class="btn-register" onclick="registerSchedule()">등록</button>
                             </div>
                         </div>
                     </div>
@@ -100,7 +126,6 @@
                     </div>
                     <div class="button-group-right">
                         <div class="checkbox-group">
-                            <!-- checkbox null 방지 -->
                             <input type="hidden" name="isPinned" value="false">
                             <input type="checkbox" id="isPinned" name="isPinned" value="true"
                                    th:checked="${notice.isPinned}">
@@ -108,7 +133,8 @@
                         </div>
                         <button type="button" class="btn-schedule"
                                 onclick="document.getElementById('scheduleModal').classList.add('open')">일정 등록</button>
-                        <a th:href="@{/notice/{id}(id=${notice.id})}" class="btn btn-cancel">취소</a>
+                        <a th:href="@{/notice/{id}(id=${notice.id})}" class="btn btn-cancel"
+                           onclick="return confirmCancel()">취소</a>
                         <button type="submit" class="btn-submit">수정 완료</button>
                     </div>
                 </div>
@@ -181,6 +207,40 @@
     document.getElementById('file').addEventListener('change', function() {
         document.getElementById('fileName').innerText = this.files[0]?.name || '';
     });
+
+    function registerSchedule() {
+        var startDate   = document.querySelector('[name="startDate"]').value;
+        var endDate     = document.querySelector('[name="endDate"]').value;
+        var startHour   = document.querySelector('[name="startHour"]').value;
+        var startMinute = document.querySelector('[name="startMinute"]').value;
+        var endHour     = document.querySelector('[name="endHour"]').value;
+        var endMinute   = document.querySelector('[name="endMinute"]').value;
+
+        var scheduleName = document.querySelector('[name="scheduleName"]').value.trim();
+        if (scheduleName && !startDate) {
+            alert('시작 날짜를 입력해주세요.');
+            return;
+        }
+        if (scheduleName && !endDate) {
+            alert('종료 날짜를 입력해주세요.');
+            return;
+        }
+
+        if (startDate && endDate) {
+            var startAt = new Date(startDate + 'T' + startHour + ':' + startMinute + ':00');
+            var endAt   = new Date(endDate   + 'T' + endHour   + ':' + endMinute   + ':00');
+            if (endAt <= startAt) {
+                alert('종료 시간이 시작 시간보다 이후여야 합니다.');
+                return;
+            }
+        }
+
+        document.getElementById('scheduleModal').classList.remove('open');
+    }
+
+    function confirmCancel() {
+        return confirm("수정 중인 내용을 취소하고 돌아가시겠습니까?");
+    }
 
     document.getElementById('editForm').addEventListener('submit', function() {
         document.getElementById('content').value = quill.root.innerHTML;
