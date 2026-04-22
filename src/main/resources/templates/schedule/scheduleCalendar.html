@@ -102,6 +102,10 @@
               <td id="detailName"></td>
             </tr>
             <tr>
+              <td class="modal-label">분류</td>
+              <td id="detailBadge"></td>
+            </tr>
+            <tr>
               <td class="modal-label">시작</td>
               <td id="detailStart"></td>
             </tr>
@@ -146,6 +150,19 @@
             <tr>
               <td class="modal-label">일정명 *</td>
               <td><input type="text" id="formName" placeholder="일정명을 입력하세요."></td>
+            </tr>
+            <!-- 공지 연동 일정이면 배지 드롭박스 숨김 (JS로 제어) -->
+            <tr id="formBadgeRow">
+              <td class="modal-label">분류</td>
+              <td>
+                <select id="formBadge">
+                  <option value="">선택 안함</option>
+                  <option value="IMPORTANT">중요</option>
+                  <option value="FACILITY">시설</option>
+                  <option value="SAFETY">안전</option>
+                  <option value="NORMAL">일반</option>
+                </select>
+              </td>
             </tr>
             <tr>
               <td class="modal-label">시작 *</td>
@@ -199,7 +216,15 @@
   var currentMonth = today.getMonth() + 1;
   var scheduleData = [];
   var editingScheduleId = null;
+  var editingNoticeId = null; // 수정 시 공지 연동 여부 판단용
   var WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
+
+  var BADGE_LABEL = {
+      'IMPORTANT': '중요',
+      'FACILITY': '시설',
+      'SAFETY': '안전',
+      'NORMAL': '일반'
+  };
 
   function init() {
       initYearSelect();
@@ -430,7 +455,18 @@
       fetch(contextPath + 'schedule/api/' + id)
           .then(function(res) { return res.json(); })
           .then(function(s) {
+              editingNoticeId = s.noticeId;
+
               document.getElementById('detailName').textContent = s.title;
+
+              // 배지 표시
+              var badgeEl = document.getElementById('detailBadge');
+              if (s.badge) {
+                  badgeEl.textContent = BADGE_LABEL[s.badge] || s.badge;
+              } else {
+                  badgeEl.textContent = '-';
+              }
+
               document.getElementById('detailStart').textContent = formatDateTime(s.startAt);
               document.getElementById('detailEnd').textContent = formatDateTime(s.endAt);
               toggleRow('detailInfoRow', s.info, 'detailInfo', s.info);
@@ -474,6 +510,8 @@
 
   function openFormModal(id) {
       editingScheduleId = id;
+      var badgeRow = document.getElementById('formBadgeRow');
+
       if (id) {
           document.getElementById('formModalTitle').textContent = '일정 수정';
           document.getElementById('btnSubmitSchedule').textContent = '수정';
@@ -492,6 +530,14 @@
                   document.getElementById('formInfo').value = s.info || '';
                   document.getElementById('formLocation').value = s.location || '';
                   document.getElementById('formUrl').value = s.referenceUrl || '';
+
+                  // 공지 연동 일정이면 배지 드롭박스 숨김
+                  if (s.noticeId) {
+                      badgeRow.style.display = 'none';
+                  } else {
+                      badgeRow.style.display = '';
+                      document.getElementById('formBadge').value = s.badge || '';
+                  }
               });
       } else {
           document.getElementById('formModalTitle').textContent = '일정 등록';
@@ -502,6 +548,8 @@
           document.getElementById('formInfo').value = '';
           document.getElementById('formLocation').value = '';
           document.getElementById('formUrl').value = '';
+          document.getElementById('formBadge').value = '';
+          badgeRow.style.display = ''; // 독립 일정이므로 배지 보여줌
       }
       document.getElementById('formModalOverlay').style.display = 'flex';
   }
@@ -509,6 +557,7 @@
   function closeFormModal() {
       document.getElementById('formModalOverlay').style.display = 'none';
       editingScheduleId = null;
+      editingNoticeId = null;
   }
 
   function submitSchedule() {
@@ -519,13 +568,16 @@
       if (!startDate) { alert('시작 날짜를 입력해주세요.'); return; }
       if (!endDate) { alert('종료 날짜를 입력해주세요.'); return; }
 
+      var badgeVal = document.getElementById('formBadge').value;
+
       var dto = {
           title: name,
           startAt: startDate + 'T' + document.getElementById('formStartHour').value + ':' + document.getElementById('formStartMinute').value + ':00',
           endAt: endDate + 'T' + document.getElementById('formEndHour').value + ':' + document.getElementById('formEndMinute').value + ':00',
           info: document.getElementById('formInfo').value,
           location: document.getElementById('formLocation').value,
-          referenceUrl: document.getElementById('formUrl').value
+          referenceUrl: document.getElementById('formUrl').value,
+          badge: badgeVal || null  // 선택 안하면 null
       };
 
       var csrfToken = document.querySelector('meta[name="_csrf"]').content;

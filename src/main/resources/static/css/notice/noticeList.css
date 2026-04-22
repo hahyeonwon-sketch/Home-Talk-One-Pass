@@ -1,101 +1,139 @@
+/* noticeList.css */
 
+/* ── 상단 헤더 ─────────────────────────────────────────────────────────────── */
+.notice-header {
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 3px solid #f1f5f9;
+}
 
+.notice-header-title {
+    font-size: 30px;
+    font-weight: 700;
+    color: var(--color-main);
+    margin-bottom: 4px;
+}
+
+.notice-header-sub {
+    font-size: 13px;
+    color: #94a3b8;
+}
+
+/* ── 작성하기 버튼 ─────────────────────────────────────────────────────────── */
 .top-bar {
     display: flex;
     justify-content: flex-end;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
 }
 
 .btn-write {
-    background: var(--main-navy);
+    background: var(--color-btn);
     color: white;
     border: none;
     border-radius: 8px;
-    padding: 8px 18px;
-    font-size: 13px;
-    font-weight: bold;
+    padding: 10px 20px;
+    margin-bottom: 24px;
+    font-size: 12px;
+    font-weight: 600;
     cursor: pointer;
     text-decoration: none;
+    transition: 0.2s;
 }
 
-.btn-write:hover { background-color: #051a3a; }
+.btn-write:hover {
+    background: var(--color-btn-secondary);
+    transform: translateY(-1px);
+}
 
+/* ── 공지 목록 테이블 ──────────────────────────────────────────────────────── */
 .notice-list {
     width: 100%;
     border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.notice-list thead tr {
+    border-bottom: 2px solid var(--color-main);
 }
 
 .notice-list th {
-    background: var(--main-navy);
-    color: white;
-    padding: 10px 12px;
-    font-size: 14px;
+    padding: 14px 10px;
+    color: var(--color-main);
+    font-weight: 600;
+    font-size: 13px;
     text-align: center;
+    background: white;
 }
+
+.notice-list th:nth-child(1) { width: 10%; }
+.notice-list th:nth-child(2) { width: auto; }
+.notice-list th:nth-child(3) { width: 12%; }
+.notice-list th:nth-child(4) { width: 12%; }
+.notice-list th:nth-child(5) { width: 8%; }
 
 .notice-list td {
-    border-bottom: 1px solid var(--border-color);
-    padding: 10px 12px;
+    padding: 0 10px;
+    border-bottom: 1px solid #f1f5f9;
+    text-align: center;
+    color: #64748b;
+    font-size: 14px;
+    vertical-align: middle;
+    height: 52px;
+}
+
+/* ── 제목 셀 ───────────────────────────────────────────────────────────────── */
+.title-cell { text-align: left !important; }
+
+.title-cell a {
+    color: var(--color-main);
     font-size: 15px;
-}
-
-.notice-list td:first-child {
-    text-align: center;
-    width: 80px;
-}
-
-.notice-list td:nth-child(3),
-.notice-list td:nth-child(4),
-.notice-list td:nth-child(5) {
-    text-align: center;
-    width: 120px;
-}
-
-.notice-list td a {
+    font-weight: 600;
     text-decoration: none;
-    color: #222;
 }
 
-.notice-list td a:hover { color: var(--point-coral); }
+.notice-list tbody tr:hover td { background: #fafbff; cursor: pointer; }
 
-.notice-list tr:hover { background-color: #f9f9f9; }
+/* ── 상단고정 강조 ─────────────────────────────────────────────────────────── */
+.pinned-row td { background: #f8f9ff; }
+.pinned-row:hover td { background: #f0f3ff !important; }
+.pin-icon { font-size: 12px; margin-right: 4px; }
 
-.notice-list tbody tr {
-    height: 48px;
-}
+/* ── 빈 행 ─────────────────────────────────────────────────────────────────── */
 .empty-row td {
-    border-bottom: 1px solid var(--border-color);
+    height: 52px;
+    border-bottom: 1px solid #f1f5f9;
 }
 
+/* ── 하단 영역 ─────────────────────────────────────────────────────────────── */
 .bottom-wrap {
     display: flex;
     justify-content: center;
     align-items: center;
     position: relative;
-    margin-top: 20px;
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid #f1f5f9;
 }
 
 .pagination {
     display: flex;
     justify-content: center;
-    gap: 6px;
+    gap: 4px;
 }
 
 .pagination a {
     text-decoration: none;
-    color: #333;
-    padding: 4px 10px;
+    color: #64748b;
+    padding: 6px 12px;
     font-size: 13px;
-    border-radius: 4px;
 }
 
-.pagination a:hover { color: var(--point-coral); }
-
-.active-page {
-    font-weight: bold;
-    color: var(--main-navy) !important;
+.pagination a.active-page {
+    color: var(--color-main);
+    font-weight: 700;
 }
 
+/* ── 검색 ──────────────────────────────────────────────────────────────────── */
 .notice-search {
     display: flex;
     align-items: center;
@@ -107,22 +145,24 @@
 .notice-search input {
     border: 1px solid var(--border-color);
     border-radius: 8px;
-    padding: 6px 10px;
+    padding: 8px 14px;
     font-size: 13px;
     outline: none;
+    width: 200px;
+    transition: 0.2s;
 }
 
-.notice-search input:focus { border-color: var(--main-navy); }
+.notice-search input:focus { border-color: var(--color-main); }
 
 .btn-search {
-    background-color: var(--main-navy);
+    background: var(--color-btn);
     color: white;
     border: none;
     border-radius: 8px;
-    padding: 6px 12px;
+    padding: 8px 14px;
     cursor: pointer;
     font-size: 13px;
+    transition: 0.2s;
 }
 
-.btn-search:hover { background-color: #051a3a; }
-
+.btn-search:hover { background: var(--color-btn-secondary); }

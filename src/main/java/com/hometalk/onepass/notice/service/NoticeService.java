@@ -31,7 +31,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
+@Transactional  // 기본: 쓰기 트랜잭션 (create, update, delete에 적용)
 public class NoticeService {
 
     private final NoticeRepository noticeRepository;
@@ -41,6 +41,7 @@ public class NoticeService {
     @Value("${file.upload.path}")
     private String uploadPath;
 
+    // ── 수정일시 처리 ──────────────────────────────
     private LocalDateTime resolveUpdatedAt(Notice notice) {
         if (notice.getUpdatedAt() == null) return null;
         long diff = java.time.Duration.between(notice.getCreatedAt(), notice.getUpdatedAt()).toSeconds();
@@ -48,8 +49,10 @@ public class NoticeService {
         return notice.getUpdatedAt();
     }
 
+    // ── 공지 목록 조회 ────────────────────────────────────────────────────────
+    @Transactional(readOnly = true)
     public Page<NoticeListResponseDto> getNoticeList(int page) {
-        Pageable pageable = PageRequest.of(page, 15,
+        Pageable pageable = PageRequest.of(page, 10,
                 Sort.by("isPinned").descending().and(Sort.by("createdAt").descending()));
         Page<Notice> notices = noticeRepository.findAll(pageable);
         return notices.map(notice -> new NoticeListResponseDto(
@@ -63,6 +66,7 @@ public class NoticeService {
         ));
     }
 
+    // ── 공지 작성 ─────────────────────────────────────────────────────────────
     public Long createNotice(NoticeRequestDto noticeRequestDto, MultipartFile file) {
         if (noticeRequestDto.getBadge() == null) {
             throw new IllegalArgumentException("분류를 선택해주세요.");
@@ -88,6 +92,7 @@ public class NoticeService {
         return notice.getId();
     }
 
+    // ── 파일 저장 ─────────────────────────────────────────────────────────────
     private void saveFile(MultipartFile file, Notice notice) {
         try {
             File dir = new File(uploadPath);
@@ -107,6 +112,7 @@ public class NoticeService {
         }
     }
 
+    // ── 공지 수정 ─────────────────────────────────────────────────────────────
     public Long updateNotice(Long id, NoticeRequestDto noticeRequestDto, MultipartFile file) {
         Notice notice = noticeRepository.findById(id)
                 .orElseThrow(() -> new NoticeNotFoundException(id));
@@ -136,6 +142,7 @@ public class NoticeService {
         return notice.getId();
     }
 
+    // ── 공지 삭제 ─────────────────────────────────────────────────────────────
     public void deleteNotice(Long id) {
         Notice notice = noticeRepository.findById(id)
                 .orElseThrow(() -> new NoticeNotFoundException(id));
@@ -151,6 +158,7 @@ public class NoticeService {
         noticeRepository.delete(notice);
     }
 
+    // ── 공지 상세 조회 (조회수 증가) ──────────────────────────────────────────
     public NoticeDetailResponseDto getNoticeDetail(Long id) {
         Notice notice = noticeRepository.findById(id)
                 .orElseThrow(() -> new NoticeNotFoundException(id));
@@ -169,6 +177,8 @@ public class NoticeService {
         );
     }
 
+    // ── 이전글 / 다음글 ───────────────────────────────────────────────────────
+    @Transactional(readOnly = true)
     public NoticeListResponseDto getPreNotice(Long id) {
         return noticeRepository.findFirstByIdLessThanOrderByIdDesc(id)
                 .map(notice -> new NoticeListResponseDto(
@@ -183,6 +193,7 @@ public class NoticeService {
                 .orElse(null);
     }
 
+    @Transactional(readOnly = true)
     public NoticeListResponseDto getNextNotice(Long id) {
         return noticeRepository.findFirstByIdGreaterThanOrderByIdAsc(id)
                 .map(notice -> new NoticeListResponseDto(
@@ -197,8 +208,10 @@ public class NoticeService {
                 .orElse(null);
     }
 
+    // ── 키워드 검색 ───────────────────────────────────────────────────────────
+    @Transactional(readOnly = true)
     public Page<NoticeListResponseDto> searchNotice(String keyword, int page) {
-        Pageable pageable = PageRequest.of(page, 15,
+        Pageable pageable = PageRequest.of(page, 10,
                 Sort.by("isPinned").descending().and(Sort.by("createdAt").descending()));
         Page<Notice> notices = noticeRepository.findByTitleContainingOrContentContaining(keyword, keyword, pageable);
         return notices.map(notice -> new NoticeListResponseDto(
@@ -212,17 +225,22 @@ public class NoticeService {
         ));
     }
 
+    // ── 첨부파일 조회 ─────────────────────────────────────────────────────────
+    @Transactional(readOnly = true)
     public List<Attachment> getAttachments(Long noticeId) {
         Notice notice = noticeRepository.findById(noticeId)
                 .orElseThrow(() -> new NoticeNotFoundException(noticeId));
         return attachmentRepository.findByNotice(notice);
     }
 
+    @Transactional(readOnly = true)
     public Attachment getAttachment(Long attachmentId) {
         return attachmentRepository.findById(attachmentId)
                 .orElseThrow(() -> new RuntimeException("파일을 찾을 수 없습니다. id: " + attachmentId));
     }
 
+    // ── 수정 페이지용 공지 조회 ────────────────────────────
+    @Transactional(readOnly = true)
     public NoticeDetailResponseDto getNoticeForEdit(Long id) {
         Notice notice = noticeRepository.findById(id)
                 .orElseThrow(() -> new NoticeNotFoundException(id));
@@ -239,6 +257,8 @@ public class NoticeService {
         );
     }
 
+    // ── 일정 연동용 ──────────────────────────────────
+    @Transactional(readOnly = true)
     public Notice getNoticeEntity(Long id) {
         return noticeRepository.findById(id)
                 .orElseThrow(() -> new NoticeNotFoundException(id));

@@ -1,4 +1,25 @@
-.container { padding: 24px 32px; }
+/* schedule.css */
+
+:root {
+    --color-bg:            #FAF4F0;
+    --color-main:          #032154;
+    --color-sub:           #3C6ABC;
+    --color-btn:           #4073C9;
+    --color-btn-secondary: #9EBFDB;
+    --color-btn-point:     #EB6E57;
+    --color-point-text:    #7ED3D9;
+    --color-text:          #170124;
+    --border-color:        #E2E8F0;
+
+    /* 배지 색 - notice-common.css 와 동일 */
+    --badge-important: #e38d8c;
+    --badge-facility:  #8bd492;
+    --badge-safety:    #ecb373;
+    --badge-normal:    #879ce8;
+    --badge-default:   #b0bec5;
+}
+
+.container { padding: 24px 32px; background: var(--color-bg); }
 
 /* ── 상단 카드 래퍼 ────────────────────────────────────────────────────────── */
 .cal-top-wrap {
@@ -10,14 +31,13 @@
 /* ── 오늘 카드 ─────────────────────────────────────────────────────────────── */
 .cal-today-card {
     flex: 1;
-    background: linear-gradient(135deg, #1e3a5f 60%, #2e5f8a);
+    background: linear-gradient(135deg, var(--color-main) 60%, var(--color-sub));
     border-radius: 16px;
     padding: 24px 28px;
     color: #fff;
     position: relative;
     overflow: hidden;
 }
-
 
 .cal-today-top {
     display: flex;
@@ -30,7 +50,7 @@
     font-size: 11px;
     font-weight: 700;
     letter-spacing: 2px;
-    color: #a8d8ff;
+    color: var(--color-point-text);
     margin-bottom: 2px;
 }
 
@@ -49,7 +69,7 @@
 
 .cal-today-count {
     font-size: 12px;
-    color: #a8d8ff;
+    color: var(--color-point-text);
 }
 
 .cal-today-btns {
@@ -77,7 +97,7 @@
 
 .cal-add-btn {
     background: #fff;
-    color: #1e3a5f;
+    color: var(--color-main);
     border: none;
     border-radius: 20px;
     padding: 7px 16px;
@@ -111,7 +131,7 @@
 /* ── 네비 카드 ─────────────────────────────────────────────────────────────── */
 .cal-nav-card {
     width: 210px;
-    background: #4a90d9;
+    background: var(--color-btn);
     border-radius: 16px;
     padding: 20px 18px;
     color: #fff;
@@ -179,7 +199,7 @@
     border-radius: 16px;
     overflow: hidden;
     box-shadow: 0 2px 12px rgba(0,0,0,0.07);
-    border: 1px solid #e8edf3;
+    border: 1px solid var(--border-color);
 }
 
 .cal-day-header {
@@ -189,12 +209,12 @@
     font-weight: 700;
     color: #64748b;
     background: #f8fafc;
-    border-bottom: 1px solid #e8edf3;
+    border-bottom: 1px solid var(--border-color);
     letter-spacing: 1px;
 }
 
 .cal-day-header.sun { color: #e74c3c; }
-.cal-day-header.sat { color: #3498db; }
+.cal-day-header.sat { color: var(--color-sub); }
 
 .cal-cell {
     min-height: 110px;
@@ -208,7 +228,7 @@
 .cal-cell:hover { background: #f8fafc; }
 .cal-cell.other-month { background: #fafbfc; }
 .cal-cell.other-month .cal-date-num { color: #c8d0da; }
-.cal-cell.is-today { background: #fffbea; }
+.cal-cell.is-today { background: #fff8f6; }
 
 .cal-date-num {
     font-size: 13px;
@@ -224,11 +244,11 @@
 }
 
 .cal-date-num.today-circle {
-    background: #1e3a5f;
+    background: var(--color-main);
     color: #fff;
 }
 
-/* ── 일정 뱃지 ─────────────────────────────────────────────────────────────── */
+/* ── 일정 배지 ─────────────────────────────────────────────────────────────── */
 .cal-badge {
     font-size: 11px;
     padding: 3px 8px;
@@ -247,11 +267,12 @@
 .cal-badge:hover { opacity: 0.82; }
 .cal-more { font-size: 10px; color: #94a3b8; padding: 1px 4px; cursor: pointer; }
 
-.badge-important { background: #e74c3c; }
-.badge-facility  { background: #3498db; }
-.badge-safety    { background: #27ae60; }
-.badge-normal    { background: #95a5a6; }
-.badge-default   { background: #7f8c8d; }
+/* 배지 색 - notice-common.css 와 동일하게 맞춤 */
+.badge-important { background: var(--badge-important); }
+.badge-facility  { background: var(--badge-facility); }
+.badge-safety    { background: var(--badge-safety); }
+.badge-normal    { background: var(--badge-normal); }
+.badge-default   { background: var(--badge-default); }
 
 /* ── 모달 ──────────────────────────────────────────────────────────────────── */
 .modal-overlay {
@@ -287,7 +308,7 @@
     border-bottom: 1px solid #eef0f4;
     font-weight: 700;
     font-size: 16px;
-    color: #1e3a5f;
+    color: var(--color-main);
     background: #f8fafc;
     border-radius: 14px 14px 0 0;
 }
@@ -301,7 +322,7 @@
     transition: color 0.15s;
 }
 
-.modal-close:hover { color: #1e293b; }
+.modal-close:hover { color: var(--color-text); }
 .modal-body { padding: 22px 24px; }
 
 .modal-table {
@@ -332,11 +353,11 @@
 .modal-table textarea {
     width: 100%;
     padding: 7px 10px;
-    border: 1px solid #dde3ec;
+    border: 1px solid var(--border-color);
     border-radius: 6px;
     font-size: 13px;
     background: #f8fafc;
-    color: #1e293b;
+    color: var(--color-text);
     box-sizing: border-box;
     transition: border 0.15s;
 }
@@ -345,7 +366,7 @@
 .modal-table select:focus,
 .modal-table textarea:focus {
     outline: none;
-    border-color: #1e3a5f;
+    border-color: var(--color-main);
     background: #fff;
 }
 
@@ -367,7 +388,7 @@
 }
 
 .btn-submit {
-    background: #1e3a5f;
+    background: var(--color-main);
     color: #fff;
     border: none;
     border-radius: 8px;
@@ -378,12 +399,12 @@
     transition: background 0.2s;
 }
 
-.btn-submit:hover { background: #16304f; }
+.btn-submit:hover { background: var(--color-sub); }
 
 .btn-cancel-modal {
     background: #f0f4f8;
     color: #475569;
-    border: 1px solid #dde3ec;
+    border: 1px solid var(--border-color);
     border-radius: 8px;
     padding: 9px 22px;
     font-size: 14px;
@@ -395,7 +416,7 @@
 .btn-cancel-modal:hover { background: #e2e8f0; }
 
 .btn-edit-modal {
-    background: #f39c12;
+    background: var(--color-btn-secondary);
     color: #fff;
     border: none;
     border-radius: 8px;
@@ -406,10 +427,10 @@
     transition: background 0.2s;
 }
 
-.btn-edit-modal:hover { background: #d68910; }
+.btn-edit-modal:hover { background: var(--color-sub); }
 
 .btn-delete-modal {
-    background: #e74c3c;
+    background: var(--color-btn-point);
     color: #fff;
     border: none;
     border-radius: 8px;
@@ -420,10 +441,10 @@
     transition: background 0.2s;
 }
 
-.btn-delete-modal:hover { background: #c0392b; }
+.btn-delete-modal:hover { background: #d65a45; }
 
 .detail-link {
-    color: #1e3a5f;
+    color: var(--color-main);
     font-weight: 600;
     text-decoration: none;
 }

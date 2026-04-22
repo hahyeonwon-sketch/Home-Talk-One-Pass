@@ -5,7 +5,6 @@ import com.hometalk.onepass.notice.dto.NoticeListResponseDto;
 import com.hometalk.onepass.notice.dto.NoticeRequestDto;
 import com.hometalk.onepass.notice.entity.Attachment;
 import com.hometalk.onepass.notice.entity.Notice;
-import com.hometalk.onepass.notice.repository.NoticeRepository;
 import com.hometalk.onepass.notice.service.NoticeService;
 import com.hometalk.onepass.schedule.service.ScheduleService;
 import lombok.RequiredArgsConstructor;
@@ -36,7 +35,7 @@ import java.util.UUID;
 public class NoticeController {
 
     private final NoticeService noticeService;
-    private final ScheduleService scheduleService; // 일정 서비스 추가
+    private final ScheduleService scheduleService;
 
     @Value("${file.upload.path}")
     private String uploadPath;
@@ -83,7 +82,6 @@ public class NoticeController {
     }
 
     // ── 작성 처리 ─────────────────────────────────────────────────────────────
-    // 공지 저장 후 일정 데이터 있으면 일정도 같이 저장
     @PostMapping("/write")
     public String noticeWrite(@ModelAttribute NoticeRequestDto noticeRequestDto,
                               @RequestParam(required = false) MultipartFile file) {
