@@ -57,7 +57,8 @@
   </table>
 </div>
 
-<script>
+<script th:inline="javascript">
+  const contextPath = /*[[@{/}]]*/ '/';
   const YEARS  = [2026,2025,2024,2023,2022,2021,2020,2019,2018];
   const MONTHS = ["1월","2월","3월","4월","5월","6월","7월","8월","9월","10월","11월","12월"];
   const TODAY  = new Date();
@@ -65,11 +66,9 @@
   let selectedYear = TODAY.getFullYear();
   let selectedMonth = TODAY.getMonth() + 1;
 
-  // 페이지 로드 시 현재 년/월로 버튼 텍스트 초기화
   document.getElementById('selectedYear').textContent = `${selectedYear}년`;
   document.getElementById('selectedMonth').textContent = `${selectedMonth}월`;
 
-  // 년 목록 생성
   const yearList = document.getElementById('yearList');
   YEARS.forEach(y => {
       const li = document.createElement('li');
@@ -83,7 +82,6 @@
       yearList.appendChild(li);
   });
 
-  // 월 목록 생성
   const monthList = document.getElementById('monthList');
   MONTHS.forEach((m, index) => {
       const li = document.createElement('li');
@@ -97,13 +95,11 @@
       monthList.appendChild(li);
   });
 
-  // 모든 드롭다운 닫기
   function closeAllDropdowns() {
       document.getElementById('yearDropdown').style.display = 'none';
       document.getElementById('monthDropdown').style.display = 'none';
   }
 
-  // 년 드롭다운 토글
   function toggleYearDropdown() {
       const dropdown = document.getElementById('yearDropdown');
       const isOpen = dropdown.style.display !== 'none';
@@ -111,7 +107,6 @@
       if (!isOpen) dropdown.style.display = 'block';
   }
 
-  // 월 드롭다운 토글
   function toggleMonthDropdown() {
       const dropdown = document.getElementById('monthDropdown');
       const isOpen = dropdown.style.display !== 'none';
@@ -119,26 +114,21 @@
       if (!isOpen) dropdown.style.display = 'block';
   }
 
-  // 외부 클릭 시 드롭다운 닫기
   document.addEventListener('click', (e) => {
       if (!e.target.closest('.dropdown-wrapper')) {
           closeAllDropdowns();
       }
   });
 
-  // ESC 키로 드롭다운 닫기
   document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') closeAllDropdowns();
   });
 
-  // 주차 기록 조회
   function loadParkingLogs() {
       const parkingList = document.getElementById('parkingList');
-
-      // 로딩 상태 표시
       parkingList.innerHTML = '<tr><td colspan="5">로딩 중...</td></tr>';
 
-      fetch(`/parking/logs?year=${selectedYear}&month=${selectedMonth}`)
+      fetch(`${contextPath}parking/logs/data?year=${selectedYear}&month=${selectedMonth}`)
           .then(async res => {
               if (!res.ok) {
                   const msg = await res.text();
@@ -160,7 +150,7 @@
                       <td>${log.vehicleNumber}</td>
                       <td>${log.entryTime}</td>
                       <td>${log.exitTime ?? '주차 중'}</td>
-                      <td>${log.vehicleType}</td>
+                      <td>${log.entryType}</td>
                       <td>${log.settlement}</td>
                   `;
                   parkingList.appendChild(row);
@@ -172,7 +162,6 @@
           });
   }
 
-  // 페이지 로드 시 현재 년/월 기록 조회
   loadParkingLogs();
 </script>
 

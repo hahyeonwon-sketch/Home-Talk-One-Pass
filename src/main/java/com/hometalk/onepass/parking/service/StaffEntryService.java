@@ -172,11 +172,12 @@ public class StaffEntryService {
     // ─── 입주자 차량 목록 ────────────────────────────────────────
     @Transactional(readOnly = true)
     public List<Vehicle> getResidentVehicleList() {
-        return vehicleRepository.findAllByStatusAndDeletedAtIsNull(Vehicle.VehicleStatus.APPROVED);
+        return vehicleRepository.findAllByStatusWithHousehold(Vehicle.VehicleStatus.APPROVED);
     }
 
     // ─── 유틸 ────────────────────────────────────────────────────
     private boolean hasText(String str) {
         return str != null && !str.isBlank();
     }
+
 }

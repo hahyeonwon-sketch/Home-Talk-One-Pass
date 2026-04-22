@@ -56,4 +56,12 @@ public interface ParkingLogRepository extends JpaRepository<ParkingLog, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT p FROM ParkingLog p WHERE p.parkingId = :id")
     Optional<ParkingLog> findByIdWithLock(@Param("id") Long id);
+
+    @Query("SELECT p FROM ParkingLog p WHERE p.household.id = :householdId " +
+            "AND YEAR(p.entryTime) = :year AND MONTH(p.entryTime) = :month " +
+            "AND p.deletedAt IS NULL ORDER BY p.entryTime DESC")
+    List<ParkingLog> findByHouseholdAndYearAndMonth(
+            @Param("householdId") Long householdId,
+            @Param("year") int year,
+            @Param("month") int month);
 }

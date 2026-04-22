@@ -25,6 +25,8 @@
     <thead>
     <tr>
       <th>차량 번호</th>
+      <th>모델</th>
+      <th>종류</th>
       <th>등록자</th>
       <th>세대</th>
       <th>등록일</th>
@@ -34,7 +36,7 @@
     </thead>
     <tbody id="vehicleList">
     <tr>
-      <td colspan="6">로딩 중...</td>
+      <td colspan="8">로딩 중...</td>
     </tr>
     </tbody>
   </table>
@@ -91,7 +93,7 @@
 
   function loadVehicleList() {
     const tbody = document.getElementById('vehicleList');
-    tbody.innerHTML = `<tr><td colspan="6">로딩 중...</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8">로딩 중...</td></tr>`;
 
     fetch(`${contextPath}admin/vehicle/approval/list?status=${currentStatus}`)
       .then(res => res.json())
@@ -99,7 +101,7 @@
         tbody.innerHTML = '';
 
         if (data.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="6">데이터가 없습니다.</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="8">데이터가 없습니다.</td></tr>`;
           return;
         }
 
@@ -108,6 +110,8 @@
           const row = `
             <tr>
               <td>${v.vehicleNumber}</td>
+              <td>${v.model ?? '-'}</td>
+              <td>${v.vehicleType ?? '-'}</td>
               <td>${v.userName}</td>
               <td>${v.household}</td>
               <td>${v.createdAt}</td>
@@ -129,12 +133,16 @@
       })
       .catch(err => {
         console.error(err);
-        tbody.innerHTML = `<tr><td colspan="6">데이터 조회 실패</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8">데이터 조회 실패</td></tr>`;
       });
   }
 
   function viewDocument(path) {
-    document.getElementById('documentImage').src = path;
+    const img = document.getElementById('documentImage');
+    const err = document.getElementById('documentError');
+    img.style.display = 'block';
+    err.style.display = 'none';
+    img.src = encodeURI(path);
     document.getElementById('documentModal').style.display = 'block';
   }
 

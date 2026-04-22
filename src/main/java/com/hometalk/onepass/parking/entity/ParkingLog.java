@@ -1,6 +1,6 @@
 package com.hometalk.onepass.parking.entity;
 
-import com.hometalk.onepass.common.entity.BaseTimeEntity;
+import com.hometalk.onepass.common.entity.BaseSoftDeleteEntity;
 import com.hometalk.onepass.auth.entity.Household;
 import com.hometalk.onepass.auth.entity.User;
 import jakarta.persistence.*;
@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @Table(name = "parking_logs")
 @Getter
 @NoArgsConstructor
-public class ParkingLog extends BaseTimeEntity {
+public class ParkingLog extends BaseSoftDeleteEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -76,11 +76,11 @@ public class ParkingLog extends BaseTimeEntity {
         this.reservation = reservation;
         this.staff = staff;
         this.entryType = entryType;
-        this.entryTime = LocalDateTime.now(); // 입차 시각
-        this.status = ParkingStatus.PARKED;   // 초기 상태
+        this.entryTime = LocalDateTime.now();
+        this.status = ParkingStatus.PARKED;
 
-        // 예약 차량이면 상태 변경
-        if (this.reservation != null) {
+        // MANUAL 타입은 세대 확인 대기 상태 유지를 위해 enter() 호출 안 함
+        if (this.reservation != null && entryType != EntryType.MANUAL) {
             this.reservation.enter();
         }
     }
@@ -88,7 +88,6 @@ public class ParkingLog extends BaseTimeEntity {
     // ─── 출차 처리 ───────────────────────────────────────────────
     public void exit(int totalMinutes, int appliedMinutes) {
 
-        // 엔티티가 상태를 책임짐
         if (this.status != ParkingStatus.PARKED) {
             throw new IllegalStateException("이미 출차된 차량입니다.");
         }
@@ -106,7 +105,6 @@ public class ParkingLog extends BaseTimeEntity {
         this.totalMinutes = totalMinutes;
         this.appliedMinutes = appliedMinutes;
 
-        // 초과 여부 판단
         if (totalMinutes > appliedMinutes) {
             this.status = ParkingStatus.OVERSTAY;
         } else {
