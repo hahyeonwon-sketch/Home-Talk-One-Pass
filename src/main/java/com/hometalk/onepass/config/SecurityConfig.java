@@ -24,7 +24,7 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth
                         // 1. "/" 경로와 정적 리소스(css, js 등)는 모두에게 허용
-                        .requestMatchers( "/auth", "/auth/loginimage/**", "/auth/signup", "/auth/login", "/auth/register/**", "/templates/**").permitAll()
+                        .requestMatchers( "/auth", "/auth/loginimage/**", "/auth/signup", "/auth/login", "/auth/register/**").permitAll()
 
                         // 2. 그 외의 모든 요청은 인증(로그인)이 필요함
                         .anyRequest().authenticated()
@@ -39,18 +39,19 @@ public class SecurityConfig {
                 )
                 .oauth2Login(oauth2 -> oauth2
                         .loginPage("/auth") // 로그인 페이지를 동일하게 사용
+                        .successHandler(oAuth2LoginSuccessHandler) // 핸들러 등록
                         .userInfoEndpoint(userInfo -> userInfo
                                 .userService(oauthUserService)
                         )
-                        .successHandler(oAuth2LoginSuccessHandler) // 핸들러 등록
                         .userInfoEndpoint(userInfo -> userInfo.userService(oauthUserService))
-                        .defaultSuccessUrl("/index", true)
                 )
                 .logout(logout -> logout
                         .logoutUrl("/auth/logout")
                         .logoutSuccessUrl("/auth") // 로그아웃 성공 시 이동할 페이지
-                        .invalidateHttpSession(true) // 세션 무효화
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID")
                 );
+
 
         return http.build();
 

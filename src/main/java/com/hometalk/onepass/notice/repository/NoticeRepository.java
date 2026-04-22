@@ -1,5 +1,6 @@
 package com.hometalk.onepass.notice.repository;
 
+import com.hometalk.onepass.notice.entity.Badge;
 import com.hometalk.onepass.notice.entity.Notice;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -12,6 +13,7 @@ public interface NoticeRepository extends JpaRepository<Notice, Long> {
 
     // 이전글, 다음글
     Optional<Notice> findFirstByIdLessThanOrderByIdDesc(Long id);
+
     Optional<Notice> findFirstByIdGreaterThanOrderByIdAsc(Long id);
 
     // 상단 고정
@@ -19,4 +21,5 @@ public interface NoticeRepository extends JpaRepository<Notice, Long> {
 
     // 제목, 내용 키워드 검색
     Page<Notice> findByTitleContainingOrContentContaining(String title, String content, Pageable pageable);
+
 }

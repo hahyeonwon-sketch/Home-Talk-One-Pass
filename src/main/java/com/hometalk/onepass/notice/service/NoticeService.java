@@ -41,6 +41,7 @@ public class NoticeService {
     @Value("${file.upload.path}")
     private String uploadPath;
 
+    // ── 수정일시 처리 ──────────────────────────────
     private LocalDateTime resolveUpdatedAt(Notice notice) {
         if (notice.getUpdatedAt() == null) return null;
         long diff = java.time.Duration.between(notice.getCreatedAt(), notice.getUpdatedAt()).toSeconds();
@@ -48,6 +49,7 @@ public class NoticeService {
         return notice.getUpdatedAt();
     }
 
+    // ── 공지 목록 조회 (페이지네이션, 상단고정 정렬) ──────────────────────────
     public Page<NoticeListResponseDto> getNoticeList(int page) {
         Pageable pageable = PageRequest.of(page, 10,
                 Sort.by("isPinned").descending().and(Sort.by("createdAt").descending()));
@@ -63,6 +65,7 @@ public class NoticeService {
         ));
     }
 
+    // ── 공지 작성 ─────────────────────────────────────────────────────────────
     public Long createNotice(NoticeRequestDto noticeRequestDto, MultipartFile file) {
         if (noticeRequestDto.getBadge() == null) {
             throw new IllegalArgumentException("분류를 선택해주세요.");
@@ -73,11 +76,13 @@ public class NoticeService {
         User user = account.getUser();
 
         Notice notice = new Notice();
-        notice.setTitle(noticeRequestDto.getTitle());
-        notice.setContent(noticeRequestDto.getContent());
-        notice.setIsPinned(Boolean.TRUE.equals(noticeRequestDto.getIsPinned()));
-        notice.setBadge(noticeRequestDto.getBadge());
-        notice.setUser(user);
+        notice.create(
+                noticeRequestDto.getTitle(),
+                noticeRequestDto.getContent(),
+                Boolean.TRUE.equals(noticeRequestDto.getIsPinned()),
+                noticeRequestDto.getBadge(),
+                user
+        );
         noticeRepository.save(notice);
 
         if (file != null && !file.isEmpty()) {
@@ -86,6 +91,7 @@ public class NoticeService {
         return notice.getId();
     }
 
+    // ── 파일 저장 ─────────────────────────────────────────────────────────────
     private void saveFile(MultipartFile file, Notice notice) {
         try {
             File dir = new File(uploadPath);
@@ -97,11 +103,7 @@ public class NoticeService {
 
             file.transferTo(new File(filePath).getAbsoluteFile());
 
-            Attachment attachment = new Attachment();
-            attachment.setNotice(notice);
-            attachment.setFileName(original != null ? original : "file");
-            attachment.setFilePath(filePath);
-            attachment.setFileSize(file.getSize());
+            Attachment attachment = new Attachment(notice, original != null ? original : "file", filePath, file.getSize());
             attachmentRepository.save(attachment);
 
         } catch (IOException e) {
@@ -109,6 +111,7 @@ public class NoticeService {
         }
     }
 
+    // ── 공지 수정 ─────────────────────────────────────────────────────────────
     public Long updateNotice(Long id, NoticeRequestDto noticeRequestDto, MultipartFile file) {
         Notice notice = noticeRepository.findById(id)
                 .orElseThrow(() -> new NoticeNotFoundException(id));
@@ -117,16 +120,20 @@ public class NoticeService {
             throw new IllegalArgumentException("분류를 선택해주세요.");
         }
 
-        notice.setTitle(noticeRequestDto.getTitle());
-        notice.setContent(noticeRequestDto.getContent());
-        notice.setIsPinned(Boolean.TRUE.equals(noticeRequestDto.getIsPinned()));
-        notice.setBadge(noticeRequestDto.getBadge());
-        noticeRepository.save(notice);
+        notice.update(
+                noticeRequestDto.getTitle(),
+                noticeRequestDto.getContent(),
+                Boolean.TRUE.equals(noticeRequestDto.getIsPinned()),
+                noticeRequestDto.getBadge()
+        );
 
         if (file != null && !file.isEmpty()) {
             List<Attachment> existing = attachmentRepository.findByNotice(notice);
             for (Attachment att : existing) {
-                new File(att.getFilePath()).delete();
+                File attFile = new File(att.getFilePath());
+                if (attFile.exists()) {
+                    attFile.delete();
+                }
             }
             attachmentRepository.deleteByNotice(notice);
             saveFile(file, notice);
@@ -134,24 +141,28 @@ public class NoticeService {
         return notice.getId();
     }
 
+    // ── 공지 삭제 ─────────────────────────────────────────────────────────────
     public void deleteNotice(Long id) {
         Notice notice = noticeRepository.findById(id)
                 .orElseThrow(() -> new NoticeNotFoundException(id));
 
         List<Attachment> attachments = attachmentRepository.findByNotice(notice);
         for (Attachment attachment : attachments) {
-            new File(attachment.getFilePath()).delete();
+            File attFile = new File(attachment.getFilePath());
+            if (attFile.exists()) {
+                attFile.delete();
+            }
         }
         attachmentRepository.deleteByNotice(notice);
         noticeRepository.delete(notice);
     }
 
+    // ── 공지 상세 조회 (조회수 증가) ──────────────────────────────────────────
     public NoticeDetailResponseDto getNoticeDetail(Long id) {
         Notice notice = noticeRepository.findById(id)
                 .orElseThrow(() -> new NoticeNotFoundException(id));
 
-        notice.setViewCount(notice.getViewCount() + 1);
-        noticeRepository.save(notice);
+        notice.increaseViewCount();
 
         return new NoticeDetailResponseDto(
                 notice.getId(),
@@ -165,6 +176,7 @@ public class NoticeService {
         );
     }
 
+    // ── 이전글 / 다음글 ───────────────────────────────────────────────────────
     public NoticeListResponseDto getPreNotice(Long id) {
         return noticeRepository.findFirstByIdLessThanOrderByIdDesc(id)
                 .map(notice -> new NoticeListResponseDto(
@@ -193,6 +205,7 @@ public class NoticeService {
                 .orElse(null);
     }
 
+    // ── 키워드 검색 ───────────────────────────────────────────────────────────
     public Page<NoticeListResponseDto> searchNotice(String keyword, int page) {
         Pageable pageable = PageRequest.of(page, 10,
                 Sort.by("isPinned").descending().and(Sort.by("createdAt").descending()));
@@ -208,6 +221,7 @@ public class NoticeService {
         ));
     }
 
+    // ── 첨부파일 조회 ─────────────────────────────────────────────────────────
     public List<Attachment> getAttachments(Long noticeId) {
         Notice notice = noticeRepository.findById(noticeId)
                 .orElseThrow(() -> new NoticeNotFoundException(noticeId));
@@ -219,6 +233,7 @@ public class NoticeService {
                 .orElseThrow(() -> new RuntimeException("파일을 찾을 수 없습니다. id: " + attachmentId));
     }
 
+    // ── 수정 페이지용 공지 조회 ────────────────────────────
     public NoticeDetailResponseDto getNoticeForEdit(Long id) {
         Notice notice = noticeRepository.findById(id)
                 .orElseThrow(() -> new NoticeNotFoundException(id));
@@ -233,5 +248,11 @@ public class NoticeService {
                 notice.getCreatedAt(),
                 resolveUpdatedAt(notice)
         );
+    }
+
+    // ── 일정 연동용 ──────────────────────────────────
+    public Notice getNoticeEntity(Long id) {
+        return noticeRepository.findById(id)
+                .orElseThrow(() -> new NoticeNotFoundException(id));
     }
 }
