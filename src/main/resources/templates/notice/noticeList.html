@@ -88,6 +88,7 @@
                         &lt;
                     </a>
                     <a th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                       th:if="${totalPages > 0}"
                        th:href="@{/notice(page=${i}, keyword=${keyword != null ? keyword : ''}, searchType=${searchType})}"
                        th:text="${i + 1}"
                        th:classappend="${i == currentPage} ? 'active-page'"></a>

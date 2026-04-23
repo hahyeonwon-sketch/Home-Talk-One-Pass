@@ -54,7 +54,7 @@
 
                     <div class="schedule-modal" id="scheduleModal">
                         <div class="modal-header">
-                            <span th:text="${linkedSchedule != null} ? '일정 수정' : '일정 등록'">일정 수정</span>
+                            <span th:text="${linkedSchedule != null} ? '일정 수정' : '일정 등록'">일정 등록</span>
                             <button type="button" onclick="document.getElementById('scheduleModal').classList.remove('open')">X</button>
                         </div>
                         <div class="modal-body">
@@ -270,18 +270,22 @@
         var endMinute    = document.getElementById('scheduleEndMinute').value || '00';
         var scheduleName = document.getElementById('scheduleName').value.trim();
 
-        if (scheduleName && !startDate) {
+        if (!scheduleName) {
+            alert('일정명을 입력해주세요.');
+            return;
+        }
+        if (!startDate) {
             alert('시작 날짜를 입력해주세요.');
             return;
         }
 
-        if (startDate && endDate) {
+        if (endDate) {
             var startAt = new Date(startDate + 'T' + startHour + ':' + startMinute + ':00');
             var endAt   = new Date(endDate   + 'T' + endHour   + ':' + endMinute   + ':00');
-          if (endDate && endAt <= startAt) {
-              alert('종료 시간이 시작 시간보다 이후여야 합니다.');
-              return;
-          }
+            if (endAt <= startAt) {
+                alert('종료 시간이 시작 시간보다 이후여야 합니다.');
+                return;
+            }
         }
 
         document.getElementById('scheduleModal').classList.remove('open');

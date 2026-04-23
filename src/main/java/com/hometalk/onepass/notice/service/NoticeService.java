@@ -38,7 +38,7 @@ public class NoticeService {
     private final NoticeRepository noticeRepository;
     private final AttachmentRepository attachmentRepository;
     private final LocalAccountRepository localAccountRepository;
-    private final ScheduleRepository scheduleRepository; // ← 추가
+    private final ScheduleRepository scheduleRepository;
 
     @Value("${file.upload.path}")
     private String uploadPath;
@@ -147,7 +147,7 @@ public class NoticeService {
         Notice notice = noticeRepository.findById(id)
                 .orElseThrow(() -> new NoticeNotFoundException(id));
 
-        // 연결된 일정 먼저 삭제 (외래키 제약 해결) ← 추가
+        // 연결된 일정 먼저 삭제
         scheduleRepository.findFirstByNotice(notice)
                 .ifPresent(scheduleRepository::delete);
 
@@ -160,7 +160,7 @@ public class NoticeService {
         noticeRepository.delete(notice);
     }
 
-    // ── 공지 상세 조회 (조회수 증가) ──────────────────────────────────────────
+    // ── 공지 상세 조회 ──────────────────────────────────────────
     public NoticeDetailResponseDto getNoticeDetail(Long id) {
         Notice notice = noticeRepository.findById(id)
                 .orElseThrow(() -> new NoticeNotFoundException(id));
@@ -210,7 +210,7 @@ public class NoticeService {
                 .orElse(null);
     }
 
-    // ── 키워드 검색 (타입 분기) ───────────────────────────────────────────────
+    // ── 키워드 검색 ───────────────────────────────────────────────
     @Transactional(readOnly = true)
     public Page<NoticeListResponseDto> searchNotice(String keyword, String searchType, int page) {
         Pageable pageable = PageRequest.of(page, 10,
