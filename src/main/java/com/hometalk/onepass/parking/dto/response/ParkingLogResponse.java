@@ -13,6 +13,7 @@ public class ParkingLogResponse {
     private final Long parkingId;
     private final String vehicleNumber;
     private final String household;
+    private final boolean householdConfirmed;
     private final String entryType;
     private final String entryTime;
     private final String status;
@@ -29,7 +30,8 @@ public class ParkingLogResponse {
     public ParkingLogResponse(ParkingLog log, int availableMinutes) {
         this.parkingId = log.getParkingId();
         this.vehicleNumber = log.getVehicleNumber();
-        this.household = log.getHousehold() != null
+        this.householdConfirmed = log.getHousehold() != null;
+        this.household = this.householdConfirmed
                 ? log.getHousehold().getDong() + " " + log.getHousehold().getHo()
                 : "세대 미확인";
         this.entryType = log.getEntryType().name();
@@ -52,16 +54,22 @@ public class ParkingLogResponse {
                 log.getEntryTime(), LocalDateTime.now()).toMinutes();
         this.parkingTime = formatMinutes(totalMinutes);
 
-        // 티켓 정보
+        // 티켓 정보 (잔여 티켓)
         this.ticketInfo = availableMinutes > 0
                 ? formatMinutes(availableMinutes) + " 사용 가능"
                 : "티켓 없음";
 
-        // 출차 가능 여부 (티켓으로 전부 커버 가능하면 출차 가능)
-        this.canExit = availableMinutes >= totalMinutes;
+        // 출차 가능 여부
+        // 세대 미확인 → 무조건 출차 불가 (강제 출차만 가능)
+        // 세대 있는 차량 → 미리 적용된 티켓(appliedMinutes)으로 커버 가능하면 출차 가능
+        if (!this.householdConfirmed) {
+            this.canExit = false;
+        } else {
+            int applied = log.getAppliedMinutes() != null ? log.getAppliedMinutes() : 0;
+            this.canExit = totalMinutes == 0 || applied >= totalMinutes;
+        }
     }
 
-    // 기존 생성자 (티켓 정보 없을 때)
     public ParkingLogResponse(ParkingLog log) {
         this(log, 0);
     }

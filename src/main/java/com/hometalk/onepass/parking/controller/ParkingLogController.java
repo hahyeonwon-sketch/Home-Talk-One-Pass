@@ -57,4 +57,10 @@ public class ParkingLogController {
     public String unregisteredPage() {
         return "parking/visit-management";
     }
+
+    // 출차
+    @GetMapping("/exit")
+    public String exitPage() {
+        return "parking/exit";
+    }
 }

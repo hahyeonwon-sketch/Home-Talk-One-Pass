@@ -191,7 +191,7 @@ body {
 
 .btn-add {
   padding: 10px 20px;
-  background-color: var(--color-btn);
+  background-color: #4073C9;
   color: #ffffff;
   border: none;
   border-radius: var(--radius-sm);
@@ -1137,4 +1137,102 @@ body {
 #registerBtn:disabled {
   background-color: #ccc;
   cursor: not-allowed;
+}
+
+
+/* =============================================
+   출차 페이지 버튼
+   ============================================= */
+.pk-btn {
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: opacity var(--transition);
+  border: none;
+}
+
+.pk-btn:hover { opacity: 0.82; }
+
+.pk-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.pk-btn-primary {
+  background-color: var(--color-main);
+  color: #ffffff;
+}
+
+.pk-btn-point {
+  background-color: var(--color-btn-point);
+  color: #ffffff;
+}
+
+.pk-btn-secondary {
+  background-color: var(--color-btn-secondary);
+  color: #ffffff;
+}
+
+/* 관리 열 버튼 가로 배치 */
+.park-table tbody td:last-child {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+}
+
+/* 출차 가능/불가 상태 텍스트 */
+.can-exit { color: var(--color-sub); font-weight: 600; }
+.cannot-exit { color: var(--color-btn-point); font-weight: 600; }
+
+/* 검색 결과 아이템 */
+.result-item {
+  padding: 16px 20px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.result-item p { margin: 0 0 8px 0; font-weight: 600; }
+.result-item ul { margin: 0 0 12px 0; padding-left: 20px; color: #666; font-size: 13px; }
+.result-item li { margin-bottom: 4px; }
+
+/* ── 드롭다운 ── */
+.pk-filter-group { display: flex; gap: 12px; margin-bottom: 20px; }
+.pk-dropdown-wrapper { position: relative; }
+.pk-dropdown-btn { padding: 8px 16px; border: 1px solid var(--color-border); border-radius: 6px; background: #fff; cursor: pointer; font-size: 14px; }
+.pk-dropdown-menu { position: absolute; top: 100%; left: 0; background: #fff; border: 1px solid var(--color-border); border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 100; min-width: 120px; }
+.pk-dropdown-menu ul { list-style: none; margin: 0; padding: 4px 0; }
+.pk-dropdown-menu li { padding: 8px 16px; cursor: pointer; font-size: 14px; }
+.pk-dropdown-menu li:hover { background: var(--color-surface-2); }
+
+
+/* ── 탭 ── */
+.tab-group { display: flex; gap: 0; margin-bottom: 20px; border-bottom: 2px solid var(--color-border); }
+.tab-btn { padding: 10px 24px; border: none; background: none; cursor: pointer; font-size: 14px; color: #888; border-bottom: 2px solid transparent; margin-bottom: -2px; }
+.tab-btn.active { color: var(--color-main); font-weight: 600; border-bottom: 2px solid var(--color-main); }
+.tab-btn:hover { color: var(--color-sub); }
+
+
+/* 출차 페이지 관리 열에만 적용 */
+.exit-table tbody td:last-child {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+}
+
+/*  출차 목록 없을 때 */
+.pk-empty {
+  text-align: center;
+  padding: 48px 16px;
+  color: #aaa;
+  font-size: 13px;
+}
+
+.park-table tbody td.pk-empty {
+  display: table-cell;
+  text-align: center;
 }

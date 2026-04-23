@@ -172,7 +172,20 @@ public class StaffEntryService {
     // ─── 입주자 차량 목록 ────────────────────────────────────────
     @Transactional(readOnly = true)
     public List<Vehicle> getResidentVehicleList() {
-        return vehicleRepository.findAllByStatusWithHousehold(Vehicle.VehicleStatus.APPROVED);
+        List<Vehicle> approvedVehicles = vehicleRepository.findAllByStatusWithHousehold(Vehicle.VehicleStatus.APPROVED);
+
+        // 현재 주차 중인 차량 번호 목록
+        List<String> parkedVehicleNumbers = parkingLogRepository
+                .findByStatus(ParkingLog.ParkingStatus.PARKED)
+                .stream()
+                .map(ParkingLog::getVehicleNumber)
+                .toList();
+
+        // 주차 중인 차량 제외
+        return approvedVehicles.stream()
+                .filter(v -> !parkedVehicleNumbers.contains(
+                        v.getVehicleNumber().replace(" ", "")))
+                .toList();
     }
 
     // ─── 유틸 ────────────────────────────────────────────────────

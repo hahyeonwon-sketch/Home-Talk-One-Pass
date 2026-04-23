@@ -160,8 +160,9 @@
               dayRemainingCount = data.dayRemaining ?? 0;
               hourRemainingCount = data.hourRemaining ?? 0;
 
+              // 개수로 표시
               document.getElementById('dayRemaining').textContent = `이번 달 남은 ${dayRemainingCount}개`;
-              document.getElementById('hourRemaining').textContent = `이번 달 남은 ${hourRemainingCount}분`;
+              document.getElementById('hourRemaining').textContent = `이번 달 남은 ${hourRemainingCount}개`;
 
               unregisteredBox.style.display = data.unregistered ? 'block' : 'none';
 
@@ -177,13 +178,12 @@
       selectedTicketType = type;
       ticketCount = 1;
       document.getElementById('ticketCount').textContent = ticketCount;
+      document.getElementById('ticketHint').textContent = '';
 
       if (type === 'DAY') {
           maxCount = dayRemainingCount;
-          document.getElementById('ticketHint').textContent = '*티켓 시간이 부족합니다. 티켓을 추가해주세요';
       } else {
           maxCount = hourRemainingCount;
-          document.getElementById('ticketHint').textContent = '';
       }
 
       document.getElementById('applyBtn').disabled = false;
