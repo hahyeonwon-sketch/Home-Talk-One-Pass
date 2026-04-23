@@ -29,56 +29,69 @@ public class BillingPageController {
     private final BillingService billingService;
 
     // ─────────────────────────────────────────────
-    // 입주민 관리비 페이지
+    // ── ★★★ 임시 하드코딩 (Security 연동 전) ★★★
+    // TODO: Security 완성 후 CustomUserDetails로 교체
+    // test1 = ADMIN / test2 = RESIDENT
+    // RESIDENT 테스트 시 → TEMP_ROLE = "RESIDENT", TEMP_HOUSEHOLD_ID = 실제 household id
+    // ─────────────────────────────────────────────
+    private static final String TEMP_ROLE         = "RESIDENT";   // "ADMIN" or "RESIDENT"
+    private static final Long   TEMP_HOUSEHOLD_ID = 4L;  // RESIDENT일 때 사용 (billing테이블의 household_id: 4-23)
+
+    /* 나중에 위 2줄만 교체하면 됨
+       → 교체 후
+    String role        = ((CustomUserDetails) authentication.getPrincipal()).getRole();
+    Long householdId   = ((CustomUserDetails) authentication.getPrincipal()).getHouseholdId();
+    */
+
+
+    // ─────────────────────────────────────────────
+    // 입주민 관리비 페이지 (RESIDENT 전용)
     // ─────────────────────────────────────────────
 
     @GetMapping
     public String billingPage(Model model, HttpServletRequest request) {
-        // TODO: Security 완성 후 CustomUserDetails에서 추출
-        Long householdId = 1L;
+        if (!"RESIDENT".equals(TEMP_ROLE)) return "redirect:/billing/admin/upload";
+
+        Long householdId = TEMP_HOUSEHOLD_ID;
 
         ResidentBillingResponse response = billingService.getResidentBillingPage(householdId);
 
-        // HTML 변수명에 맞춰 개별로 넘기기
         List<BillingSummaryResponse> unpaidList = billingService
                 .getBillingList(householdId, null, null, BillingStatus.UNPAID,
                         PageRequest.of(0, 12, Sort.by(Sort.Direction.DESC, "billingMonth")))
                 .getContent();
 
-        model.addAttribute("currentUri", request.getRequestURI());
-        model.addAttribute("contextPath", "/hometop");
-        model.addAttribute("unpaidList",    unpaidList);
-        model.addAttribute("unpaidMonths",  unpaidList.stream()
-                .map(BillingSummaryResponse::getBillingMonth)
-                .toList());
-        model.addAttribute("currentMonthAmount", response.getCurrentMonthAmount());
+        model.addAttribute("currentUri",         request.getRequestURI());
+        model.addAttribute("contextPath",         "/hometop");
+        model.addAttribute("unpaidList",          unpaidList);
+        model.addAttribute("unpaidMonths",        unpaidList.stream()
+                .map(BillingSummaryResponse::getBillingMonth).toList());
+        model.addAttribute("currentMonthAmount",  response.getCurrentMonthAmount());
         model.addAttribute("currentMonthLabel",
                 LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy년 M월")));
-        model.addAttribute("unpaidCount",   response.getUnpaidCount());
-        model.addAttribute("latestPaidDate", response.getLastPaidDate() != null
-                ? response.getLastPaidDate()
-                .format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))
+        model.addAttribute("unpaidCount",         response.getUnpaidCount());
+        model.addAttribute("latestPaidDate",      response.getLastPaidDate() != null
+                ? response.getLastPaidDate().format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))
                 : null);
-        model.addAttribute("latestPaidMonth", response.getLastPaidDate() != null
-                ? response.getLastPaidDate()
-                .format(DateTimeFormatter.ofPattern("M월"))
+        model.addAttribute("latestPaidMonth",     response.getLastPaidDate() != null
+                ? response.getLastPaidDate().format(DateTimeFormatter.ofPattern("M월"))
                 : null);
-        model.addAttribute("billings",    response.getBillings());
-        model.addAttribute("hasMore",     false);
-        model.addAttribute("householdId", householdId);
-        model.addAttribute("unitInfo",    "");
-        model.addAttribute("menu",        "billing");
+        model.addAttribute("billings",            response.getBillings());
+        model.addAttribute("hasMore",             false);
+        model.addAttribute("householdId",         householdId);
+        model.addAttribute("unitInfo",            "");
+        model.addAttribute("menu",                "billing");
         return "billing/billing_resident";
     }
 
-
     // ─────────────────────────────────────────────
-    // 관리자 고지서 업로드 페이지 탭2개 (파일 업로드 / DB저장 후 확인)
+    // 관리자 고지서 업로드 (ADMIN 전용)
     // ─────────────────────────────────────────────
 
     @GetMapping("/admin/upload")
     public String uploadPage(Model model, HttpServletRequest request) {
-        model.addAttribute("currentUri", request.getRequestURI());
+        if (!"ADMIN".equals(TEMP_ROLE)) return "redirect:/billing";     // RESIDENT 차단
+        model.addAttribute("currentUri",  request.getRequestURI());
         model.addAttribute("menu",        "billing");
         model.addAttribute("contextPath", "/hometop");
         return "billing/billing_admin_upload";
@@ -86,15 +99,15 @@ public class BillingPageController {
 
     @GetMapping("/admin/monthly")
     public String monthlyPage(Model model, HttpServletRequest request) {
-        model.addAttribute("currentUri", request.getRequestURI());
+        if (!"ADMIN".equals(TEMP_ROLE)) return "redirect:/billing";
+        model.addAttribute("currentUri",  request.getRequestURI());
         model.addAttribute("menu",        "billing");
         model.addAttribute("contextPath", "/hometop");
         return "billing/billing_admin_monthly";
     }
 
-
     // ─────────────────────────────────────────────
-    // 관리자 미납 세대 관리 페이지
+    // 관리자 미납 세대 관리 (ADMIN 전용)
     // ─────────────────────────────────────────────
 
     @GetMapping("/admin/unpaid")
@@ -107,6 +120,8 @@ public class BillingPageController {
             @RequestParam(defaultValue = "0") int page,
             Model model, HttpServletRequest request
     ) {
+        if (!"ADMIN".equals(TEMP_ROLE)) return "redirect:/billing";
+
         String currentMonth = LocalDate.now()
                 .format(DateTimeFormatter.ofPattern("yyyy-MM"));
         AdminBillingStats stats = billingService.getAdminStats(currentMonth);
@@ -125,10 +140,8 @@ public class BillingPageController {
         model.addAttribute("totalPages",  unpaidPage.getTotalPages());
         model.addAttribute("pageSize",    20);
         model.addAttribute("menu",        "billing");
-        model.addAttribute("currentUri", request.getRequestURI());
+        model.addAttribute("currentUri",  request.getRequestURI());
         model.addAttribute("contextPath", "/hometop");
-
         return "billing/billing_admin_unpaid";
     }
-
 }

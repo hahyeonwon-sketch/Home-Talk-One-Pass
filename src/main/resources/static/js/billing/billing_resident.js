@@ -185,13 +185,13 @@ async function openModal(billingId) {
         const res  = await fetch(`${CONTEXT_PATH}/api/billing/${billingId}/detail`);
         const data = await res.json();
 
-        const isUnpaid = data.status === 'UNPAID';
-        const now      = new Date();
-        const due      = data.dueDate ? new Date(data.dueDate) : null;
+        const isUnpaid  = data.status === 'UNPAID';
+        const now       = new Date();
+        const due       = data.dueDate ? new Date(data.dueDate) : null;
         const isOverdue = isUnpaid && due && now > due;
 
         // 헤더
-        document.getElementById('modalSubtitle').textContent =
+        document.getElementById('modalHeaderTitle').textContent =
             `${data.billingMonth} · ${data.dongHo}`;
         document.getElementById('modalPeriod').textContent =
             `부과월: ${data.billingMonth} · 납부기한: ${data.dueDate ? data.dueDate.replace(/-/g,'.') : '—'}`;
@@ -199,7 +199,7 @@ async function openModal(billingId) {
         // 항목 목록
         document.getElementById('modalRows').innerHTML = (data.items || []).length
             ? (data.items || []).map(d =>
-                `<div class="bm-row">
+                `<div class="bill-row">
                     <span>${d.itemName}</span>
                     <span>${Number(d.itemAmount).toLocaleString()}원</span>
                 </div>`).join('')
@@ -212,19 +212,20 @@ async function openModal(billingId) {
         // 납부 상태 박스
         const statusBox = document.getElementById('modalStatusBox');
         if (isUnpaid && isOverdue) {
-            statusBox.className = 'bm-status-box unpaid';
-            statusBox.innerHTML = `납부기한이 지났습니다. 관리사무소에 문의해 주세요. ☎️ 02-888-9999`;
+            statusBox.className = 'bm-status-box past';
+            statusBox.innerHTML = `<div class="bm-status-title">납부기한이 지났습니다.</div>
+                                   <div class="bm-status-sub">관리사무소에 문의해 주세요. ☎️ 02-888-9999</div>`;
         } else if (isUnpaid) {
-            statusBox.className = 'bm-status-box unpaid';
-            statusBox.innerHTML = `납부기한: ${data.dueDate ? data.dueDate.replace(/-/g,'.') : '—'}`;
+            statusBox.className = 'bm-status-box upcoming';
+            statusBox.innerHTML = `<div class="bm-status-title">납부기한</div>
+                                   <div class="bm-status-sub">${data.dueDate ? data.dueDate.replace(/-/g,'.') : '—'}</div>`;
         } else {
-            statusBox.className = 'bm-status-box paid';
-            statusBox.innerHTML = `납부 완료되었습니다.`;
+            statusBox.className = 'bm-status-box done';
+            statusBox.innerHTML = `<div class="bm-status-title">납부 완료되었습니다.</div>`;
         }
 
-        // 모달 표시
-        document.getElementById('modalOverlay').style.display = 'block';
-        document.getElementById('billingModal').style.display = 'flex';
+        // ★ 모달 표시
+        document.getElementById('modalOverlay').style.display = 'flex';
 
     } catch (err) {
         console.error('고지서 조회 실패', err);
@@ -238,5 +239,4 @@ function closeModal(e) {
 
 function closeModalBtn() {
     document.getElementById('modalOverlay').style.display = 'none';
-    document.getElementById('billingModal').style.display = 'none';
 }

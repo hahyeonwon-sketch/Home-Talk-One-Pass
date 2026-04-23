@@ -140,21 +140,44 @@ async function runValidation(rows) {
         const unit   = dongHo ? `${dong} ${hoPart}호` : dongHo;
         const month  = billingMonth || '';
 
-        const details = ITEM_COLS
-            .map(col => ({
-                item_name:   col,
-                item_amount: parseFloat(String(row[col]).replace(/,/g, '')) || 0
-            }))
-            .filter(d => d.item_amount > 0);
+        // ★ 항목 파싱 + 유효성 검사
+        const details = [];
+        let hasInvalidItem = false;
+        let hasMissingItem = false;
+
+        for (const col of ITEM_COLS) {
+            const raw = row[col];
+
+            if (raw === '' || raw === null || raw === undefined) {
+                hasMissingItem = true;
+                break;
+            }
+
+            const num = parseFloat(String(raw).replace(/,/g, ''));
+
+            if (isNaN(num) || num < 0) {
+                hasInvalidItem = true;
+                break;
+            }
+
+            if (num === 0) {
+                hasMissingItem = true;
+                break;
+            }
+
+            details.push({ item_name: col, item_amount: num });
+        }
 
         let valid = '정상';
         if (!dongHo || !month)         valid = '오류';
+        else if (hasInvalidItem)       valid = '항목 오류';
         else if (total === 0)          valid = '금액 누락';
+        else if (hasMissingItem)       valid = '금액 누락';
         else if (details.length === 0) valid = '항목 누락';
 
         return {
-            num:          idx + 1,
-            household_id: dongHo,
+            num:           idx + 1,
+            household_id:  dongHo,
             dong,
             unit,
             billing_month: month,
