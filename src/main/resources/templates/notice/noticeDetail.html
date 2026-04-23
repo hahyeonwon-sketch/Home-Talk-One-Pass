@@ -99,11 +99,29 @@
 
         </div>
 
+        <div class="img-modal-overlay" id="imgModalOverlay">
+            <img id="imgModalTarget" src="" alt="">
+        </div>
+
         <!-- 푸터 -->
         <footer th:replace="~{fragments/footer :: footer}"></footer>
 
     </div>
 </div>
+
+<script>
+    document.querySelectorAll('.notice-box img').forEach(function(img) {
+    img.style.cursor = 'pointer';
+    img.addEventListener('click', function() {
+        document.getElementById('imgModalTarget').src = this.src;
+        document.getElementById('imgModalOverlay').classList.add('open');
+    });
+});
+
+document.getElementById('imgModalOverlay').addEventListener('click', function() {
+    this.classList.remove('open');
+});
+</script>
 
 </body>
 </html>

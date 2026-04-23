@@ -117,7 +117,6 @@ public class NoticeController {
         NoticeDetailResponseDto notice = noticeService.getNoticeForEdit(id);
         model.addAttribute("notice", notice);
 
-        // 연결된 일정 데이터 전달 (있으면)
         Notice noticeEntity = noticeService.getNoticeEntity(id);
         ScheduleDetailResponseDto schedule = scheduleService.getScheduleByNotice(noticeEntity);
         model.addAttribute("linkedSchedule", schedule);
@@ -133,22 +132,35 @@ public class NoticeController {
                              HttpServletRequest request) {
         noticeService.updateNotice(id, noticeRequestDto, file);
 
-        // 연결된 일정도 같이 수정
         Notice notice = noticeService.getNoticeEntity(id);
         String noticeUrl = request.getScheme() + "://" +
                 request.getServerName() + ":" +
                 request.getServerPort() +
                 request.getContextPath() + "/notice/" + id;
 
-        scheduleService.updateScheduleWithNotice(
-                notice,
-                noticeRequestDto.getScheduleName(),
-                noticeRequestDto.getScheduleStartAt(),
-                noticeRequestDto.getScheduleEndAt(),
-                noticeRequestDto.getScheduleInfo(),
-                noticeRequestDto.getScheduleLocation(),
-                noticeUrl
-        );
+        // 연결된 일정 있으면 수정, 없으면 새로 등록
+        ScheduleDetailResponseDto existing = scheduleService.getScheduleByNotice(notice);
+        if (existing != null) {
+            scheduleService.updateScheduleWithNotice(
+                    notice,
+                    noticeRequestDto.getScheduleName(),
+                    noticeRequestDto.getScheduleStartAt(),
+                    noticeRequestDto.getScheduleEndAt(),
+                    noticeRequestDto.getScheduleInfo(),
+                    noticeRequestDto.getScheduleLocation(),
+                    noticeUrl
+            );
+        } else {
+            scheduleService.createScheduleWithNotice(
+                    notice,
+                    noticeRequestDto.getScheduleName(),
+                    noticeRequestDto.getScheduleStartAt(),
+                    noticeRequestDto.getScheduleEndAt(),
+                    noticeRequestDto.getScheduleInfo(),
+                    noticeRequestDto.getScheduleLocation(),
+                    noticeUrl
+            );
+        }
 
         return "redirect:/notice/" + id;
     }

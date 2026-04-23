@@ -213,18 +213,14 @@
             alert('시작 날짜를 입력해주세요.');
             return;
         }
-        if (scheduleName && !endDate) {
-            alert('종료 날짜를 입력해주세요.');
-            return;
-        }
 
         if (startDate && endDate) {
             var startAt = new Date(startDate + 'T' + startHour + ':' + startMinute + ':00');
             var endAt   = new Date(endDate   + 'T' + endHour   + ':' + endMinute   + ':00');
-            if (endAt <= startAt) {
-                alert('종료 시간이 시작 시간보다 이후여야 합니다.');
-                return;
-            }
+              if (endDate && endAt <= startAt) {
+                  alert('종료 시간이 시작 시간보다 이후여야 합니다.');
+                  return;
+              }
         }
 
         document.getElementById('scheduleModal').classList.remove('open');

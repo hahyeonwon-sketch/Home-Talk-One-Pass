@@ -54,7 +54,7 @@
 
                     <div class="schedule-modal" id="scheduleModal">
                         <div class="modal-header">
-                            <span>일정 수정</span>
+                            <span th:text="${linkedSchedule != null} ? '일정 수정' : '일정 등록'">일정 수정</span>
                             <button type="button" onclick="document.getElementById('scheduleModal').classList.remove('open')">X</button>
                         </div>
                         <div class="modal-body">
@@ -138,8 +138,8 @@
                             <label for="isPinned">상단 고정</label>
                         </div>
                         <button type="button" class="btn-schedule"
-                                th:if="${linkedSchedule != null}"
-                                onclick="document.getElementById('scheduleModal').classList.add('open')">일정 수정</button>
+                                onclick="document.getElementById('scheduleModal').classList.add('open')"
+                                th:text="${linkedSchedule != null} ? '일정 수정' : '일정 등록'"></button>
                         <a th:href="@{/notice/{id}(id=${notice.id})}" class="btn btn-cancel"
                            onclick="return confirmCancel()">취소</a>
                         <button type="submit" class="btn-submit">수정 완료</button>
@@ -274,18 +274,14 @@
             alert('시작 날짜를 입력해주세요.');
             return;
         }
-        if (scheduleName && !endDate) {
-            alert('종료 날짜를 입력해주세요.');
-            return;
-        }
 
         if (startDate && endDate) {
             var startAt = new Date(startDate + 'T' + startHour + ':' + startMinute + ':00');
             var endAt   = new Date(endDate   + 'T' + endHour   + ':' + endMinute   + ':00');
-            if (endAt <= startAt) {
-                alert('종료 시간이 시작 시간보다 이후여야 합니다.');
-                return;
-            }
+          if (endDate && endAt <= startAt) {
+              alert('종료 시간이 시작 시간보다 이후여야 합니다.');
+              return;
+          }
         }
 
         document.getElementById('scheduleModal').classList.remove('open');
