@@ -5,17 +5,14 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class MyPageResponseDto {
+public class MyPageResponseDTO {
 
     private final String authType;
-    private final String loginId;
     private final String socialPlatform;
     private final String name;
     private final String nickname;
     private final String email;
     private final String phoneNumber;
-    private final String role;
-    private final String status;
     private final String buildingName;
     private final String dong;
     private final String ho;

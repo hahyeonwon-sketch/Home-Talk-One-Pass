@@ -12,9 +12,11 @@ import java.util.Map;
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
+        // 공급자(Kakao/Naver)에서 내려준 사용자 원본 정보를 먼저 조회한다.
         OAuth2User oAuth2User = super.loadUser(userRequest);
 
-        // 카카오에서 준 유저 정보 (Map 형태)
+        // 현재는 후처리 없이 원본 OAuth2User를 그대로 반환하고,
+        // 실제 가입 여부 판단과 후속 이동은 SuccessHandler에서 담당한다.
         Map<String, Object> attributes = oAuth2User.getAttributes();
 
         return oAuth2User;

@@ -15,6 +15,7 @@ import java.io.IOException;
 @Component
 public class CustomLogoutSuccessHandler implements LogoutSuccessHandler {
 
+    // 카카오 계정 로그아웃 URL 구성 시 사용할 REST API 키
     private final String kakaoClientId;
 
     public CustomLogoutSuccessHandler(
@@ -26,30 +27,53 @@ public class CustomLogoutSuccessHandler implements LogoutSuccessHandler {
     public void onLogoutSuccess(HttpServletRequest request, HttpServletResponse response,
                                 Authentication authentication) throws IOException, ServletException {
 
-        if (authentication instanceof OAuth2AuthenticationToken oauth2AuthenticationToken
-                && "kakao".equals(oauth2AuthenticationToken.getAuthorizedClientRegistrationId())) {
+        // OAuth2 로그인 사용자는 공급자별 로그아웃 후처리를 수행한다.
+        if (authentication instanceof OAuth2AuthenticationToken oauth2AuthenticationToken) {
+            String registrationId = oauth2AuthenticationToken.getAuthorizedClientRegistrationId();
 
-            String logoutRedirectUri = UriComponentsBuilder.fromUriString(getBaseUrl(request))
-                    .path(request.getContextPath())
-                    .path("/auth")
-                    .build()
-                    .toUriString();
+            if ("kakao".equals(registrationId)) {
+                redirectToKakaoLogout(request, response);
+                return;
+            }
 
-            String kakaoLogoutUrl = UriComponentsBuilder
-                    .fromUriString("https://kauth.kakao.com/oauth/logout")
-                    .queryParam("client_id", kakaoClientId)
-                    .queryParam("logout_redirect_uri", logoutRedirectUri)
-                    .build()
-                    .toUriString();
-
-            response.sendRedirect(kakaoLogoutUrl);
-            return;
+            if ("naver".equals(registrationId)) {
+                // 네이버는 프로젝트에서 별도로 구현한 로그아웃 콜백 엔드포인트로 보낸다.
+                String naverLogoutUrl = UriComponentsBuilder.fromUriString(getBaseUrl(request))
+                        .path(request.getContextPath())
+                        .path("/auth/oauth2/naver/logout")
+                        .build()
+                        .toUriString();
+                response.sendRedirect(naverLogoutUrl);
+                return;
+            }
         }
 
         response.sendRedirect(request.getContextPath() + "/auth");
     }
 
+    private void redirectToKakaoLogout(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        // 우리 서비스 세션이 종료된 뒤,
+        // 카카오 로그인 사용자인 경우 카카오 인증 서버 로그아웃까지 이어서 수행한다.
+        // 카카오 로그아웃 후에는 다시 우리 로그인 화면으로 복귀시킨다.
+        String logoutRedirectUri = UriComponentsBuilder.fromUriString(getBaseUrl(request))
+                .path(request.getContextPath())
+                .path("/auth")
+                .build()
+                .toUriString();
+
+        // 로컬 로그인 사용자는 이 분기를 타지 않고 바로 아래 /auth 리다이렉트로 끝난다.
+        String kakaoLogoutUrl = UriComponentsBuilder
+                .fromUriString("http://localhost:8090/hometop/auth/oauth2/kakao/logout")
+                .queryParam("client_id", kakaoClientId)
+                .queryParam("logout_redirect_uri", logoutRedirectUri)
+                .build()
+                .toUriString();
+
+        response.sendRedirect(kakaoLogoutUrl);
+    }
+
     private String getBaseUrl(HttpServletRequest request) {
+        // 배포 환경에서도 현재 요청 기준으로 프로토콜/호스트/포트를 동적으로 맞춘다.
         return request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
     }
 }

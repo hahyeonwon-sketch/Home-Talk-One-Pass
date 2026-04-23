@@ -1,12 +1,13 @@
 package com.hometalk.onepass.auth.service;
 
-import com.hometalk.onepass.auth.dto.MyPageResponseDTO;
-import com.hometalk.onepass.auth.entity.Household;
 import com.hometalk.onepass.auth.entity.LocalAccount;
 import com.hometalk.onepass.auth.entity.SocialAccount;
 import com.hometalk.onepass.auth.entity.User;
+import com.hometalk.onepass.auth.entity.Household;
+import com.hometalk.onepass.auth.repository.HouseholdRepository;
 import com.hometalk.onepass.auth.repository.LocalAccountRepository;
 import com.hometalk.onepass.auth.repository.SocialAccountRepository;
+import com.hometalk.onepass.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -15,38 +16,64 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
-public class MyPageService {
+@Transactional
+public class WithdrawalService {
 
+    private final UserRepository userRepository;
+    private final HouseholdRepository householdRepository;
     private final LocalAccountRepository localAccountRepository;
     private final SocialAccountRepository socialAccountRepository;
 
-    public MyPageResponseDTO getMyPage(Authentication authentication) {
+    public void withdraw(Authentication authentication) {
         if (authentication == null
                 || !authentication.isAuthenticated()
                 || authentication instanceof AnonymousAuthenticationToken) {
+            throw new IllegalStateException("로그인한 사용자만 탈퇴할 수 있습니다.");
         }
 
+        User user = resolveUser(authentication);
+
+        // 로컬 계정은 loginId 이력 보존을 위해 남겨두고,
+        // 소셜 계정은 제거해서 같은 공급자 계정으로 재가입할 수 있게 한다.
+        if (!user.getSocialAccounts().isEmpty()) {
+            socialAccountRepository.deleteAll(new ArrayList<>(user.getSocialAccounts()));
+        }
+
+        Household household = user.getHousehold();
+        user.removeHousehold();
+        user.withdraw();
+
+        if (household != null) {
+            householdRepository.delete(household);
+        }
+    }
+
+    private User resolveUser(Authentication authentication) {
         if (authentication instanceof OAuth2AuthenticationToken oauthToken
                 && authentication.getPrincipal() instanceof OAuth2User oAuth2User) {
-            return buildSocialMyPage(oauthToken, oAuth2User);
+            return findSocialUser(oauthToken, oAuth2User);
         }
 
-        return buildLocalMyPage(authentication.getName());
+        return findLocalUser(authentication.getName());
     }
 
-    private MyPageResponseDTO buildLocalMyPage(String loginId) {
+    private User findLocalUser(String loginId) {
         LocalAccount account = localAccountRepository.findByLoginId(loginId)
-                .orElseThrow(() -> new IllegalStateException("로컬 계정 정보를 찾을 수 없습니다."));
+                .orElseThrow(() -> new IllegalStateException("탈퇴할 로컬 계정을 찾을 수 없습니다."));
 
-        return toDto(account.getUser(), "일반 로그인", account.getLoginId(), null);
+        if (account.getUser().isDeleted()) {
+            throw new IllegalStateException("이미 탈퇴한 회원입니다.");
+        }
+
+        return account.getUser();
     }
 
-    private MyPageResponseDTO buildSocialMyPage(OAuth2AuthenticationToken oauthToken, OAuth2User oAuth2User) {
+    private User findSocialUser(OAuth2AuthenticationToken oauthToken, OAuth2User oAuth2User) {
         String registrationId = oauthToken.getAuthorizedClientRegistrationId();
         SocialAccount.Platform platform = SocialAccount.Platform.valueOf(registrationId.toUpperCase());
         String email = extractEmail(platform, oAuth2User.getAttributes());
@@ -56,12 +83,14 @@ public class MyPageService {
         }
 
         String combinedPlatformId = email + "_" + registrationId.toUpperCase();
-
         SocialAccount socialAccount = socialAccountRepository.findByPlatformAndPlatformId(platform, combinedPlatformId)
-                .orElseThrow(() -> new IllegalStateException("소셜 계정 정보를 찾을 수 없습니다."));
+                .orElseThrow(() -> new IllegalStateException("탈퇴할 소셜 계정을 찾을 수 없습니다."));
 
+        if (socialAccount.getUser().isDeleted()) {
+            throw new IllegalStateException("이미 탈퇴한 회원입니다.");
+        }
 
-        return toDto(socialAccount.getUser(), "소셜 로그인", null, platform.name());
+        return socialAccount.getUser();
     }
 
     @SuppressWarnings("unchecked")
@@ -77,22 +106,5 @@ public class MyPageService {
         }
 
         return (String) attributes.get("email");
-    }
-
-    private MyPageResponseDTO toDto(User user, String authType, String loginId, String socialPlatform) {
-        Household household = user.getHousehold();
-
-        return MyPageResponseDTO.builder()
-                .authType(authType)
-                .socialPlatform(socialPlatform)
-                .name(user.getName())
-                .nickname(user.getNickname())
-                .email(user.getEmail())
-                .phoneNumber(user.getPhoneNumber())
-                .buildingName(household != null ? household.getBuildingName() : null)
-                .dong(household != null ? household.getDong() : null)
-                .ho(household != null ? household.getHo() : null)
-                .postNum(household != null ? household.getPostNum() : null)
-                .build();
     }
 }

@@ -7,11 +7,15 @@
     <style>
         * {
             box-sizing: border-box;
+            background: #FAF4F0
         }
-        .auth-container { width: 400px; margin: 20px auto; padding: 30px; text-align: center; border: solid 1px #bdbaba;  }
+        h2 {font-weight: 400; font-size: larger;}
+        .auth-container { width: 400px; margin: 20px auto; min-height: 600px; padding: 30px; text-align: center; border: solid 1px #bdbaba; border-radius: 8px; margin-top: 75px;}
         .input-group { margin-bottom: 10px; width: 100% }
         input { width: 250px; padding: 10px; }
-        button { width: 250px; padding: 10px; background-color: #007bff; color: white; border: none; cursor: pointer; height: 40px; }
+        button { width: 250px; padding: 10px; background-color: #3C6ABC; color: white; border: none; cursor: pointer; height: 40px; }
+        button:hover { background-color: #4073c9; }
+
 
         .kakao-btn-container { margin-top: 15px; }
         .kakao-btn-container img {
@@ -36,8 +40,8 @@
 <body>
 
 <div class="auth-container">
-    <h2>Home Talk One Pass</h2>
-    <h2>로그인</h2>
+    <h1>Home Talk One Pass</h1>
+    <h3>로그인</h3>
     <form th:action="@{/auth/login}" method="post">
         <div class="input-group">
             <input type="text" name="loginId" placeholder="아이디를 입력하세요." required>
@@ -51,6 +55,7 @@
     <div class="other-contain">
         <p>계정이 없으신가요? <a th:href="@{/auth/register}">회원가입</a></p>
 
+        <hr>
         <p>소셜로 로그인</p>
         <div class="kakao-btn-container">
             <a th:href="@{/oauth2/authorization/kakao}">
@@ -75,6 +80,6 @@
         /*]]>*/
     </script>
 
-
+</div>
 </body>
 </html>
