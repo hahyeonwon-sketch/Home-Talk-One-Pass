@@ -15,11 +15,21 @@
 
         .kakao-btn-container { margin-top: 15px; }
         .kakao-btn-container img {
+            width: 100%;
+            max-width: 250px;
+            height: 40px;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .naver-btn-container { margin-top: 15px; }
+        .naver-btn-container img {
         width: 100%;
-        max-width: 250px; /* input과 동일한 사이즈 */
+        max-width: 250px;
+        height: 40px;
         display: block;
         margin: 0 auto;
-    }
+        }
     </style>
 
 </head>
@@ -43,23 +53,27 @@
 
         <p>소셜로 로그인</p>
         <div class="kakao-btn-container">
-        <a th:href="@{/oauth2/authorization/kakao}">
-            <img th:src="@{/auth/loginimage/kakao_login.png}" alt="카카오 로그인">
-        </a>
+            <a th:href="@{/oauth2/authorization/kakao}">
+                <img th:src="@{/auth/loginimage/kakao_login.png}" alt="카카오 로그인">
+            </a>
+        </div>
+        <div class="naver-btn-container">
+            <a th:href="@{/oauth2/authorization/naver}">
+                <img th:src="@{/auth/loginimage/naver_login.png}" alt="네이버 로그인">
+            </a>
+        </div>
     </div>
-    </div>
-</div>
 
 
-<script th:if="${param.error}" th:inline="javascript">
+    <script th:if="${param.error}" th:inline="javascript">
 
-    // 1. 알림창 띄우기
-    alert("아이디 또는 비밀번호가 일치하지 않습니다.");
+        // 1. 알림창 띄우기
+        alert("아이디 또는 비밀번호가 일치하지 않습니다.");
 
-    // 2. 확인(OK)을 누르면 다시 깨끗한 로그인 페이지로 리다이렉트
-    window.location.href = window.location.pathname;
-    /*]]>*/
-</script>
+        // 2. 확인(OK)을 누르면 다시 깨끗한 로그인 페이지로 리다이렉트
+        window.location.href = window.location.pathname;
+        /*]]>*/
+    </script>
 
 
 </body>

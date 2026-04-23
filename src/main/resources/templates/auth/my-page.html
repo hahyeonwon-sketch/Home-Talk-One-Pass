@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head(pageTitle='마이페이지')}"></head>
+<body>
+<div class="main-layout" style="display: flex; min-height: 100vh;">
+
+    <div th:replace="~{fragments/sidebar :: sidebar(currentPage='home')}"></div>
+
+    <div class="main-wrapper" style="flex: 1; display: flex; flex-direction: column;">
+        <div th:replace="~{fragments/headerCurrentMenuView :: path(paths=${ {'home', 'mypage'} })}"></div>
+
+        <main class="content" style="flex: 1; padding: 32px 40px; background: #f5f7fb;">
+            <section style="max-width: 960px; margin: 0 auto;">
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 24px;">
+                    <div>
+                        <p style="margin: 0 0 8px; color: #637083; font-size: 14px;" th:text="${myPage.authType}">일반 로그인</p>
+                        <h1 style="margin: 0; font-size: 32px; color: #1d2a39;">내 회원 정보</h1>
+                    </div>
+
+                    <form th:action="@{/auth/logout}" method="post" style="margin: 0;">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <button type="submit"
+                                style="height: 44px; padding: 0 18px; border: none; border-radius: 12px; background: #173b64; color: #fff; font-weight: 600; cursor: pointer;">
+                            로그아웃
+                        </button>
+                    </form>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px;">
+                    <section style="background: #fff; border-radius: 18px; padding: 24px; box-shadow: 0 12px 32px rgba(20, 35, 60, 0.08);">
+                        <h2 style="margin: 0 0 16px; font-size: 20px; color: #1d2a39;">기본 정보</h2>
+                        <div style="display: grid; gap: 12px;">
+                            <div><strong>이름</strong><p style="margin: 6px 0 0;" th:text="${myPage.name ?: '-'}">-</p></div>
+                            <div><strong>닉네임</strong><p style="margin: 6px 0 0;" th:text="${myPage.nickname ?: '-'}">-</p></div>
+                            <div><strong>이메일</strong><p style="margin: 6px 0 0;" th:text="${myPage.email ?: '-'}">-</p></div>
+                            <div><strong>전화번호</strong><p style="margin: 6px 0 0;" th:text="${myPage.phoneNumber ?: '-'}">-</p></div>
+                        </div>
+                    </section>
+
+                    <section style="background: #fff; border-radius: 18px; padding: 24px; box-shadow: 0 12px 32px rgba(20, 35, 60, 0.08);">
+                        <h2 style="margin: 0 0 16px; font-size: 20px; color: #1d2a39;">계정 상태</h2>
+                        <div style="display: grid; gap: 12px;">
+                            <div><strong>권한</strong><p style="margin: 6px 0 0;" th:text="${myPage.role}">MEMBER</p></div>
+                            <div><strong>회원 상태</strong><p style="margin: 6px 0 0;" th:text="${myPage.status}">PENDING</p></div>
+                            <div><strong>로그인 아이디</strong><p style="margin: 6px 0 0;" th:text="${myPage.loginId ?: '-'}">-</p></div>
+                            <div><strong>소셜 플랫폼</strong><p style="margin: 6px 0 0;" th:text="${myPage.socialPlatform ?: '-'}">-</p></div>
+                        </div>
+                    </section>
+
+                    <section style="background: #fff; border-radius: 18px; padding: 24px; box-shadow: 0 12px 32px rgba(20, 35, 60, 0.08); grid-column: 1 / -1;">
+                        <h2 style="margin: 0 0 16px; font-size: 20px; color: #1d2a39;">세대 정보</h2>
+                        <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px;">
+                            <div><strong>아파트명</strong><p style="margin: 6px 0 0;" th:text="${myPage.buildingName ?: '-'}">-</p></div>
+                            <div><strong>동</strong><p style="margin: 6px 0 0;" th:text="${myPage.dong ?: '-'}">-</p></div>
+                            <div><strong>호</strong><p style="margin: 6px 0 0;" th:text="${myPage.ho ?: '-'}">-</p></div>
+                            <div><strong>우편번호</strong><p style="margin: 6px 0 0;" th:text="${myPage.postNum ?: '-'}">-</p></div>
+                        </div>
+                    </section>
+                </div>
+            </section>
+        </main>
+
+        <footer th:replace="~{fragments/footer :: footer}"></footer>
+    </div>
+</div>
+</body>
+</html>

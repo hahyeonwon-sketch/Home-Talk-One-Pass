@@ -28,7 +28,7 @@
         <input type="hidden" th:field="*{email}">
         <input type="hidden" th:field="*{platform}">
         <input type="hidden" th:field="*{platformId}">
-        <input type="hidden" th:field="*{nickname}">
+
 
         <div class="input-group">
             <label for="name">이름</label>
@@ -36,8 +36,13 @@
         </div>
 
         <div class="input-group">
+            <label for="nickname">별명</label>
+            <input type="text" th:field="*{nickname}" placeholder="별명을 입력해주세요" required>
+        </div>
+
+        <div class="input-group">
             <label>전화번호</label>
-            <input type="tel" th:field="*{phoneNumber}" placeholder="010-0000-0000" required>
+            <input type="tel" th:field="*{phoneNumber}" placeholder="휴대폰 번호(-)제외" required>
         </div>
 
         <div class="input-group">
@@ -49,17 +54,17 @@
         </div>
 
         <div class="input-group">
-            <input type="text" th:field="*{buildingName}" id="buildingName" placeholder="기본 주소" readonly>
+            <input type="text" th:field="*{buildingName}" id="buildingName" placeholder="주소를 입력하세요" readonly>
         </div>
 
         <div class="input-group">
             <label for="dong">동</label>
-            <input type="text" th:field="*{dong}" placeholder="ex) 102">
+            <input type="text" th:field="*{dong}" placeholder="동을 입력하세요 (ex 102동 -> 102 입력)">
         </div>
 
         <div class="input-group">
             <label for="ho">호</label>
-            <input type="text" th:field="*{ho}" placeholder="ex) 301">
+            <input type="text" th:field="*{ho}" placeholder="호를 입력하세요 (ex 201호 -> 201 입력)">
         </div>
 
         <button type="submit">가입 완료</button>

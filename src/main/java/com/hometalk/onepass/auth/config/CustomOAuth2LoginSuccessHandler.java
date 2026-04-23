@@ -20,7 +20,7 @@ import java.util.Optional;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
+public class CustomOAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private final SocialAccountRepository socialAccountRepository;
 
@@ -35,12 +35,20 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         String email = "";
         String rawId = ""; // 소셜 제공 고유 ID
 
-        // 1. 데이터 추출
+        // 1. 데이터 추출 (카카오 vs 네이버)
         if (platform == SocialAccount.Platform.KAKAO) {
             rawId = String.valueOf(oAuth2User.getAttributes().get("id"));
             Map<String, Object> kakaoAccount = (Map<String, Object>) oAuth2User.getAttributes().get("kakao_account");
             email = (String) kakaoAccount.get("email");
         }
+        // 네이버 로직 추가
+        else if (platform == SocialAccount.Platform.NAVER) {
+            // 네이버는 'response' 안에 실제 정보가 들어있음
+            Map<String, Object> responseMap = (Map<String, Object>) oAuth2User.getAttributes().get("response");
+            rawId = (String) responseMap.get("id");
+            email = (String) responseMap.get("email");
+        }
+
         // ... 네이버, 구글 로직 동일 ...
 
         // 2. 중요: DB 저장 규칙과 동일하게 platformId 가공 (email_PLATFORM)
