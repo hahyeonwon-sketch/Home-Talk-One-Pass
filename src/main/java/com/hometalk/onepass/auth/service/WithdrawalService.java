@@ -1,9 +1,9 @@
 package com.hometalk.onepass.auth.service;
 
+import com.hometalk.onepass.auth.entity.Household;
 import com.hometalk.onepass.auth.entity.LocalAccount;
 import com.hometalk.onepass.auth.entity.SocialAccount;
 import com.hometalk.onepass.auth.entity.User;
-import com.hometalk.onepass.auth.entity.Household;
 import com.hometalk.onepass.auth.repository.HouseholdRepository;
 import com.hometalk.onepass.auth.repository.LocalAccountRepository;
 import com.hometalk.onepass.auth.repository.SocialAccountRepository;
@@ -97,7 +97,7 @@ public class WithdrawalService {
         return socialAccount.getUser();
     }
 
-    @SuppressWarnings("unchecked")
+
     private String extractEmail(SocialAccount.Platform platform, Map<String, Object> attributes) {
         // 마이페이지 조회와 동일한 규칙으로 공급자별 email 위치를 읽는다.
         if (platform == SocialAccount.Platform.KAKAO) {

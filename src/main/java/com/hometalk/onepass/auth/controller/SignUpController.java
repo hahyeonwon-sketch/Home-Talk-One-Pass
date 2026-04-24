@@ -2,10 +2,8 @@ package com.hometalk.onepass.auth.controller;
 
 import com.hometalk.onepass.auth.dto.SignUpDTO;
 import com.hometalk.onepass.auth.dto.SocialSignUpDTO;
-import com.hometalk.onepass.auth.repository.UserRepository;
 import com.hometalk.onepass.auth.service.SignUpService;
 import com.hometalk.onepass.auth.service.SocialSignUpService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -18,7 +16,6 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/auth/register")
 public class SignUpController {
 
-    private final UserRepository userRepository;
     private final SignUpService signUpService;
     private final SocialSignUpService socialSignUpService;
 
