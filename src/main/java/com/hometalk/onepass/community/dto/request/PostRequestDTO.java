@@ -16,6 +16,7 @@ public class PostRequestDTO {
     private String title;
     private String content;
     private Long categoryId;
+    private String categoryCode;
 
     private Long writerId;              // Member Entity 구현 전까지 유지
     private PostStatus postStatus;      // 게시글 상태 변경

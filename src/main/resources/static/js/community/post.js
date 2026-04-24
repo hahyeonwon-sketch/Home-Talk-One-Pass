@@ -49,6 +49,18 @@ function updateCharCount() {
     }
 }
 
+        /*// 게시글 수정 시 카테고리 변화
+        document.addEventListener('DOMContentLoaded', function() {
+            const categorySelect = document.querySelector('.category-select');
+            const hiddenCategoryCode = document.querySelector('#hiddenCategoryCode');
+
+            // 카테고리 선택이 바뀔 때마다 실행
+            categorySelect.addEventListener('change', function() {
+                const selectedText = categorySelect.options[categorySelect.selectedIndex].text;
+                hiddenCategoryCode.value = selectedText;
+            });
+        });*/
+
 // 임시저장 실행
 function saveTemp() {
     const categoryElement = document.getElementById('categoryId');
@@ -67,34 +79,110 @@ function saveTemp() {
     }
 }
 
+// 날짜 포맷팅
+function formatDate(dateString) {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+
+    // 포맷: 04-21 16:44 (연도까지 필요하면 앞에 date.getFullYear() 추가)
+    return `${month}-${day} ${hours}:${minutes}`;
+}
+
 // 임시저장 목록 호출
 function loadTempList(boardCode) {
-    fetch(`/hometalk/community/${boardCode}/temp-list`)
+    fetch(`/hometop/community/${boardCode}/temp-list`)
         .then(response => {
-        if (!response.ok) throw new Error('목록을 불러오는데 실패했습니다.');
-        return response.json();
-    })
+            if (!response.ok) throw new Error('목록을 불러오는데 실패했습니다.');
+            return response.json();
+        })
         .then(data => {
-        const listArea = document.getElementById('tempListArea');
-        listArea.innerHTML = '';
+            const listArea = document.getElementById('tempListArea');
+            listArea.innerHTML = '';
 
-        if (!data || data.length === 0) {
-            listArea.innerHTML = '<li class="no-data">임시저장된 글이 없습니다.</li>';
-        } else {
-            const html = data.map(post => `
-                    <li onclick="location.href='/hometalk/community/${boardCode}/write?id=${post.id}'" style="cursor:pointer;">
-                        <span class="temp-category">[${post.categoryName || '미지정'}]</span>
-                        <span class="temp-title">${post.title || '제목 없음'}</span>
-                        <span class="temp-date">${post.createdAt || ''}</span>
-                    </li>
-                `).join('');
-            listArea.innerHTML = html;
-        }
-        document.getElementById('tempListModal').style.display = 'block';
-    })
+            const countBadge = document.getElementById('tempCountBadge');
+            if (countBadge) {
+                countBadge.innerText = data.length;
+            }
+
+            if (!data || data.length === 0) {
+                listArea.innerHTML = '<li class="no-data">임시저장된 글이 없습니다.</li>';
+            } else {
+                const html = data.map(post => `
+                        <li onclick="location.href='/hometop/community/${boardCode}/edit/${post.id}'" style="cursor:pointer;">
+                            <div>
+                                <span class="temp-category">[${post.categoryName || '미지정'}]</span>
+                                <span class="temp-title">${post.title || '제목 없음'}</span>
+                                <span class="temp-date">${formatDate(post.createdAt)}</span>
+                            </div>
+                            <button type="button" class="btn-delete-temp" onclick="deleteTempPost(event, ${post.id}, '${boardCode}')">
+                                &#128465;
+                            </button>
+                        </li>
+                    `).join('');
+                listArea.innerHTML = html;
+            }
+            const modal = document.getElementById('tempListModal');
+            modal.style.display = 'flex';
+        })
         .catch(err => {
-        console.error(err);
-        alert('임시저장 목록을 가져오는 중 오류가 발생했습니다.');
+            console.error(err);
+            alert('임시저장 목록을 가져오는 중 오류가 발생했습니다.');
+        });
+}
+
+// 임시저장 삭제용 함수
+function deleteTempPost(event, id, boardCode) {
+    event.stopPropagation();
+
+    if (!confirm("삭제하시겠습니까?")) return;
+
+    // 1. 메타 태그에서 CSRF 토큰과 헤더 이름 가져오기
+    const token = document.querySelector('meta[name="_csrf"]')?.content;
+    const header = document.querySelector('meta[name="_csrf_header"]')?.content;
+
+    fetch(`/hometop/community/${boardCode}/delete-temp/${id}`, {
+        method: 'POST',
+        headers: {
+            // 2. 헤더에 토큰 실어보내기
+            [header]: token
+        }
+    })
+        .then(res => {
+        if (res.ok) {
+            alert("삭제되었습니다.");
+            loadTempList(boardCode);
+        } else if (res.status === 403) {
+            alert("삭제 권한이 없거나 세션이 만료되었습니다. (403)");
+        } else {
+            alert("삭제 실패");
+        }
+    })
+        .catch(err => console.error("Error:", err));
+}
+
+// 임시저장한 글을 등록 후 목록에서 지우기
+// 게시글 등록 버튼 클릭 시
+function submitPost() {
+    const formData = new FormData(document.getElementById('postForm'));
+
+    fetch(`/community/${boardCode}/save`, {
+        method: 'POST',
+        body: formData,
+        headers: { [header]: token }
+    })
+        .then(res => {
+        if (res.ok) {
+            // 등록 성공 시 임시저장 카운트 초기화
+            const countBadge = document.getElementById('tempCountBadge');
+            if (countBadge) countBadge.innerText = '0';
+
+            alert("등록되었습니다.");
+            location.href = `/community/${boardCode}`; // 목록으로 이동
+        }
     });
 }
 

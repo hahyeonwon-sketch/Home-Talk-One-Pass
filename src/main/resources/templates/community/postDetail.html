@@ -14,7 +14,7 @@
     </div>
     <div class="content-container">
         <div class="post-header">
-            <span class="category-tag" th:text="${post.categoryName}">카테고리</span>
+            <span class="list-category" th:classappend="${post.categoryCode}" th:text="${post.categoryName}">카테고리</span>
             <span th:if="${post.categoryCode == 'share' and post.marketStatus != null}"
                   th:text="${post.marketStatusDescription}"></span>
             <h1 class="post-title" th:text="${post.title}">게시글 제목</h1>

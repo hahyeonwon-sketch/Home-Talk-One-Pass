@@ -78,9 +78,11 @@ public class Post extends BaseSoftDeleteEntity {
     private MarketStatus marketStatus = MarketStatus.SHARED;
 
     // 변경 method
-    public void update(PostRequestDTO dto) {
-        this.title = dto.getTitle();
-        this.content = dto.getContent();
+    public void update(String title, String content, Category category, PostStatus status) {
+        this.title = title;
+        this.content = content;
+        this.category = category;
+        this.postStatus = status;
     }
 
     public void togglePinned() {

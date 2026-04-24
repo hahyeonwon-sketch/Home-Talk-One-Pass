@@ -53,9 +53,25 @@ public class PostService {
         User writer = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-        Post post = dto.toEntity(category, board, writer);
+        Post post;
+        if (dto.getId() != null) {
+            // [CASE: 수정/등록] ID가 있으면 기존 글을 찾아서 업데이트
+            post = postRepository.findById(dto.getId())
+                    .orElseThrow(() -> new PostNotFoundException(dto.getId(), boardCode));
 
-        return postRepository.save(post).getId();
+            // 작성자 본인인지 확인하는 검증 로직 추가 (보안상 중요!)
+            postValidator.validateOwner(post, userId);
+
+            // 기존 엔티티의 필드만 변경 (Dirty Checking으로 자동 반영)
+            post.update(dto.getTitle(), dto.getContent(), category, dto.getPostStatus());
+            // 만약 카테고리도 수정 가능하게 하려면 post.setCategory(category) 등을 추가
+        } else {
+            // [CASE: 신규] ID가 없으면 새로 생성
+            post = dto.toEntity(category, board, writer);
+            post = postRepository.save(post);
+        }
+
+        return post.getId();
     }
 
     // Read
@@ -123,15 +139,10 @@ public class PostService {
                 .id(post.getId())
                 .title(post.getTitle())
                 .content(post.getContent())
+                .categoryId(post.getCategory() != null ? post.getCategory().getId() : null)
+                .postStatus(post.getPostStatus())
                 .pinned(post.isPinned())
                 .build();
-    }
-    @Transactional
-    public void postUpdate(Long id, PostRequestDTO dto, Long userId, String boardCode) {
-        Post post = postRepository.findById(id).orElseThrow(() -> new PostNotFoundException(id, boardCode));
-        // 작성자 검증
-        postValidator.validateOwner(post, userId);
-        post.update(dto);
     }
 
     // Delete

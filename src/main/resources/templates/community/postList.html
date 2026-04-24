@@ -134,7 +134,7 @@
                 </div>
 
                 <div class="page-footer">
-                    <div class="pagination-wrapper" th:if="${not #lists.isEmpty(posts)}">
+                    <div class="pagination-wrapper">
                         <div th:replace="~{community/fragments/postpaging :: pagination(page=${page}, boardCode=${boardCode}, categoryCode=${categoryCode})}"></div>
                     </div>
                 </div>

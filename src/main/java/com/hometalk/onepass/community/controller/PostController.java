@@ -10,7 +10,10 @@ import com.hometalk.onepass.community.service.CommentService;
 import com.hometalk.onepass.community.service.PostService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.apache.poi.util.StringUtil;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
@@ -57,49 +60,6 @@ public class PostController {
         int pageIndex = (page < 1) ? 0 : page - 1;
 
         return fillCommunityModel(board, category, pageIndex, searchType, keyword, model);
-    }
-
-    // 게시글 상세 페이지
-    @GetMapping("/{boardCode}/{categoryCode:[a-zA-Z]+}/{id:[0-9]+}")
-    public String postDetail(@PathVariable String boardCode,
-                             @PathVariable String categoryCode,
-                             @PathVariable Long id,
-                             HttpSession session,
-                             Model model) {
-        // [임시] 아직 로그인 연동 전이므로 테스트용 유저 정보 직접 생성
-        PostUserRsDTO tempUser = PostUserRsDTO.builder()
-                .id(1L)           // 테스트하고 싶은 유저 ID
-                .role("MEMBER")   // 또는 "ADMIN"
-                .build();
-
-        List<Long> viewedPosts = (List<Long>) session.getAttribute("viewedPosts");
-        if (viewedPosts == null) {
-            viewedPosts = new ArrayList<>();
-            session.setAttribute("viewedPosts", viewedPosts);
-        }
-
-        // 1. 게시글 데이터 가져오기 (tempUser를 넘겨서 editable, admin 여부 계산)
-        PostResponseDTO post = postService.postDetail(id, tempUser, boardCode, viewedPosts);
-        model.addAttribute("post", post);
-
-        // 2. 카테고리 배너 활성
-        CategoryResponseDTO category;
-        if ("all".equals(categoryCode)) {
-            category = categoryService.findById(post.getCategoryId(), boardCode);
-        } else {
-            category = categoryService.findByCode(categoryCode);
-        }
-
-        // 3. 공통 레이아웃 데이터
-        BoardResponseDTO board = boardService.findByCode(boardCode);
-        addLayoutAttributes(board, category, model, false);
-        model.addAttribute("boardCode", boardCode);
-        model.addAttribute("currentCategoryCode", categoryCode);
-
-        // 댓글
-        List<CommentRsDTO> comments = commentService.findAllByPostId(id);
-        model.addAttribute("comments", comments);
-        return "community/postDetail";
     }
 
     // 게시글 작성 폼
@@ -162,7 +122,7 @@ public class PostController {
 
         // 4. 임시저장 여부에 따른 리다이렉트 분기
         if (isTemp) {
-            return "redirect:/community/" + boardCode + "/write?id=" + id;
+            return "redirect:/community/" + boardCode + "/edit/" + id;
         }
         return "redirect:/community/" + boardCode + "/all/" + id;
     }
@@ -171,12 +131,19 @@ public class PostController {
     @PostMapping("/{boardCode}/edit/{id}")
     public String updatePost(@PathVariable String boardCode, @PathVariable Long id, PostRequestDTO dto,
                              RedirectAttributes redirectAttributes) {
+        dto.setId(id);
+        if (dto.getPostStatus() == null) {
+            dto.setPostStatus(PostStatus.ACTIVE);
+        }
+
         // [임시] 수정 권한 테스트를 위한 고정 ID
         Long tempUserId = 1L;
 
-        postService.postUpdate(id, dto, tempUserId, boardCode);
+        String categoryPath = (dto.getCategoryCode() != null && !dto.getCategoryCode().isEmpty())
+                ? dto.getCategoryCode() : "all";
+        postService.postSave(boardCode, dto, tempUserId);
         redirectAttributes.addFlashAttribute("successMessage", "게시글이 수정되었습니다.");
-        return "redirect:/community/" + boardCode + "/all/" + id;
+        return "redirect:/community/" + boardCode + "/" + categoryPath + "/" + id;
     }
 
     // 게시글 삭제
@@ -191,11 +158,68 @@ public class PostController {
         return "redirect:/community/" + boardCode + "/all";
     }
 
+    // 임시저장
     @GetMapping("/{boardCode}/temp-list")
     @ResponseBody // JSON으로 반환
     public List<PostListResponse> getTempPosts(@PathVariable String boardCode) {
         Long tempUserId = 1L; // 테스트용 ID
         return postService.getTempPosts(boardCode, tempUserId);
+    }
+
+    // 임시저장 글 삭제
+    @PostMapping("/{boardCode}/delete-temp/{id}")
+    @ResponseBody
+    public ResponseEntity<String> deleteTemp(@PathVariable String boardCode, @PathVariable Long id) {
+        try {
+            postService.deletePost(id, 1L, boardCode);
+            return ResponseEntity.ok("Success");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Fail");
+        }
+    }
+
+
+    // 게시글 상세 페이지
+    @GetMapping("/{boardCode}/{categoryCode:[a-zA-Z]+}/{id:[0-9]+}")
+    public String postDetail(@PathVariable String boardCode,
+                             @PathVariable String categoryCode,
+                             @PathVariable Long id,
+                             HttpSession session,
+                             Model model) {
+        // [임시] 아직 로그인 연동 전이므로 테스트용 유저 정보 직접 생성
+        PostUserRsDTO tempUser = PostUserRsDTO.builder()
+                .id(1L)           // 테스트하고 싶은 유저 ID
+                .role("MEMBER")   // 또는 "ADMIN"
+                .build();
+
+        List<Long> viewedPosts = (List<Long>) session.getAttribute("viewedPosts");
+        if (viewedPosts == null) {
+            viewedPosts = new ArrayList<>();
+            session.setAttribute("viewedPosts", viewedPosts);
+        }
+
+        // 1. 게시글 데이터 가져오기 (tempUser를 넘겨서 editable, admin 여부를 계산함)
+        PostResponseDTO post = postService.postDetail(id, tempUser, boardCode, viewedPosts);
+        model.addAttribute("post", post);
+
+        // 2. 카테고리 배너 활성
+        CategoryResponseDTO category;
+        if ("all".equals(categoryCode)) {
+            category = categoryService.findById(post.getCategoryId(), boardCode);
+        } else {
+            category = categoryService.findByCode(categoryCode);
+        }
+
+        // 3. 공통 레이아웃 데이터
+        BoardResponseDTO board = boardService.findByCode(boardCode);
+        addLayoutAttributes(board, category, model, false);
+        model.addAttribute("boardCode", boardCode);
+        model.addAttribute("currentCategoryCode", categoryCode);
+
+        // 댓글
+        List<CommentRsDTO> comments = commentService.findAllByPostId(id);
+        model.addAttribute("comments", comments);
+        return "community/postDetail";
     }
 
 
