@@ -17,7 +17,9 @@ public class CustomAuthorizationRequestResolver implements OAuth2AuthorizationRe
     // 특정 공급자에만 추가 파라미터를 주입하기 위해 사용한다.
     private final OAuth2AuthorizationRequestResolver defaultResolver;
 
-    public CustomAuthorizationRequestResolver(ClientRegistrationRepository clientRegistrationRepository) {
+
+    // 인증 요청 시 반환
+    public CustomAuthorizationRequestResolver(ClientRegistrationRepository clientRegistrationRepository) {  // 인증 정보 관리 레포지터리
         this.defaultResolver = new DefaultOAuth2AuthorizationRequestResolver(
                 clientRegistrationRepository, "/oauth2/authorization");
     }
