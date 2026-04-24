@@ -8,6 +8,7 @@
     <meta name="_csrf_header" th:content="${_csrf?.headerName}" />
     <link rel="stylesheet" th:href="@{/css/dashboard/style.css}" />
     <link rel="stylesheet" th:href="@{/css/billing/billing_common.css}" />
+    <link rel="stylesheet" th:href="@{/css/billing/billing_admin_upload.css}" />
     <link rel="stylesheet" th:href="@{/css/billing/billing_resident.css}" />
 </head>
 <body>
@@ -36,7 +37,6 @@
                         </span>
                         관리비가 미납 상태입니다. 관리사무소로 연락 바랍니다. ☎️02-888-9999
                     </div>
-                    <div class="bp-alert-sub">status = UNPAID 기준 · 안내 전용</div>
                 </div>
             </div>
         </header>
@@ -106,7 +106,7 @@
             <div class="bp-list" id="billingList">
                 <th:block th:each="b : ${billings}">
                     <div th:with="isUnpaid=${b.status.name() == 'UNPAID'},
-                                  isOverdue=${b.status.name() == 'UNPAID' and #temporals.createNow().isAfter(b.dueDate)}"
+                             isOverdue=${b.status.name() == 'UNPAID' and #temporals.createToday().isAfter(b.dueDate)}"
                          th:classappend="${isOverdue} ? 'overdue'"
                          class="bp-item">
                         <div class="bp-item-left">
@@ -149,28 +149,28 @@
 </div><!-- /main-layout -->
 
 <!-- 고지서 모달 -->
-<div class="bm-overlay" id="modalOverlay" style="display:none" onclick="closeModal(event)"></div>
-<div class="bm-modal" id="billingModal" style="display:none">
-    <div class="bm-header">
-        <div>
-            <div class="bm-title">디지털 고지서</div>
-            <div class="bm-subtitle" id="modalSubtitle"></div>
+<div class="modal-overlay" id="modalOverlay" style="display:none" onclick="closeModal(event)">
+    <div class="modal-box">
+        <div class="modal-header">
+            <span class="modal-header-title" id="modalHeaderTitle">디지털 고지서</span>
+            <button class="modal-close-btn" onclick="closeModalBtn()">✕</button>
         </div>
-        <button class="bm-close" onclick="closeModalBtn()">✕</button>
-    </div>
-    <div class="bm-bill-head">
-        <div class="bm-bill-title">관리비 고지서</div>
-        <div class="bm-bill-period" id="modalPeriod"></div>
-    </div>
-    <div class="bm-col-hint">항목명</div>
-    <div class="bm-rows" id="modalRows"></div>
-    <div class="bm-total-row" style="grid-column: 1 / -1;">
-        <span class="bm-total-label">합계</span>
-        <span class="bm-total-amount" id="modalTotal"></span>
-    </div>
-    <div class="bm-status-box" id="modalStatusBox"></div>
-    <div class="bm-footer">
-        <button class="bm-btn-close" onclick="closeModalBtn()">닫기</button>
+        <div class="modal-body">
+            <div class="bill-head">
+                <div class="bill-head-title">관리비 고지서</div>
+                <div class="bill-head-sub" id="modalPeriod"></div>
+            </div>
+            <div class="bill-col-hint">항목명</div>
+            <div class="bill-rows" id="modalRows"></div>
+            <div class="bill-total-row">
+                <span class="bill-total-label">합계</span>
+                <span class="bill-total-amount" id="modalTotal"></span>
+            </div>
+            <div class="bm-status-box" id="modalStatusBox"></div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-ghost" onclick="closeModalBtn()">닫기</button>
+        </div>
     </div>
 </div>
 

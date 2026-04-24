@@ -3,7 +3,9 @@ package com.hometalk.onepass.parking.service;
 import com.hometalk.onepass.auth.entity.Household;
 import com.hometalk.onepass.auth.repository.HouseholdRepository;
 import com.hometalk.onepass.parking.dto.response.UnregisteredVehicleResponse;
+import com.hometalk.onepass.parking.entity.ParkingLog;
 import com.hometalk.onepass.parking.entity.VisitReservation;
+import com.hometalk.onepass.parking.repository.ParkingLogRepository;
 import com.hometalk.onepass.parking.repository.VisitReservationRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +20,7 @@ public class UnregisteredVehicleService {
 
     private final VisitReservationRepository visitReservationRepository;
     private final HouseholdRepository householdRepository;
+    private final ParkingLogRepository parkingLogRepository;
 
     // ─── 미등록 차량 검색 ─────────────────────────────────────────
     @Transactional(readOnly = true)
@@ -43,6 +46,11 @@ public class UnregisteredVehicleService {
                 .findById(householdId)
                 .orElseThrow(() -> new EntityNotFoundException("세대 정보를 찾을 수 없습니다."));
 
+        // VisitReservation 세대 매칭
         reservation.matchHousehold(household);
+
+        // ParkingLog 세대 매칭
+        parkingLogRepository.findByReservationAndStatus(reservation, ParkingLog.ParkingStatus.PARKED)
+                .ifPresent(parkingLog -> parkingLog.matchHousehold(household));
     }
 }

@@ -146,20 +146,6 @@
 .btn-confirm-upload:hover    { opacity: .88; }
 .btn-confirm-upload.disabled { background: var(--color-border); cursor: not-allowed; opacity: 1; }
 
-/* ── 업로드 완료 배너 ── */
-.upload-done-banner {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-top: 16px;
-    padding: 12px 18px;
-    background: var(--color-paid-bg);
-    border: 1px solid var(--color-paid-border);
-    border-radius: var(--radius-md);
-    font-size: 13px;
-    color: var(--color-paid-text);
-}
-.done-icon { font-size: 15px; font-weight: 700; }
 
 /* ── SKIP 배지 (변경없음) ── */
 .badge-skip {
@@ -170,4 +156,95 @@
     background: #eee;
     color: #888;
     font-weight: 500;
+}
+
+/* ── 페이지 하단 삭제 링크 ── */
+.delete-month-link-wrap {
+    margin-top: 30px;
+    text-align: right;
+    padding-right: 4px;
+}
+.delete-month-link {
+    font-size: 12px;
+    color: #aaa;
+    text-decoration: none;
+    cursor: pointer;
+    transition: color .15s;
+}
+.delete-month-link:hover {
+    color: #d83c2d;
+    text-decoration: underline;
+}
+
+/* ── 2단계 팝업: 위험 강조 타이틀 ── */
+.confirm-title-danger {
+    color: #d83c2d;
+}
+
+/* ── 2단계 팝업: 위험 버튼 ── */
+.btn-danger {
+    padding: 8px 22px;
+    font-size: 13px;
+    font-family: inherit;
+    border: none;
+    border-radius: var(--radius-md);
+    background: #d83c2d;
+    color: #fff;
+    cursor: pointer;
+    font-weight: 500;
+    transition: opacity .15s;
+}
+.btn-danger:hover {
+    opacity: .85;
+}
+.btn-danger:disabled {
+    opacity: .6;
+    cursor: not-allowed;
+}
+
+/* ── 관리자 탭 네비게이션 ── */
+.admin-tab-nav {
+    display: flex;
+    gap: 0;
+    height: 100%;
+    align-items: flex-end;
+}
+.admin-tab-btn {
+    display: flex;
+    align-items: center;
+    padding: 0 22px;
+    height: 44px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #999;
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    transition: color .15s, border-color .15s;
+}
+.admin-tab-btn:hover  { color: var(--color-main); }
+.admin-tab-btn.active {
+    color: var(--color-sub);
+    border-bottom-color: var(--color-sub);
+    font-weight: 600;
+}
+
+/* ── 업로드 완료 배너 ── */
+.upload-done-banner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding: 14px 18px;
+    background: var(--color-paid-bg);
+    border: 1px solid var(--color-paid-border);
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    color: var(--color-paid-text);
+    flex-wrap: wrap;
+}
+.done-icon { font-size: 16px; font-weight: 700; }
+.upload-done-actions {
+    margin-left: auto;
+    display: flex;
+    gap: 8px;
 }
