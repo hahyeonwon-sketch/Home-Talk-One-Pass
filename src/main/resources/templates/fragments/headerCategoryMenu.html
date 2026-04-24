@@ -22,8 +22,13 @@
     <!-- 커뮤니티 -->
     <div th:fragment="community" class="category-menu-bar">
         <ul class="category-list">
-            <li><a th:href="@{/community/square}">광장</a></li>
-            <li><a th:href="@{/community/market}">마켓</a></li>
+            <li th:each="board : ${boards}">
+                <a th:href="@{/community/{code}(code=${board.code})}"
+                   th:text="${board.name}">게시판이름</a>
+            </li>
+            <li th:if="${isAdmin}">
+                <a th:href="@{/community/admin}">⚙️ 관리</a>
+            </li>
         </ul>
     </div>
 
