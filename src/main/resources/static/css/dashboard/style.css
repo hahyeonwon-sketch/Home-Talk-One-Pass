@@ -69,8 +69,7 @@ body {
 .sidebar {
     width: 250px;  /* 원하는 너비 */
     flex-shrink: 0;      /* 너비 고정 */
-    background: linear-gradient(to bottom, #6DB1FF 0%, #6DB1FF 50%, #6DCFFF 100%);
-    /*background-color: #2c3e50; !* 구분용 색상 *!*/
+    background-color: #2c3e50; /* 구분용 색상 */
     /* height나 max-height 설정을 절대 넣지 마세요. stretch가 작동해야 합니다. */
 }
 
@@ -110,9 +109,9 @@ body {
 
 /* 카테고리 메뉴 전체 바 */
 .category-menu-bar {
-    border-top: 2px dashed #a5cfc9;
-    border-bottom: 2px dashed #a5cfc9;
-    background-color: #daf0ec;
+    border-top: 1px solid #f0f0f0;
+    border-bottom: 1px solid #f0f0f0;
+    background-color: #ffffff;
     padding: 10px 20px;
 }
 
@@ -170,11 +169,11 @@ body {
     푸터
 */
 .site-footer {
-    background: linear-gradient(to bottom, #6DB1FF 0%, #6DB1FF 50%, #6DCFFF 100%); padding: 1.5rem; text-align: center; color: #0526ad; font-weight: 600;
+    background:  #1a1f35; padding: 1.5rem; text-align: center; padding: 1.5rem; text-align: center; color: #94a3b8; font-weight: 600;
     font-size: 0.85rem;
 }
 .site-footer .small {
-    font-site: 0.75rem; color: #0526ad; font-weight: bold;
+    font-site: 0.75rem; color: #64748b;
 }
 
 /*
