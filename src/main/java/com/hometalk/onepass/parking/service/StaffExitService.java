@@ -81,21 +81,23 @@ public class StaffExitService {
             throw new IllegalStateException("이미 출차된 차량입니다.");
         }
 
+        // 세대 미확인 차량은 일반 출차 불가
+        if (parkingLog.getHousehold() == null) {
+            throw new IllegalStateException("세대 미확인 차량입니다. 강제 출차 처리해주세요.");
+        }
+
         int totalMinutes = (int) Duration.between(
                 parkingLog.getEntryTime(), LocalDateTime.now()).toMinutes();
-        int availableMinutes = getAvailableMinutes(parkingLog);
 
-        // 티켓 부족 시 출차 불가
-        if (availableMinutes < totalMinutes) {
-            throw new IllegalStateException("티켓이 부족합니다. 현장 결제 후 강제 출차 처리해주세요.");
+        // 미리 적용된 티켓 시간으로 출차 가능 여부 확인
+        int applied = parkingLog.getAppliedMinutes() != null
+                ? parkingLog.getAppliedMinutes() : 0;
+
+        if (applied < totalMinutes) {
+            throw new IllegalStateException("티켓이 부족합니다. 티켓을 먼저 등록해주세요.");
         }
 
-        int appliedMinutes = 0;
-        if (parkingLog.getHousehold() != null) {
-            appliedMinutes = applyTickets(parkingLog, totalMinutes);
-        }
-
-        parkingLog.exit(totalMinutes, appliedMinutes);
+        parkingLog.exit(totalMinutes, Math.min(applied, totalMinutes));
         // TODO: 알림 - "출차 완료"
     }
 
@@ -112,12 +114,12 @@ public class StaffExitService {
         int totalMinutes = (int) Duration.between(
                 parkingLog.getEntryTime(), LocalDateTime.now()).toMinutes();
 
-        int appliedMinutes = 0;
-        if (parkingLog.getHousehold() != null) {
-            appliedMinutes = applyTickets(parkingLog, totalMinutes);
-        }
+        int appliedMinutes = parkingLog.getAppliedMinutes() != null
+                ? parkingLog.getAppliedMinutes() : 0;
 
-        // 현장 결제 완료로 강제 출차
+        // appliedMinutes가 totalMinutes 초과하지 않도록 보정
+        appliedMinutes = Math.min(appliedMinutes, totalMinutes);
+
         parkingLog.exit(totalMinutes, appliedMinutes);
         log.info("강제 출차 처리 - parkingId: {}, 현장 결제 완료", parkingId);
         // TODO: 알림 - "출차 완료"
@@ -152,64 +154,5 @@ public class StaffExitService {
         }
 
         return availableMinutes;
-    }
-
-    // ─── 티켓 적용 로직 ──────────────────────────────────────────
-    private int applyTickets(ParkingLog parkingLog, int totalMinutes) {
-        Household household = parkingLog.getHousehold();
-        LocalDate today = LocalDate.now();
-        int remainingMinutes = totalMinutes;
-        int appliedMinutes = 0;
-
-        // 1. DAY권 먼저 적용
-        Optional<ParkingTicket> dayTicketOpt = parkingTicketRepository
-                .findByHouseholdAndTypeAndIssueYearAndIssueMonth(
-                        household, ParkingTicket.TicketType.DAY,
-                        today.getYear(), today.getMonthValue());
-
-        if (dayTicketOpt.isPresent()) {
-            ParkingTicket dayTicket = dayTicketOpt.get();
-            int dayMinutes = ParkingTicket.TicketType.DAY.toMinutes(1);
-            int usableCount = Math.min(
-                    dayTicket.getRemainingCount(),
-                    remainingMinutes / dayMinutes
-            );
-
-            if (usableCount > 0) {
-                TicketUsage usage = new TicketUsage(parkingLog, dayTicket, usableCount);
-                ticketUsageRepository.save(usage);
-                int used = usableCount * dayMinutes;
-                appliedMinutes += used;
-                remainingMinutes -= used;
-                log.info("DAY권 {}장 사용 - {}분 적용", usableCount, used);
-            }
-        }
-
-        // 2. HOUR권 적용
-        if (remainingMinutes > 0) {
-            Optional<ParkingTicket> hourTicketOpt = parkingTicketRepository
-                    .findByHouseholdAndTypeAndIssueYearAndIssueMonth(
-                            household, ParkingTicket.TicketType.HOUR,
-                            today.getYear(), today.getMonthValue());
-
-            if (hourTicketOpt.isPresent()) {
-                ParkingTicket hourTicket = hourTicketOpt.get();
-                int hourMinutes = ParkingTicket.TicketType.HOUR.toMinutes(1);
-                int usableCount = Math.min(
-                        hourTicket.getRemainingCount(),
-                        (int) Math.ceil((double) remainingMinutes / hourMinutes)
-                );
-
-                if (usableCount > 0) {
-                    TicketUsage usage = new TicketUsage(parkingLog, hourTicket, usableCount);
-                    ticketUsageRepository.save(usage);
-                    int used = usableCount * hourMinutes;
-                    appliedMinutes += used;
-                    log.info("HOUR권 {}장 사용 - {}분 적용", usableCount, used);
-                }
-            }
-        }
-
-        return appliedMinutes;
     }
 }

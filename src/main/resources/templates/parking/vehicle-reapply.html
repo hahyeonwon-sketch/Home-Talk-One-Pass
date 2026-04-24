@@ -6,10 +6,8 @@
   <title>차량 등록 재신청</title>
   <meta name="_csrf" th:content="${_csrf.token}">
   <meta name="_csrf_header" th:content="${_csrf.headerName}">
-  <style>
-    /* CSS는 나중에 추가 */
-  </style>
   <link rel="stylesheet" th:href="@{/css/dashboard/style.css}">
+  <link rel="stylesheet" th:href="@{/css/parking/parking-common.css}">
 </head>
 <body>
 
@@ -23,7 +21,6 @@
 
     <!-- 상단 헤더 -->
     <div th:replace="~{fragments/headerCurrentMenuView :: path(paths=${ {'parking', 'status'} })}"></div>
-<!--    <div th:replace="~{fragments/header_menu :: header_menu(currentPath01='parking', currentPath02='status')}"></div>-->
 
     <!-- 상단 메뉴 -->
     <div th:replace="~{fragments/headerCategoryMenu :: parking}"></div>
@@ -66,6 +63,8 @@
             <p class="hint">
               &lt;필요 서류&gt;<br>
               * 자동차등록증<br>
+              * 가족관계증명서<br>
+              * 경우에 따라 서류를 더 요청할 수 있습니다.
             </p>
             <div class="file-upload-box">
               <table id="fileTable">
@@ -93,7 +92,7 @@
 
           <div class="form-actions">
             <button type="button"
-                    th:onclick="'location.href=\'' + @{/parking/vehicle} + '\''">취소</button>
+                    class="btn-cancel" th:onclick="'location.href=\'' + @{/parking/vehicle} + '\''">취소</button>
             <button type="submit" id="submitBtn" disabled>재신청</button>
           </div>
 

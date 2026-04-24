@@ -36,4 +36,7 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
 
     // 입주자 차량 목록 전체 (APPROVED)
     List<Vehicle> findAllByStatusAndDeletedAtIsNull(Vehicle.VehicleStatus status);
+
+    @Query("SELECT v FROM Vehicle v JOIN FETCH v.household JOIN FETCH v.user WHERE v.status = :status AND v.deletedAt IS NULL")
+    List<Vehicle> findAllByStatusWithHousehold(@Param("status") Vehicle.VehicleStatus status);
 }
