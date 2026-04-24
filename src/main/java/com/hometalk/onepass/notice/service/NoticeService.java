@@ -11,6 +11,7 @@ import com.hometalk.onepass.notice.entity.Notice;
 import com.hometalk.onepass.notice.exception.NoticeNotFoundException;
 import com.hometalk.onepass.notice.repository.AttachmentRepository;
 import com.hometalk.onepass.notice.repository.NoticeRepository;
+import com.hometalk.onepass.schedule.repository.ScheduleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -37,6 +38,7 @@ public class NoticeService {
     private final NoticeRepository noticeRepository;
     private final AttachmentRepository attachmentRepository;
     private final LocalAccountRepository localAccountRepository;
+    private final ScheduleRepository scheduleRepository;
 
     @Value("${file.upload.path}")
     private String uploadPath;
@@ -49,7 +51,8 @@ public class NoticeService {
         return notice.getUpdatedAt();
     }
 
-    // ── 공지 목록 조회 (페이지네이션, 상단고정 정렬) ──────────────────────────
+    // ── 공지 목록 조회 ────────────────────────────────────────────────────────
+    @Transactional(readOnly = true)
     public Page<NoticeListResponseDto> getNoticeList(int page) {
         Pageable pageable = PageRequest.of(page, 10,
                 Sort.by("isPinned").descending().and(Sort.by("createdAt").descending()));
@@ -131,9 +134,7 @@ public class NoticeService {
             List<Attachment> existing = attachmentRepository.findByNotice(notice);
             for (Attachment att : existing) {
                 File attFile = new File(att.getFilePath());
-                if (attFile.exists()) {
-                    attFile.delete();
-                }
+                if (attFile.exists()) attFile.delete();
             }
             attachmentRepository.deleteByNotice(notice);
             saveFile(file, notice);
@@ -146,18 +147,20 @@ public class NoticeService {
         Notice notice = noticeRepository.findById(id)
                 .orElseThrow(() -> new NoticeNotFoundException(id));
 
+        // 연결된 일정 먼저 삭제
+        scheduleRepository.findFirstByNotice(notice)
+                .ifPresent(scheduleRepository::delete);
+
         List<Attachment> attachments = attachmentRepository.findByNotice(notice);
         for (Attachment attachment : attachments) {
             File attFile = new File(attachment.getFilePath());
-            if (attFile.exists()) {
-                attFile.delete();
-            }
+            if (attFile.exists()) attFile.delete();
         }
         attachmentRepository.deleteByNotice(notice);
         noticeRepository.delete(notice);
     }
 
-    // ── 공지 상세 조회 (조회수 증가) ──────────────────────────────────────────
+    // ── 공지 상세 조회 ──────────────────────────────────────────
     public NoticeDetailResponseDto getNoticeDetail(Long id) {
         Notice notice = noticeRepository.findById(id)
                 .orElseThrow(() -> new NoticeNotFoundException(id));
@@ -177,6 +180,7 @@ public class NoticeService {
     }
 
     // ── 이전글 / 다음글 ───────────────────────────────────────────────────────
+    @Transactional(readOnly = true)
     public NoticeListResponseDto getPreNotice(Long id) {
         return noticeRepository.findFirstByIdLessThanOrderByIdDesc(id)
                 .map(notice -> new NoticeListResponseDto(
@@ -191,6 +195,7 @@ public class NoticeService {
                 .orElse(null);
     }
 
+    @Transactional(readOnly = true)
     public NoticeListResponseDto getNextNotice(Long id) {
         return noticeRepository.findFirstByIdGreaterThanOrderByIdAsc(id)
                 .map(notice -> new NoticeListResponseDto(
@@ -205,11 +210,22 @@ public class NoticeService {
                 .orElse(null);
     }
 
-    // ── 키워드 검색 ───────────────────────────────────────────────────────────
-    public Page<NoticeListResponseDto> searchNotice(String keyword, int page) {
+    // ── 키워드 검색 ───────────────────────────────────────────────
+    @Transactional(readOnly = true)
+    public Page<NoticeListResponseDto> searchNotice(String keyword, String searchType, int page) {
         Pageable pageable = PageRequest.of(page, 10,
                 Sort.by("isPinned").descending().and(Sort.by("createdAt").descending()));
-        Page<Notice> notices = noticeRepository.findByTitleContainingOrContentContaining(keyword, keyword, pageable);
+
+        Page<Notice> notices;
+
+        if ("title".equals(searchType)) {
+            // 제목만 검색
+            notices = noticeRepository.findByTitleContaining(keyword, pageable);
+        } else {
+            // 제목+내용 검색 (기본값)
+            notices = noticeRepository.findByTitleContainingOrContentContaining(keyword, keyword, pageable);
+        }
+
         return notices.map(notice -> new NoticeListResponseDto(
                 notice.getId(),
                 notice.getTitle(),
@@ -222,18 +238,21 @@ public class NoticeService {
     }
 
     // ── 첨부파일 조회 ─────────────────────────────────────────────────────────
+    @Transactional(readOnly = true)
     public List<Attachment> getAttachments(Long noticeId) {
         Notice notice = noticeRepository.findById(noticeId)
                 .orElseThrow(() -> new NoticeNotFoundException(noticeId));
         return attachmentRepository.findByNotice(notice);
     }
 
+    @Transactional(readOnly = true)
     public Attachment getAttachment(Long attachmentId) {
         return attachmentRepository.findById(attachmentId)
                 .orElseThrow(() -> new RuntimeException("파일을 찾을 수 없습니다. id: " + attachmentId));
     }
 
     // ── 수정 페이지용 공지 조회 ────────────────────────────
+    @Transactional(readOnly = true)
     public NoticeDetailResponseDto getNoticeForEdit(Long id) {
         Notice notice = noticeRepository.findById(id)
                 .orElseThrow(() -> new NoticeNotFoundException(id));
@@ -251,6 +270,7 @@ public class NoticeService {
     }
 
     // ── 일정 연동용 ──────────────────────────────────
+    @Transactional(readOnly = true)
     public Notice getNoticeEntity(Long id) {
         return noticeRepository.findById(id)
                 .orElseThrow(() -> new NoticeNotFoundException(id));

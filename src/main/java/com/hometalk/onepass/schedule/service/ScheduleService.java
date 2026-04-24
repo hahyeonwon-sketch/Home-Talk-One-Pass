@@ -9,6 +9,7 @@ import com.hometalk.onepass.schedule.dto.ScheduleCalResponseDto;
 import com.hometalk.onepass.schedule.dto.ScheduleDetailResponseDto;
 import com.hometalk.onepass.schedule.dto.ScheduleRequestDto;
 import com.hometalk.onepass.schedule.entity.Schedule;
+import com.hometalk.onepass.schedule.exception.ScheduleNotFoundException;
 import com.hometalk.onepass.schedule.repository.ScheduleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -38,7 +39,6 @@ public class ScheduleService {
     }
 
     // ── 달력용 일정 목록 조회 (특정 년월) ────────────────────────────────────
-    // 해당 월의 시작~끝 사이에 startAt이 있는 일정 반환
     @Transactional(readOnly = true)
     public List<ScheduleCalResponseDto> getSchedulesByMonth(int year, int month) {
         LocalDateTime start = LocalDateTime.of(year, month, 1, 0, 0);
@@ -52,7 +52,7 @@ public class ScheduleService {
                         schedule.getStartAt(),
                         schedule.getEndAt(),
                         schedule.getNotice() != null ? schedule.getNotice().getId() : null,
-                        schedule.getNotice() != null ? schedule.getNotice().getBadge().name() : null
+                        schedule.getEffectiveBadge() != null ? schedule.getEffectiveBadge().name() : null
                 ))
                 .collect(Collectors.toList());
     }
@@ -61,7 +61,7 @@ public class ScheduleService {
     @Transactional(readOnly = true)
     public ScheduleDetailResponseDto getScheduleDetail(Long id) {
         Schedule schedule = scheduleRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("일정을 찾을 수 없습니다. id: " + id));
+                .orElseThrow(() -> new ScheduleNotFoundException(id));
 
         return new ScheduleDetailResponseDto(
                 schedule.getId(),
@@ -71,16 +71,33 @@ public class ScheduleService {
                 schedule.getLocation(),
                 schedule.getReferenceUrl(),
                 schedule.getStartAt(),
-                schedule.getEndAt()
+                schedule.getEndAt(),
+                schedule.getEffectiveBadge() != null ? schedule.getEffectiveBadge().name() : null
         );
     }
 
+    // ── 공지로 연결된 일정 상세 조회 ─────────────────────────────────────────
+    @Transactional(readOnly = true)
+    public ScheduleDetailResponseDto getScheduleByNotice(Notice notice) {
+        return scheduleRepository.findFirstByNotice(notice)
+                .map(schedule -> new ScheduleDetailResponseDto(
+                        schedule.getId(),
+                        schedule.getNotice() != null ? schedule.getNotice().getId() : null,
+                        schedule.getTitle(),
+                        schedule.getInfo(),
+                        schedule.getLocation(),
+                        schedule.getReferenceUrl(),
+                        schedule.getStartAt(),
+                        schedule.getEndAt(),
+                        schedule.getEffectiveBadge() != null ? schedule.getEffectiveBadge().name() : null
+                ))
+                .orElse(null);
+    }
+
     // ── 일정 등록 ─────────────────────────────────────────────────────────────
-    // noticeId가 있으면 공지와 연동, 없으면 독립 일정으로 등록
     public Long createSchedule(ScheduleRequestDto dto) {
         User user = getCurrentUser();
 
-        // 공지 연동 (선택사항)
         Notice notice = null;
         if (dto.getNoticeId() != null) {
             notice = noticeRepository.findById(dto.getNoticeId())
@@ -96,6 +113,7 @@ public class ScheduleService {
                 .referenceUrl(dto.getReferenceUrl())
                 .startAt(dto.getStartAt())
                 .endAt(dto.getEndAt())
+                .badge(dto.getBadge())
                 .build();
 
         scheduleRepository.save(schedule);
@@ -103,13 +121,11 @@ public class ScheduleService {
     }
 
     // ── 공지 작성 시 일정 자동 등록 ──────────────────────────────────────────
-    // NoticeController에서 공지 저장 후 호출
-    // scheduleName이 있을 때만 일정 저장 (선택사항)
     public void createScheduleWithNotice(Notice notice, String title,
                                          LocalDateTime startAt, LocalDateTime endAt,
                                          String info, String location, String referenceUrl) {
-        if (title == null || title.isBlank()) return; // 일정명 없으면 저장 안 함
-        if (startAt == null) return; // 시작시간 없으면 저장 안 함
+        if (title == null || title.isBlank()) return;
+        if (startAt == null) return;
 
         User user = getCurrentUser();
 
@@ -122,15 +138,28 @@ public class ScheduleService {
                 .referenceUrl(referenceUrl)
                 .startAt(startAt)
                 .endAt(endAt)
+                .badge(null)
                 .build();
 
         scheduleRepository.save(schedule);
     }
 
-    // ── 일정 수정 (ADMIN만) ───────────────────────────────────────────────────
+    // ── 공지 수정 시 연결된 일정 동기화 ──────────────────────────────────────
+    public void updateScheduleWithNotice(Notice notice, String title,
+                                         LocalDateTime startAt, LocalDateTime endAt,
+                                         String info, String location, String referenceUrl) {
+        if (title == null || title.isBlank()) return;
+        if (startAt == null) return;
+
+        scheduleRepository.findFirstByNotice(notice).ifPresent(schedule -> {
+            schedule.update(title, info, location, referenceUrl, startAt, endAt, null);
+        });
+    }
+
+    // ── 일정 수정 ─────────────────────────────────────────────────────────────
     public Long updateSchedule(Long id, ScheduleRequestDto dto) {
         Schedule schedule = scheduleRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("일정을 찾을 수 없습니다. id: " + id));
+                .orElseThrow(() -> new ScheduleNotFoundException(id));
 
         schedule.update(
                 dto.getTitle(),
@@ -138,15 +167,16 @@ public class ScheduleService {
                 dto.getLocation(),
                 dto.getReferenceUrl(),
                 dto.getStartAt(),
-                dto.getEndAt()
+                dto.getEndAt(),
+                dto.getBadge()
         );
         return schedule.getId();
     }
 
-    // ── 일정 삭제 (ADMIN만) ───────────────────────────────────────────────────
+    // ── 일정 삭제 ─────────────────────────────────────────────────────────────
     public void deleteSchedule(Long id) {
         Schedule schedule = scheduleRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("일정을 찾을 수 없습니다. id: " + id));
+                .orElseThrow(() -> new ScheduleNotFoundException(id));
         scheduleRepository.delete(schedule);
     }
 }
