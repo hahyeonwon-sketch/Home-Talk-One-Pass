@@ -38,11 +38,9 @@ public class CustomOAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSucc
         SocialAccount.Platform platform = SocialAccount.Platform.valueOf(registrationId.toUpperCase());
 
         String email = "";
-        String rawId = ""; // 소셜 제공 고유 ID
 
         // 1. 데이터 추출 (카카오 vs 네이버)
         if (platform == SocialAccount.Platform.KAKAO) {
-            rawId = String.valueOf(oAuth2User.getAttributes().get("id"));
             Map<String, Object> kakaoAccount = (Map<String, Object>) oAuth2User.getAttributes().get("kakao_account");
             email = (String) kakaoAccount.get("email");
         }
@@ -50,7 +48,6 @@ public class CustomOAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSucc
         else if (platform == SocialAccount.Platform.NAVER) {
             // 네이버는 'response' 안에 실제 정보가 들어있음
             Map<String, Object> responseMap = (Map<String, Object>) oAuth2User.getAttributes().get("response");
-            rawId = (String) responseMap.get("id");
             email = (String) responseMap.get("email");
         }
 
@@ -91,6 +88,7 @@ public class CustomOAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSucc
     }
 
     private String getBaseUrl(HttpServletRequest request) {
+        // 절대 경로 리다이렉트가 필요한 OAuth2 흐름에서 현재 접속 호스트를 기준 URL 로 사용한다.
         return request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
     }
 }

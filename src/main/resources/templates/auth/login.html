@@ -101,6 +101,7 @@
 <body>
 
 <div class="auth-container">
+    <!-- 일반 로그인과 소셜 로그인을 한 화면에 배치해 인증 진입점을 단순화한다. -->
     <img th:src="@{/auth/loginimage/logo.png}" alt="로그인 로고 이미지" class="logo-image">
 
     <form th:action="@{/auth/login}" method="post">
@@ -118,6 +119,7 @@
 
         <hr>
 
+        <!-- 버튼은 Spring Security OAuth2 인가 엔드포인트로 직접 이동한다. -->
         <p>소셜 로그인</p>
         <div class="social-login-list">
             <div class="kakao-btn-container">
@@ -134,6 +136,8 @@
     </div>
 
     <script th:if="${param.error}" th:inline="javascript">
+        // error 쿼리스트링이 남아 있으면 새로고침 때 경고가 반복될 수 있어
+        // 안내 후 현재 path 로 다시 이동해 URL 을 정리한다.
         alert("아이디 또는 비밀번호가 일치하지 않습니다.");
         window.location.href = window.location.pathname;
     </script>

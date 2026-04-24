@@ -22,6 +22,8 @@ import java.util.Map;
 @Transactional(readOnly = true)
 public class MyPageService {
 
+    // 로그인 방식에 따라 조회 시작점이 달라서
+    // 로컬/소셜 계정 저장소를 모두 참조한다.
     private final LocalAccountRepository localAccountRepository;
     private final SocialAccountRepository socialAccountRepository;
 
@@ -29,6 +31,7 @@ public class MyPageService {
         if (authentication == null
                 || !authentication.isAuthenticated()
                 || authentication instanceof AnonymousAuthenticationToken) {
+            throw new IllegalStateException("로그인한 사용자 정보가 없습니다.");
         }
 
         if (authentication instanceof OAuth2AuthenticationToken oauthToken
@@ -43,6 +46,7 @@ public class MyPageService {
         LocalAccount account = localAccountRepository.findByLoginId(loginId)
                 .orElseThrow(() -> new IllegalStateException("로컬 계정 정보를 찾을 수 없습니다."));
 
+        // 일반 로그인 사용자는 LocalAccount 에서 user 를 역참조한다.
         return toDto(account.getUser(), "일반 로그인", account.getLoginId(), null);
     }
 
@@ -55,6 +59,8 @@ public class MyPageService {
             throw new IllegalStateException("소셜 계정 이메일 정보를 찾을 수 없습니다.");
         }
 
+        // 소셜 계정은 "email + _ + PLATFORM" 규칙의 platformId 로 저장되어 있으므로
+        // 조회 시에도 같은 키 생성 규칙을 반드시 재사용해야 한다.
         String combinedPlatformId = email + "_" + registrationId.toUpperCase();
 
         SocialAccount socialAccount = socialAccountRepository.findByPlatformAndPlatformId(platform, combinedPlatformId)
@@ -66,6 +72,7 @@ public class MyPageService {
 
     @SuppressWarnings("unchecked")
     private String extractEmail(SocialAccount.Platform platform, Map<String, Object> attributes) {
+        // 공급자별 응답 JSON 구조 차이를 이 메서드에서 처리함
         if (platform == SocialAccount.Platform.KAKAO) {
             Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
             return kakaoAccount == null ? null : (String) kakaoAccount.get("email");
@@ -82,6 +89,7 @@ public class MyPageService {
     private MyPageResponseDTO toDto(User user, String authType, String loginId, String socialPlatform) {
         Household household = user.getHousehold();
 
+        // 세대 정보는 연결 전 사용자도 있을 수 있어서 null-safe 하게 채운다.
         return MyPageResponseDTO.builder()
                 .authType(authType)
                 .socialPlatform(socialPlatform)

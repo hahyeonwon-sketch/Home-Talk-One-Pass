@@ -25,6 +25,7 @@
     <hr>
     <form th:action="@{/auth/register/social}" th:object="${socialSignUpDTO}" method="post">
 
+        <!-- 소셜 로그인 단계에서 이미 확보한 값이라 사용자 수정 없이 hidden 으로 유지한다. -->
         <input type="hidden" th:field="*{email}">
         <input type="hidden" th:field="*{platform}">
         <input type="hidden" th:field="*{platformId}">
@@ -74,6 +75,7 @@
 <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 <script>
     function execDaumPostcode() {
+        // 기본 주소는 우편번호 API로 채우고, 동/호만 사용자가 보완하도록 분리한다.
         new daum.Postcode({
             oncomplete: function(data) {
                 document.getElementById('postNum').value = data.zonecode;

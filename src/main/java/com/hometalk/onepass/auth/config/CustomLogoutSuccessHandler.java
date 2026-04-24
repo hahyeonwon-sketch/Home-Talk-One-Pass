@@ -28,6 +28,8 @@ public class CustomLogoutSuccessHandler implements LogoutSuccessHandler {
                                 Authentication authentication) throws IOException, ServletException {
 
         // OAuth2 로그인 사용자는 공급자별 로그아웃 후처리를 수행한다.
+        // 로컬 로그인은 세션 종료만으로 충분하지만,
+        // 소셜 로그인은 공급자 세션까지 정리해야 다음 로그인 흐름이 예측 가능하다.
         if (authentication instanceof OAuth2AuthenticationToken oauth2AuthenticationToken) {
             String registrationId = oauth2AuthenticationToken.getAuthorizedClientRegistrationId();
 

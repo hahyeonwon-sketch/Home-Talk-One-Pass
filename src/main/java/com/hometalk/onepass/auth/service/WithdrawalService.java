@@ -24,6 +24,8 @@ import java.util.Map;
 @Transactional
 public class WithdrawalService {
 
+    // 탈퇴 시 계정 연결, 세대 정보, 사용자 상태를 함께 정리해야 해서
+    // 관련 저장소를 한 서비스에서 관리한다.
     private final UserRepository userRepository;
     private final HouseholdRepository householdRepository;
     private final LocalAccountRepository localAccountRepository;
@@ -40,6 +42,7 @@ public class WithdrawalService {
 
         // 로컬 계정은 loginId 이력 보존을 위해 남겨두고,
         // 소셜 계정은 제거해서 같은 공급자 계정으로 재가입할 수 있게 한다.
+        // user 자체는 소프트 삭제 성격으로 남기고, 재연결 충돌 가능성이 있는 소셜 계정만 제거한다.
         if (!user.getSocialAccounts().isEmpty()) {
             socialAccountRepository.deleteAll(new ArrayList<>(user.getSocialAccounts()));
         }
@@ -54,6 +57,7 @@ public class WithdrawalService {
     }
 
     private User resolveUser(Authentication authentication) {
+        // Authentication 구현체에 따라 사용자 식별 방식이 다르므로 먼저 분기한다.
         if (authentication instanceof OAuth2AuthenticationToken oauthToken
                 && authentication.getPrincipal() instanceof OAuth2User oAuth2User) {
             return findSocialUser(oauthToken, oAuth2User);
@@ -95,6 +99,7 @@ public class WithdrawalService {
 
     @SuppressWarnings("unchecked")
     private String extractEmail(SocialAccount.Platform platform, Map<String, Object> attributes) {
+        // 마이페이지 조회와 동일한 규칙으로 공급자별 email 위치를 읽는다.
         if (platform == SocialAccount.Platform.KAKAO) {
             Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
             return kakaoAccount == null ? null : (String) kakaoAccount.get("email");

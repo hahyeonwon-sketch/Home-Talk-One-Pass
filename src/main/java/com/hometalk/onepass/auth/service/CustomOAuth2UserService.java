@@ -6,8 +6,6 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
-import java.util.Map;
-
 @Service
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     @Override
@@ -17,8 +15,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         // 현재는 후처리 없이 원본 OAuth2User를 그대로 반환하고,
         // 실제 가입 여부 판단과 후속 이동은 SuccessHandler에서 담당한다.
-        Map<String, Object> attributes = oAuth2User.getAttributes();
-
         return oAuth2User;
     }
 }

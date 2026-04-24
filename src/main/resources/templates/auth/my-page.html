@@ -11,6 +11,7 @@
     <div class="my-page-popup__panel">
         <header class="my-page-popup__header">
             <div>
+                <!-- 인증 수단을 먼저 보여줘 현재 계정 상태를 빠르게 식별하게 한다. -->
                 <p class="my-page-popup__login-info" th:text="${myPage.authType}">일반 로그인</p>
                 <h1 class="my-page-popup__title">내 회원 정보</h1>
             </div>
@@ -82,6 +83,8 @@
 
 <script>
     function closeMyPagePopup() {
+        // 팝업으로 열린 경우 창을 닫고,
+        // 일반 페이지 접근이면 이전 화면으로 복귀한다.
         window.close();
 
         if (!window.closed) {
@@ -90,6 +93,8 @@
     }
 
     function submitLogoutFromPopup(form) {
+        // 팝업이 직접 POST 하면 부모 창 UI 상태와 인증 상태가 어긋날 수 있어
+        // 실제 요청은 부모 창에서 보내고 팝업은 닫는다.
         if (window.opener && !window.opener.closed) {
             submitActionToOpener(form);
             window.close();
@@ -104,6 +109,7 @@
             return false;
         }
 
+        // 탈퇴도 부모 창 기준으로 요청을 보내야 후속 리다이렉트와 세션 정리가 자연스럽다.
         if (window.opener && !window.opener.closed) {
             submitActionToOpener(form);
             window.close();
@@ -118,6 +124,7 @@
         const submitForm = openerDocument.createElement('form');
         const csrfField = form.querySelector('input[type="hidden"]');
 
+        // Spring Security CSRF 토큰을 복사해 팝업에서 시작한 POST 요청도 정상 통과시킨다.
         submitForm.method = 'post';
         submitForm.action = form.action;
         submitForm.style.display = 'none';
