@@ -2,8 +2,8 @@ package com.hometalk.onepass.community.service;
 
 import com.hometalk.onepass.auth.entity.User;
 import com.hometalk.onepass.auth.repository.UserRepository;
-import com.hometalk.onepass.community.dto.CommentRqDTO;
-import com.hometalk.onepass.community.dto.CommentRsDTO;
+import com.hometalk.onepass.community.dto.request.CommentRqDTO;
+import com.hometalk.onepass.community.dto.response.CommentRsDTO;
 import com.hometalk.onepass.community.entity.Comment;
 import com.hometalk.onepass.community.entity.Post;
 import com.hometalk.onepass.community.exception.PostNotFoundException;
