@@ -127,6 +127,7 @@ public class BillingUploadService {
                         .dueDate(row.getDueDate())
                         .totalAmount(row.getTotalAmount())
                         .status(BillingStatus.UNPAID)
+                        .lastUploadType("INSERT")
                         .build());
                 insertCount++;
             }
@@ -163,6 +164,8 @@ public class BillingUploadService {
         if (row.getHouseholdId() == null || row.getHouseholdId().isBlank()) return "세대 정보 누락";
         if (row.getBillingMonth() == null || row.getBillingMonth().isBlank()) return "부과월 누락";
         if (row.getTotalAmount() == null || row.getTotalAmount().compareTo(BigDecimal.ZERO) < 0) return "금액 누락";
+        if (row.getTotalAmount() == null || row.getTotalAmount().compareTo(BigDecimal.ZERO) <= 0)
+            return "금액 누락";   // 0원도 누락으로 처리
         if (row.getDueDate() == null) return "납기일 누락";
         if (row.getItems() == null || row.getItems().isEmpty()) return "상세 항목 누락";
         return null;

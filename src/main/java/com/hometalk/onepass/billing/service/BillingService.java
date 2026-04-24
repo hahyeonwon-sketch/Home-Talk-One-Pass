@@ -11,6 +11,7 @@ import com.hometalk.onepass.billing.entity.BillingStatus;
 import com.hometalk.onepass.billing.repository.BillingDetailRepository;
 import com.hometalk.onepass.billing.repository.BillingLogRepository;
 import com.hometalk.onepass.billing.repository.BillingRepository;
+import com.hometalk.onepass.auth.repository.HouseholdRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -18,6 +19,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -31,6 +33,7 @@ public class BillingService {
     private final BillingRepository       billingRepository;
     private final BillingDetailRepository billingDetailRepository;
     private final BillingLogRepository    billingLogRepository;
+    private final HouseholdRepository     householdRepository;
 
     // ─────────────────────────────────────────────
     // AdminBillingStats
@@ -58,6 +61,53 @@ public class BillingService {
         double rate = total > 0 ? Math.round((double) paid / total * 1000.0) / 10.0 : 0.0;
         return new AdminBillingStats(total, paid, unpaid, rate);
     }
+
+    // 미납 관리 통계
+    public record AdminDashboardStats(
+            // 윗줄: 필터 기준
+            long   totalHouseholds,    // household 테이블 전체 수 (항상 고정)
+            long   paidCount,          // 필터 기준 PAID 수
+            long   unpaidCount,        // 필터 기준 UNPAID 수
+            double paidRate,           // paidCount / totalHouseholds * 100
+
+            // 아랫줄: 전체 기간 고정
+            long   globalUnpaidBillings,    // 전체 기간 UNPAID billing 건수
+            long   globalUnpaidHouseholds,  // 전체 기간 미납 세대 수
+            long   globalOverdueHouseholds  // 3개월 이상 체납 세대 수
+    ) {}
+
+
+    @Transactional(readOnly = true)
+    public AdminDashboardStats getDashboardStats(
+            Integer year, String month, String dong
+    ) {
+        // 전체 세대 수 (household 테이블 기준)
+        long totalHouseholds = householdRepository.count();
+
+        // 필터 파라미터 계산
+        String yearFrom = (year != null && month == null) ? year + "-01" : null;
+        String yearTo   = (year != null && month == null) ? year + "-12" : null;
+        String monthParam = month; // "2026-01" 형식 또는 null
+
+        // 윗줄: 필터 기준 통계
+        long paidCount   = billingRepository.countPaidWithFilter(dong, yearFrom, yearTo, monthParam);
+        long unpaidCount = billingRepository.countUnpaidWithFilter(dong, yearFrom, yearTo, monthParam);
+        double paidRate  = totalHouseholds > 0
+                ? Math.round((double) paidCount / totalHouseholds * 1000.0) / 10.0
+                : 0.0;
+
+        // 아랫줄: 전체 기간 고정 통계
+        String overdueBefore = YearMonth.now().minusMonths(3).toString();
+        long globalUnpaidBillings   = billingRepository.countAllUnpaid();
+        long globalUnpaidHouseholds = billingRepository.countDistinctUnpaidHouseholds();
+        long globalOverdueHouseholds = billingRepository.countDistinctOverdueHouseholds(overdueBefore);
+
+        return new AdminDashboardStats(
+                totalHouseholds, paidCount, unpaidCount, paidRate,
+                globalUnpaidBillings, globalUnpaidHouseholds, globalOverdueHouseholds
+        );
+    }
+
 
     // ─────────────────────────────────────────────
     // 관리자: 고지서 전체 목록 (업로드 화면 DB 모드)
@@ -89,29 +139,26 @@ public class BillingService {
 // ─────────────────────────────────────────────
 
     @Transactional
-    public int deleteByBillingMonth(String billingMonth, Long adminId) {
-        List<Billing> billings = billingRepository.findAllByBillingMonth(billingMonth);
+    public int deleteByBillingMonth(String billingMonth, String dong, Long adminId) {
+        List<Billing> billings = (dong != null && !dong.isBlank())
+                ? billingRepository.findAllByBillingMonthAndHousehold_Dong(billingMonth, dong)
+                : billingRepository.findAllByBillingMonth(billingMonth);
+
         if (billings.isEmpty()) return 0;
 
-        int count = billings.size();
-
-        // 1) billing_detail 삭제
         for (Billing b : billings) {
             billingDetailRepository.deleteByBilling_Id(b.getId());
         }
-
-        // 2) billing 본체 삭제
         billingRepository.deleteAll(billings);
 
-        // 3) 삭제 로그 기록 (UPLOAD action으로 통합 — 감사용)
-        //    별도 DELETE enum 추가를 원하면 BillingActionType에 DELETE 추가
         billingLogRepository.save(BillingLog.builder()
                 .billing(null)
                 .userId(adminId)
                 .actionType(BillingActionType.UPLOAD)
                 .build());
 
-        return count;
+        return billings.size();
+
     }
 
     // ─────────────────────────────────────────────
@@ -145,7 +192,8 @@ public class BillingService {
 
     @Transactional(readOnly = true)
     public Page<BillingSummaryResponse> getAdminUnpaidList(
-            Integer year, String month, String dong,
+            Integer year, String month, String monthOnly,  // ★ monthOnly 추가
+            String dong, String statusStr,
             Boolean overdueOnly, int size, int page
     ) {
         String yearFrom      = (year != null && month == null) ? year + "-01" : null;
@@ -154,6 +202,21 @@ public class BillingService {
                 ? YearMonth.now().minusMonths(3).toString()
                 : null;
 
+        // status 파라미터 처리
+        // null 또는 "all" → status 조건 없음 (전체)
+        // "UNPAID" → UNPAID만
+        // "PAID"   → PAID만
+        // overdueOnly=true → status 무관하게 기간 필터만 적용 (UNPAID 고정)
+        BillingStatus status = null;
+        if (Boolean.TRUE.equals(overdueOnly)) {
+            status = BillingStatus.UNPAID;
+        } else if ("UNPAID".equals(statusStr)) {
+            status = BillingStatus.UNPAID;
+        } else if ("PAID".equals(statusStr)) {
+            status = BillingStatus.PAID;
+        }
+        // null이면 전체 조회
+
         PageRequest pageable = PageRequest.of(page, size,
                 Sort.by("billingMonth").descending()
                         .and(Sort.by("household.dong").ascending())
@@ -161,8 +224,8 @@ public class BillingService {
 
         return billingRepository
                 .findAllWithAdminFilter(dong, yearFrom, yearTo, month,
-                        null, BillingStatus.UNPAID, overdueBefore, pageable)
-                .map(b -> BillingSummaryResponse.of(b, "—")); // TODO: CustomUserDetails 연동 후 교체
+                        monthOnly, status, overdueBefore, pageable)  // ★ monthOnly 전달
+                .map(b -> BillingSummaryResponse.of(b, "—"));
     }
 
     // ─────────────────────────────────────────────
