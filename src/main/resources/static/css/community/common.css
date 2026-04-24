@@ -39,7 +39,8 @@ body {
 
 /* 페이지 공통 컨테이너 */
 .content-container {
-    max-width: 1100px; /* 모든 페이지 너비 통일 */
+    width: 100%; /* 모든 페이지 너비 통일 */
+    max-width: 1200px;
     margin: 40px auto;
     padding: 40px;
     background: #ffffff;
@@ -67,11 +68,11 @@ body {
 
 /* 모든 버튼 요소 초기화 및 규격화 */
 .btn, .btn-edit, .btn-delete, .btn-submit, .btn-temp, .btn-cancel, #btnSaveTemp {
-    display: inline-flex; /* 내부 텍스트 중앙 정렬을 위해 flex 사용 */
+    display: inline-flex; /* 내부 텍스트 중앙 정렬 */
     align-items: center;
     justify-content: center;
 
-    height: 45px; /* 높이를 고정값으로 주면 태그가 달라도 무조건 똑같아집니다 */
+    height: 45px;
     padding: 0 24px;
 
     border-radius: 8px;
