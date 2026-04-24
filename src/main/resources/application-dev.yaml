@@ -71,4 +71,4 @@ logging:
 
 file:
   upload:
-    path: ./uploads
+    path: ${user.dir}/uploads

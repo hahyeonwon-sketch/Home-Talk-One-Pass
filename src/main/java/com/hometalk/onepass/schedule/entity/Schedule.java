@@ -2,6 +2,7 @@ package com.hometalk.onepass.schedule.entity;
 
 import com.hometalk.onepass.auth.entity.User;
 import com.hometalk.onepass.common.entity.BaseTimeEntity;
+import com.hometalk.onepass.notice.entity.Badge;
 import com.hometalk.onepass.notice.entity.Notice;
 import jakarta.persistence.*;
 import lombok.Builder;
@@ -14,7 +15,6 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-
 public class Schedule extends BaseTimeEntity {
 
     @Id
@@ -37,15 +37,20 @@ public class Schedule extends BaseTimeEntity {
     private String referenceUrl;
 
     @Column(nullable = false)
-    private LocalDateTime startAt; // 필수
+    private LocalDateTime startAt;
 
     @Column(nullable = false)
     private LocalDateTime endAt;
 
+    // 공지 없는 독립 일정의 배지 (공지 연동 시 공지 배지 우선)
+    @Enumerated(EnumType.STRING)
+    @Column(name = "badge", columnDefinition = "VARCHAR(20)")
+    private Badge badge;
+
     @Builder
     public Schedule(User user, Notice notice, String title, String info,
                     String location, String referenceUrl,
-                    LocalDateTime startAt, LocalDateTime endAt) {
+                    LocalDateTime startAt, LocalDateTime endAt, Badge badge) {
         validateTitle(title);
         validateTime(startAt, endAt);
         this.user = user;
@@ -56,10 +61,12 @@ public class Schedule extends BaseTimeEntity {
         this.referenceUrl = referenceUrl;
         this.startAt = startAt;
         this.endAt = endAt;
+        this.badge = badge;
     }
+
     // 수정 메서드
     public void update(String title, String info, String location,
-                       String referenceUrl, LocalDateTime startAt, LocalDateTime endAt) {
+                       String referenceUrl, LocalDateTime startAt, LocalDateTime endAt, Badge badge) {
         validateTitle(title);
         validateTime(startAt, endAt);
         this.title = title;
@@ -68,6 +75,15 @@ public class Schedule extends BaseTimeEntity {
         this.referenceUrl = referenceUrl;
         this.startAt = startAt;
         this.endAt = endAt;
+        this.badge = badge;
+    }
+
+    // 실제 달력에 표시할 배지 반환 (공지 배지 우선)
+    public Badge getEffectiveBadge() {
+        if (this.notice != null && this.notice.getBadge() != null) {
+            return this.notice.getBadge();
+        }
+        return this.badge;
     }
 
     private void validateTitle(String title) {

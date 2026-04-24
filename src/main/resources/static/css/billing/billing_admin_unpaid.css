@@ -31,6 +31,66 @@
 .stat-value.accent { color: var(--color-sub); }
 .stat-sub   { font-size: 11px; color: #aaa; margin-top: 6px; }
 
+/* ── 통계 섹션 라벨 ── */
+.stat-section-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: #888;
+    margin: 16px 0 8px 2px;
+    letter-spacing: 0.3px;
+}
+.stat-section-label:first-of-type { margin-top: 0; }
+
+/* ── 아랫줄 카드 (3칸) ── */
+.stat-grid-global {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+/* ── 토글 라벨 ── */
+.stat-toggle-label {
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.stat-toggle-label:hover { color: var(--color-sub); }
+.stat-toggle-icon {
+    font-size: 10px;
+    color: #aaa;
+}
+
+
+/* ── 작은 카드 ── */
+.stat-card-sm {
+    padding: 10px 14px;
+}
+.stat-label-sm {
+    font-size: 11px;
+    color: #aaa;
+    margin-bottom: 4px;
+}
+.stat-value-sm {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--color-text);
+}
+.stat-value-sm.warn  { color: var(--color-unpaid, #e65100); }
+
+/* ── 아랫줄 3칸 그리드 ── */
+.stat-grid-global {
+    grid-template-columns: repeat(3, 1fr);
+}
+.stat-grid-global-wrap {
+    margin-bottom: 16px;
+}
+
+/* ── 필터 위 구분선 ── */
+.filter-row {
+    border-top: 1px solid var(--color-border-light);
+    padding-top: 16px;
+}
+
 /* ── 테이블 섹션 ── */
 .table-section {
     background: var(--color-surface);
@@ -122,3 +182,24 @@
     font-size: 14px;
     color: #aaa;
 }
+
+/* ── 일괄처리 액션 바 ── */
+.bulk-action-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    margin-bottom: 12px;
+    background: #eaf1fb;
+    border: 1px solid var(--color-sub);
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    color: var(--color-sub);
+    font-weight: 500;
+}
+.bulk-actions { display: flex; gap: 8px; }
+
+/* ── 테이블 정렬 ── */
+.data-table thead th.sortable { cursor: pointer; user-select: none; }
+.data-table thead th.sortable:hover { color: var(--color-sub); }
+.sort-icon { font-size: 10px; opacity: .4; }
