@@ -84,6 +84,14 @@ public class BillingPageController {
         return "billing/billing_admin_upload";
     }
 
+    // 관리자 고지서 업로드 후 관리 페이지
+    @GetMapping("/admin/monthly")
+    public String monthlyPage(Model model, HttpServletRequest request) {
+        model.addAttribute("currentUri",  request.getRequestURI());
+        model.addAttribute("menu",        "billing");
+        model.addAttribute("contextPath", "/hometop");
+        return "billing/billing_admin_monthly";
+    }
 
     // ─────────────────────────────────────────────
     // 관리자 미납 세대 관리 페이지

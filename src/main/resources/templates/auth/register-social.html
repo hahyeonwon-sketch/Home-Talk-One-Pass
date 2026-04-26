@@ -8,8 +8,8 @@
         .input-group { margin-bottom: 15px; text-align: left; }
         .input-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
         input { width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #bdbaba; border-radius: 4px; height: 50px; }
-        button { width: 100%; padding: 12px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
-        button:hover { background-color: #218838; }
+        button { width: 100%; padding: 12px; background-color: #376abc; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        button:hover { background-color: #4073C9; }
 
         .address-group label {margin-bottom: 5px; font-weight: bold; font-size: 14px; }
         .address-group input{width: 65%; margin-right: 10px;}
@@ -25,10 +25,11 @@
     <hr>
     <form th:action="@{/auth/register/social}" th:object="${socialSignUpDTO}" method="post">
 
+        <!-- 소셜 로그인 단계에서 이미 확보한 값이라 사용자 수정 없이 hidden 으로 유지한다. -->
         <input type="hidden" th:field="*{email}">
         <input type="hidden" th:field="*{platform}">
         <input type="hidden" th:field="*{platformId}">
-        <input type="hidden" th:field="*{nickname}">
+
 
         <div class="input-group">
             <label for="name">이름</label>
@@ -36,8 +37,13 @@
         </div>
 
         <div class="input-group">
+            <label for="nickname">별명</label>
+            <input type="text" th:field="*{nickname}" placeholder="별명을 입력해주세요" required>
+        </div>
+
+        <div class="input-group">
             <label>전화번호</label>
-            <input type="tel" th:field="*{phoneNumber}" placeholder="010-0000-0000" required>
+            <input type="tel" th:field="*{phoneNumber}" placeholder="휴대폰 번호(-)제외" required>
         </div>
 
         <div class="input-group">
@@ -49,17 +55,17 @@
         </div>
 
         <div class="input-group">
-            <input type="text" th:field="*{buildingName}" id="buildingName" placeholder="기본 주소" readonly>
+            <input type="text" th:field="*{buildingName}" id="buildingName" placeholder="주소를 입력하세요" readonly>
         </div>
 
         <div class="input-group">
             <label for="dong">동</label>
-            <input type="text" th:field="*{dong}" placeholder="ex) 102">
+            <input type="text" th:field="*{dong}" placeholder="동을 입력하세요 (ex 102동 -> 102 입력)">
         </div>
 
         <div class="input-group">
             <label for="ho">호</label>
-            <input type="text" th:field="*{ho}" placeholder="ex) 301">
+            <input type="text" th:field="*{ho}" placeholder="호를 입력하세요 (ex 201호 -> 201 입력)">
         </div>
 
         <button type="submit">가입 완료</button>
@@ -69,6 +75,7 @@
 <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 <script>
     function execDaumPostcode() {
+        // 기본 주소는 우편번호 API로 채우고, 동/호만 사용자가 보완하도록 분리한다.
         new daum.Postcode({
             oncomplete: function(data) {
                 document.getElementById('postNum').value = data.zonecode;

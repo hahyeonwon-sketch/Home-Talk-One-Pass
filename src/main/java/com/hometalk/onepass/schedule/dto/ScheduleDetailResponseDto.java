@@ -19,5 +19,5 @@ public class ScheduleDetailResponseDto {
     private String referenceUrl;
     private LocalDateTime startAt;
     private LocalDateTime endAt;
-
+    private String badge;       // 실제 표시 배지 (공지 배지 우선)
 }

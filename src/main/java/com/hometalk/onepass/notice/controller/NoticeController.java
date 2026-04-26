@@ -5,8 +5,8 @@ import com.hometalk.onepass.notice.dto.NoticeListResponseDto;
 import com.hometalk.onepass.notice.dto.NoticeRequestDto;
 import com.hometalk.onepass.notice.entity.Attachment;
 import com.hometalk.onepass.notice.entity.Notice;
-import com.hometalk.onepass.notice.repository.NoticeRepository;
 import com.hometalk.onepass.notice.service.NoticeService;
+import com.hometalk.onepass.schedule.dto.ScheduleDetailResponseDto;
 import com.hometalk.onepass.schedule.service.ScheduleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,7 +36,7 @@ import java.util.UUID;
 public class NoticeController {
 
     private final NoticeService noticeService;
-    private final ScheduleService scheduleService; // 일정 서비스 추가
+    private final ScheduleService scheduleService;
 
     @Value("${file.upload.path}")
     private String uploadPath;
@@ -45,19 +45,21 @@ public class NoticeController {
     @GetMapping
     public String noticeList(@RequestParam(defaultValue = "0") int page,
                              @RequestParam(required = false) String keyword,
+                             @RequestParam(defaultValue = "tc") String searchType,
                              Model model) {
         Page<NoticeListResponseDto> notices;
 
         if (keyword == null || keyword.trim().isEmpty()) {
             notices = noticeService.getNoticeList(page);
         } else {
-            notices = noticeService.searchNotice(keyword, page);
+            notices = noticeService.searchNotice(keyword, searchType, page);
         }
 
         model.addAttribute("notices", notices);
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", notices.getTotalPages());
         model.addAttribute("keyword", keyword);
+        model.addAttribute("searchType", searchType);
         return "notice/noticeList";
     }
 
@@ -83,16 +85,19 @@ public class NoticeController {
     }
 
     // ── 작성 처리 ─────────────────────────────────────────────────────────────
-    // 공지 저장 후 일정 데이터 있으면 일정도 같이 저장
     @PostMapping("/write")
     public String noticeWrite(@ModelAttribute NoticeRequestDto noticeRequestDto,
-                              @RequestParam(required = false) MultipartFile file) {
+                              @RequestParam(required = false) MultipartFile file,
+                              HttpServletRequest request) {
 
-        // 1. 공지 저장
         Long noticeId = noticeService.createNotice(noticeRequestDto, file);
 
-        // 2. 일정 데이터 있으면 일정도 저장 (선택사항)
         Notice notice = noticeService.getNoticeEntity(noticeId);
+        String noticeUrl = request.getScheme() + "://" +
+                request.getServerName() + ":" +
+                request.getServerPort() +
+                request.getContextPath() + "/notice/" + noticeId;
+
         scheduleService.createScheduleWithNotice(
                 notice,
                 noticeRequestDto.getScheduleName(),
@@ -100,7 +105,7 @@ public class NoticeController {
                 noticeRequestDto.getScheduleEndAt(),
                 noticeRequestDto.getScheduleInfo(),
                 noticeRequestDto.getScheduleLocation(),
-                noticeRequestDto.getScheduleReferenceUrl()
+                noticeUrl
         );
 
         return "redirect:/notice/" + noticeId;
@@ -111,6 +116,11 @@ public class NoticeController {
     public String noticeEditForm(@PathVariable Long id, Model model) {
         NoticeDetailResponseDto notice = noticeService.getNoticeForEdit(id);
         model.addAttribute("notice", notice);
+
+        Notice noticeEntity = noticeService.getNoticeEntity(id);
+        ScheduleDetailResponseDto schedule = scheduleService.getScheduleByNotice(noticeEntity);
+        model.addAttribute("linkedSchedule", schedule);
+
         return "notice/noticeEdit";
     }
 
@@ -118,8 +128,40 @@ public class NoticeController {
     @PostMapping("/{id}/edit")
     public String noticeEdit(@PathVariable Long id,
                              @ModelAttribute NoticeRequestDto noticeRequestDto,
-                             @RequestParam(required = false) MultipartFile file) {
+                             @RequestParam(required = false) MultipartFile file,
+                             HttpServletRequest request) {
         noticeService.updateNotice(id, noticeRequestDto, file);
+
+        Notice notice = noticeService.getNoticeEntity(id);
+        String noticeUrl = request.getScheme() + "://" +
+                request.getServerName() + ":" +
+                request.getServerPort() +
+                request.getContextPath() + "/notice/" + id;
+
+        // 연결된 일정 있으면 수정, 없으면 새로 등록
+        ScheduleDetailResponseDto existing = scheduleService.getScheduleByNotice(notice);
+        if (existing != null) {
+            scheduleService.updateScheduleWithNotice(
+                    notice,
+                    noticeRequestDto.getScheduleName(),
+                    noticeRequestDto.getScheduleStartAt(),
+                    noticeRequestDto.getScheduleEndAt(),
+                    noticeRequestDto.getScheduleInfo(),
+                    noticeRequestDto.getScheduleLocation(),
+                    noticeUrl
+            );
+        } else {
+            scheduleService.createScheduleWithNotice(
+                    notice,
+                    noticeRequestDto.getScheduleName(),
+                    noticeRequestDto.getScheduleStartAt(),
+                    noticeRequestDto.getScheduleEndAt(),
+                    noticeRequestDto.getScheduleInfo(),
+                    noticeRequestDto.getScheduleLocation(),
+                    noticeUrl
+            );
+        }
+
         return "redirect:/notice/" + id;
     }
 

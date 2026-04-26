@@ -79,12 +79,21 @@ public class User extends BaseSoftDeleteEntity {
         this.household = household;
     }
 
+    public void removeHousehold() {
+        this.household = null;
+    }
+
     public void approve() {
         this.status = UserStatus.APPROVED;
     }
 
     public void reject() {
         this.status = UserStatus.REJECTED;
+    }
+
+    public void withdraw() {
+        this.status = UserStatus.REJECTED;
+        softDelete();
     }
 
     // Enum

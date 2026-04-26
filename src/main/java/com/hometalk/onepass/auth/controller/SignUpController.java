@@ -2,10 +2,8 @@ package com.hometalk.onepass.auth.controller;
 
 import com.hometalk.onepass.auth.dto.SignUpDTO;
 import com.hometalk.onepass.auth.dto.SocialSignUpDTO;
-import com.hometalk.onepass.auth.repository.UserRepository;
 import com.hometalk.onepass.auth.service.SignUpService;
 import com.hometalk.onepass.auth.service.SocialSignUpService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -18,7 +16,6 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/auth/register")
 public class SignUpController {
 
-    private final UserRepository userRepository;
     private final SignUpService signUpService;
     private final SocialSignUpService socialSignUpService;
 
@@ -32,6 +29,42 @@ public class SignUpController {
 
         return "auth/register";
     }
+
+
+    @PostMapping("/signup")   // 회원가입 단계별 목록 처리
+    public String signup(
+            @ModelAttribute("signUpDTO") SignUpDTO signUpDTO,      // DTO
+            @RequestParam(required = false, defaultValue = "next") String action, // 버튼 상태
+            @RequestParam(defaultValue = "1") int currentStep,  // 회원가입 단계
+            Model model
+    ) {
+        if ("next".equals(action)) {
+            model.addAttribute("step", currentStep + 1);
+            return "auth/register"; // 본인의 html 파일명
+        }
+
+        if ("prev".equals(action)) {
+            model.addAttribute("step", currentStep - 1);
+            return "auth/register";
+        }
+
+        if ("complete".equals(action)) {
+            // 최종 서비스 로직 호출 (회원가입 처리)
+            signUpService.signUp(signUpDTO);
+            return "redirect:/auth";
+        }
+
+        return "auth/register";
+    }
+
+
+
+
+
+
+
+
+
 
     /**
      * 소셜 로그인 추가 정보 입력 폼

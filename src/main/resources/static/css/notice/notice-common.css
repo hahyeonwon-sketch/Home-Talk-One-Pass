@@ -1,10 +1,23 @@
+/* notice-common.css */
+
 :root {
-    --main-navy: #032154;
-    --sub-blue: #3C6ABC;
-    --point-coral: #EB6E57;
-    --btn-general: #4073C9;
-    --text-dark: #170124;
-    --border-color: #E2E8F0;
+    --color-bg:            #FAF4F0;
+    --color-main:          #032154;
+    --color-sub:           #3C6ABC;
+    --color-btn:           #4073C9;
+    --color-btn-secondary: #9EBFDB;
+    --color-btn-point:     #EB6E57;
+    --color-point-text:    #7ED3D9;
+    --color-text:          #170124;
+    --border-color:        #E2E8F0;
+
+    /* 배지 색 */
+    --badge-facility:  #d2eed8;
+    --badge-facility-font: #6c977a;
+    --badge-safety: #fff8e1;
+    --badge-safety-font: #b8860b;
+    --badge-normal:    #e6f4f5;
+    --badge-normal-font: #2a9da4;
 }
 
 * {
@@ -15,12 +28,11 @@
 
 body {
     font-family: 'Pretendard', sans-serif;
-    background-color: #f0f2f5;
-    color: var(--text-dark);
+    background-color: var(--color-bg);
+    color: var(--color-text);
     line-height: 1.6;
     min-height: 100vh;
 }
-
 
 .container {
     width: calc(100% - 40px);
@@ -32,45 +44,38 @@ body {
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
 }
 
-
 .main-wrapper { min-height: calc(100vh - 80px); }
 
-.badge-important span {
-    background-color: #e38d8c;
-    border-radius: 20px;
-    padding: 3px 12px;
-    font-size: 11px;
-    font-weight: 600;
-    color: white;
-}
+/* ── 배지 ──────────────────────────────────────────────────────────────────── */
 
 .badge-facility span {
-    background-color: #8bd492;
+    background-color: var(--badge-facility);
+    color: var(--badge-facility-font);
     border-radius: 20px;
     padding: 3px 12px;
     font-size: 11px;
     font-weight: 600;
-    color: white;
 }
 
 .badge-safety span {
-    background-color: #ecb373;
+    background-color: var(--badge-safety);
+    color: var(--badge-safety-font);
     border-radius: 20px;
     padding: 3px 12px;
     font-size: 11px;
     font-weight: 600;
-    color: white;
 }
 
 .badge-normal span {
-    background-color: #879ce8;
+    background-color: var(--badge-normal);
+    color: var(--badge-normal-font);
     border-radius: 20px;
     padding: 3px 12px;
     font-size: 11px;
     font-weight: 600;
-    color: white;
 }
 
+/* ── 공통 버튼 ─────────────────────────────────────────────────────────────── */
 .btn {
     display: inline-block;
     padding: 8px 20px;
@@ -87,8 +92,9 @@ body {
     position: relative;
 }
 
+/* ── 일정 등록 버튼 ────────────────────────────────────────────────────────── */
 .btn-schedule {
-    background-color: var(--main-navy);
+    background-color: var(--color-main);
     color: white;
     border: none;
     border-radius: 8px;
@@ -99,20 +105,21 @@ body {
 }
 
 .btn-schedule:hover {
-    background-color: #051a3a;
+    background-color: var(--color-sub);
 }
 
+/* ── 일정 등록 모달 ────────────────────────────────────────────────────────── */
 .schedule-modal {
     display: none;
-    position: absolute;
-    bottom: 10px;
-    right: 10px;
+    position: fixed;
+    bottom: 80px;
+    right: 60px;
     background: white;
     border-radius: 16px;
-    width: 300px;
+    width: 400px;
     overflow: hidden;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
-    z-index: 100;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    z-index: 1000;
 }
 
 .schedule-modal.open {
@@ -120,7 +127,7 @@ body {
 }
 
 .modal-header {
-    background: var(--main-navy);
+    background: var(--color-main);
     color: white;
     padding: 14px 18px;
     display: flex;
@@ -151,42 +158,69 @@ body {
 }
 
 .modal-table td {
-    padding: 6px 4px;
+    padding: 7px 4px;
     font-size: 13px;
     vertical-align: middle;
 }
 
 .modal-table td:first-child {
     white-space: nowrap;
-    width: 50px;
+    width: 46px;
     color: #444;
+    font-weight: 600;
 }
 
-.modal-table input[type="text"],
-.modal-table input[type="date"] {
+/* ── 날짜+시간 한 줄 배치 ──────────────────────────────────────────────────── */
+.modal-time-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* 날짜 - 고정 너비 */
+.modal-time-row input[type="date"] {
+    width: 140px !important;
+    min-width: unset !important;
+    flex-shrink: 0;
     border: 1px solid #ddd;
-    border-radius: 4px;
-    padding: 3px 6px;
+    border-radius: 6px;
+    padding: 5px 6px;
     font-size: 12px;
+}
+
+/* 시/분 드롭박스 - 남은 공간 균등하게 */
+.modal-time-row select {
+    flex: 1 !important;
+    min-width: unset !important;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 5px 2px !important;
+    font-size: 12px !important;
+    text-align: center;
+}
+
+.modal-time-sep {
+    font-size: 13px;
+    color: #888;
+    font-weight: 600;
+    flex-shrink: 0;
 }
 
 .modal-table input[type="text"] {
     width: 100%;
-}
-
-.modal-table select {
     border: 1px solid #ddd;
-    border-radius: 4px;
-    padding: 3px 4px;
+    border-radius: 6px;
+    padding: 5px 8px;
     font-size: 12px;
+    box-sizing: border-box;
 }
 
 .modal-table textarea {
     width: 100%;
     height: 60px;
     border: 1px solid #ddd;
-    border-radius: 4px;
-    padding: 4px;
+    border-radius: 6px;
+    padding: 6px 8px;
     font-size: 12px;
     resize: none;
     box-sizing: border-box;
@@ -194,17 +228,22 @@ body {
 
 .modal-bottom {
     text-align: right;
-    margin-top: 10px;
+    margin-top: 12px;
 }
 
 .btn-register {
-    background: var(--point-coral);
+    background: var(--color-btn-point);
     color: white;
     border: none;
     border-radius: 6px;
-    padding: 6px 16px;
+    padding: 7px 20px;
     font-size: 13px;
     cursor: pointer;
+    font-weight: 600;
+}
+
+.btn-register:hover {
+    background: #d65a45;
 }
 
 footer {
