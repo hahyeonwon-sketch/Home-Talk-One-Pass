@@ -54,14 +54,9 @@
 
             <!-- 동 필터 (파일 드롭 후 표시) -->
             <div class="filter-row" id="filterBar" style="display:none">
-                <div class="panel-wrap">
-                    <button class="filter-btn" id="btnDong" onclick="toggleDongPanel()">
-                        <span id="lblDong">전체 동</span><span class="caret">▼</span>
-                    </button>
-                    <div class="filter-panel" id="panelDong" style="display:none">
-                        <div class="chip-grid dong-g" id="dongGrid"></div>
-                    </div>
-                </div>
+                <select id="selDong" onchange="onDongChange()">
+                    <option value="">전체 동</option>
+                </select>
             </div>
 
             <!-- 미리보기 / 결과 테이블 -->

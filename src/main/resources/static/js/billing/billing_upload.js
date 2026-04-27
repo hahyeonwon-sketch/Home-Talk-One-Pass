@@ -29,9 +29,6 @@ let openDongPanel = false;
 ================================================================ */
 document.addEventListener('DOMContentLoaded', () => {
     initUploadZone();
-    document.addEventListener('click', e => {
-        if (!e.target.closest('.panel-wrap')) closeDongPanel();
-    });
 });
 
 /* ================================================================
@@ -389,36 +386,19 @@ function renderTable() {
 }
 
 /* ================================================================
-   동 필터
+    동 필터
 ================================================================ */
+
 function buildDongGrid() {
     const dongs = [...new Set(validRows.map(r => r.dong))].sort();
-    document.getElementById('dongGrid').innerHTML =
-        `<button class="chip full${!selDong ? ' selected' : ''}" onclick="pickDong(null)">전체 동</button>`
-        + dongs.map(d =>
-            `<button class="chip${selDong === d ? ' selected' : ''}" onclick="pickDong('${d}')">${d}</button>`
-        ).join('');
+    const sel = document.getElementById('selDong');
+    sel.innerHTML = '<option value="">전체 동</option>'
+        + dongs.map(d => `<option value="${d}">${d}</option>`).join('');
+    sel.value = selDong || '';
 }
 
-function toggleDongPanel() {
-    const panel = document.getElementById('panelDong');
-    const btn   = document.getElementById('btnDong');
-    openDongPanel = !openDongPanel;
-    panel.style.display = openDongPanel ? 'block' : 'none';
-    btn.classList.toggle('active', openDongPanel);
-}
-
-function closeDongPanel() {
-    document.getElementById('panelDong').style.display = 'none';
-    document.getElementById('btnDong').classList.remove('active');
-    openDongPanel = false;
-}
-
-function pickDong(d) {
-    selDong = d;
-    document.getElementById('lblDong').textContent = d || '전체 동';
-    closeDongPanel();
-    buildDongGrid();
+function onDongChange() {
+    selDong = document.getElementById('selDong').value || null;
     renderTable();
 }
 
