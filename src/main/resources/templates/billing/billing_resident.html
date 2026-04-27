@@ -75,31 +75,35 @@
             <div class="bp-section-title">관리비 내역</div>
 
             <!-- 필터 행 -->
+            <!-- 필터 행 -->
             <div class="bp-filter-row">
-                <div class="panel-wrap">
-                    <button class="filter-btn" id="btnYear" onclick="togglePanel('year')">
-                        <span id="lblYear">2026년</span><span class="caret">▼</span>
-                    </button>
-                    <div class="filter-panel" id="panelYear" style="display:none">
-                        <div class="chip-grid year-g" id="yearGrid"></div>
-                    </div>
-                </div>
-                <div class="panel-wrap">
-                    <button class="filter-btn" id="btnMonth" onclick="togglePanel('month')">
-                        <span id="lblMonth">전체 월</span><span class="caret">▼</span>
-                    </button>
-                    <div class="filter-panel" id="panelMonth" style="display:none">
-                        <div class="chip-grid month-g" id="monthGrid"></div>
-                    </div>
-                </div>
-                <div class="panel-wrap">
-                    <button class="filter-btn" id="btnStatus" onclick="togglePanel('status')">
-                        <span id="lblStatus">전체 상태</span><span class="caret">▼</span>
-                    </button>
-                    <div class="filter-panel" id="panelStatus" style="display:none">
-                        <div class="chip-grid status-g" id="statusGrid"></div>
-                    </div>
-                </div>
+                <select id="selYear" onchange="onFilterChange()">
+                    <option value="">전체 연도</option>
+                    <option value="2026" selected>2026</option>
+                    <option value="2025">2025</option>
+                    <option value="2024">2024</option>
+                    <option value="2023">2023</option>
+                </select>
+                <select id="selMonth" onchange="onFilterChange()">
+                    <option value="">전체 월</option>
+                    <option value="01">1</option>
+                    <option value="02">2</option>
+                    <option value="03">3</option>
+                    <option value="04">4</option>
+                    <option value="05">5</option>
+                    <option value="06">6</option>
+                    <option value="07">7</option>
+                    <option value="08">8</option>
+                    <option value="09">9</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                </select>
+                <select id="selStatus" onchange="onFilterChange()">
+                    <option value="">전체 상태</option>
+                    <option value="UNPAID">미납</option>
+                    <option value="PAID">납부완료</option>
+                </select>
             </div>
 
             <!-- 관리비 목록 -->
