@@ -245,3 +245,43 @@ body {
     font-weight: bold; border:none; cursor: pointer;
 }
 .btn:hover { background: #2563eb; }
+
+.empty-msg {
+    text-align: center;
+    padding: 40px 0;
+    color: #aaa;
+    font-size: 14px;
+}
+
+/* 데이터 테이블 */
+.book-table {
+    width: 100%;
+    border-collapse: collapse;   /* 셀 사이의 이중 테두리를 하나로 합침 */
+    font-size: 14px;
+    background: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+}
+
+.book-table th,
+.book-table td {
+    padding: 12px 14px;
+    text-align: left;
+    border-bottom: 1px solid #f0f0f0;
+}
+/* 헤더 행 - 열 제목 */
+.book-table thead th {
+    background-color: #f8f9ff;
+    font-weight: 600;
+    color: #555;
+    font-size: 13px;
+}
+/* 짝수 행 배경 - 줄무늬 효과로 가독성 향상 */
+.book-table tbody tr:nth-child(even) {
+    background-color: #fafafa;
+}
+
+.book-table tbody tr:hover {
+    background-color: #eef1ff;
+}

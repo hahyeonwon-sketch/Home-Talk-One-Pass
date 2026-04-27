@@ -18,7 +18,38 @@
 
             <!-- 메인 콘텐츠 -->
             <main class="content">
-                <h1>알람 홈 화면 입니다.ㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇ</h1>
+                <div class="container">
+                    <h1 class="page-title">알람 목록</h1>
+
+                    <!-- 알람이 없을 때 -->
+                    <p class="empty-msg-notification" th:if="${#lists.isEmpty(isNotReadAlarmList)}">
+                        새로운 알람이 없습니다.
+                    </p>
+
+                    <!--알람이 있을 때-->
+                    <table class="book-table" th:unless="${#lists.isEmpty(isNotReadAlarmList)}">
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>모듈 이름</th>
+                            <th>알람 타입</th>
+                            <th>메세지</th>
+                            <th>생성 시간</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="alarm : ${isNotReadAlarmList}">
+                            <td th:text="${alarm.id}">1</td>
+                            <td th:text="${alarm.moduleName}">모듈 이름</td>
+                            <td th:text="${alarm.categoryType}">알람 타입</td>
+                            <td th:text="${alarm.message}">메세지</td>
+                            <td th:text="${#temporals.format(alarm.createdAt, 'yyyy-MM-dd HH:mm:ss')} ?: '-'">생성 시간</td>
+                        </tr>
+                        </tbody>
+                    </table>
+
+                </div>
+<!--                <h1>알람 홈 화면 입니다.ㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇ</h1>-->
             </main>
 
             <!-- 하단 푸터 삽입 -->

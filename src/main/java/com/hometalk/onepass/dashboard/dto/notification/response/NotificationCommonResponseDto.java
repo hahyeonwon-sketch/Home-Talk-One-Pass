@@ -12,7 +12,7 @@ public class NotificationCommonResponseDto {
 
     private Long id;
     private String moduleName;         // 알림 발생 모듈
-    private String categoryAlarm;      // 모듈별 세부 분류
+    private String categoryType;      // 모듈별 세부 분류
     private Boolean isRead;            // 읽음 여부 상태
     private String message;            // 메세지 내용
     private LocalDateTime createdAt;
@@ -24,7 +24,7 @@ public class NotificationCommonResponseDto {
         return NotificationCommonResponseDto.builder()
                 .id(notification.getId())
                 .moduleName(notification.getModuleName())
-                .categoryAlarm(notification.getCategoryAlarm())
+                .categoryType(notification.getCategoryType())
                 .isRead(notification.getIsRead())
                 .message(notification.getMessage())
                 .createdAt(notification.getCreatedAt())

@@ -30,7 +30,6 @@ public class NotificationServiceImpl implements NotificationService{
     @Override
     public List<NotificationCommonResponseDto> findByIsReadTrueOrderByCreatedAtDesc() {
 
-
         // true를 전달하여 '읽은' 알림 조회
         return notificationRepository.findByIsReadOrderByCreatedAtDesc(true)
                 .stream()
