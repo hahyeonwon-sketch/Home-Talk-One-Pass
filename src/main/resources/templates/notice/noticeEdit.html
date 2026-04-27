@@ -124,11 +124,20 @@
                 <input type="hidden" id="scheduleInfoHidden" name="scheduleInfo">
                 <input type="hidden" id="scheduleLocationHidden" name="scheduleLocation">
 
+                <div class="file-section">
+                    <div class="file-section-title">📎 첨부파일</div>
+                    <div class="file-list" th:if="${attachments != null && !attachments.isEmpty()}">
+                        <div class="file-item" th:each="att : ${attachments}">
+                            <span th:text="${att.fileName}"></span>
+                        </div>
+                    </div>
+                    <div id="fileNames" class="file-list"></div>
+                </div>
+
                 <div class="button-group">
                     <div class="button-group-left">
-                        <input type="file" id="file" name="file">
-                        <label for="file" class="btn btn-file">파일 올리기</label>
-                        <span id="fileName" class="file-name"></span>
+                        <input type="file" id="file" name="files" multiple>
+                        <label for="file" class="btn btn-file">파일 교체</label>
                     </div>
                     <div class="button-group-right">
                         <div class="checkbox-group">
@@ -258,7 +267,14 @@
     });
 
     document.getElementById('file').addEventListener('change', function() {
-        document.getElementById('fileName').innerText = this.files[0]?.name || '';
+        var container = document.getElementById('fileNames');
+        container.innerHTML = '';
+        Array.from(this.files).forEach(function(f) {
+            var div = document.createElement('div');
+            div.className = 'file-item';
+            div.textContent = '📎 ' + f.name;
+            container.appendChild(div);
+        });
     });
 
     function registerSchedule() {

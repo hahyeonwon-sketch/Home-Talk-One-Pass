@@ -69,7 +69,7 @@ public class NoticeService {
     }
 
     // ── 공지 작성 ─────────────────────────────────────────────────────────────
-    public Long createNotice(NoticeRequestDto noticeRequestDto, MultipartFile file) {
+    public Long createNotice(NoticeRequestDto noticeRequestDto, List<MultipartFile> files) {
         if (noticeRequestDto.getBadge() == null) {
             throw new IllegalArgumentException("분류를 선택해주세요.");
         }
@@ -88,8 +88,10 @@ public class NoticeService {
         );
         noticeRepository.save(notice);
 
-        if (file != null && !file.isEmpty()) {
-            saveFile(file, notice);
+        if (files != null) {
+            for (MultipartFile file : files) {
+                if (!file.isEmpty()) saveFile(file, notice);
+            }
         }
         return notice.getId();
     }
@@ -115,7 +117,7 @@ public class NoticeService {
     }
 
     // ── 공지 수정 ─────────────────────────────────────────────────────────────
-    public Long updateNotice(Long id, NoticeRequestDto noticeRequestDto, MultipartFile file) {
+    public Long updateNotice(Long id, NoticeRequestDto noticeRequestDto, List<MultipartFile> files) {
         Notice notice = noticeRepository.findById(id)
                 .orElseThrow(() -> new NoticeNotFoundException(id));
 
@@ -130,14 +132,21 @@ public class NoticeService {
                 noticeRequestDto.getBadge()
         );
 
-        if (file != null && !file.isEmpty()) {
-            List<Attachment> existing = attachmentRepository.findByNotice(notice);
-            for (Attachment att : existing) {
-                File attFile = new File(att.getFilePath());
-                if (attFile.exists()) attFile.delete();
+        if (files != null) {
+            boolean hasNewFile = files.stream().anyMatch(f -> !f.isEmpty());
+            if (hasNewFile) {
+                // 기존 파일 삭제
+                List<Attachment> existing = attachmentRepository.findByNotice(notice);
+                for (Attachment att : existing) {
+                    File attFile = new File(att.getFilePath());
+                    if (attFile.exists()) attFile.delete();
+                }
+                attachmentRepository.deleteByNotice(notice);
+                // 새 파일 저장
+                for (MultipartFile file : files) {
+                    if (!file.isEmpty()) saveFile(file, notice);
+                }
             }
-            attachmentRepository.deleteByNotice(notice);
-            saveFile(file, notice);
         }
         return notice.getId();
     }

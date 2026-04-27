@@ -15,6 +15,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -79,18 +80,20 @@ public class NoticeController {
     }
 
     // ── 작성 페이지 ───────────────────────────────────────────────────────────
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/write")
     public String noticeWriteForm() {
         return "notice/noticeForm";
     }
 
     // ── 작성 처리 ─────────────────────────────────────────────────────────────
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/write")
     public String noticeWrite(@ModelAttribute NoticeRequestDto noticeRequestDto,
-                              @RequestParam(required = false) MultipartFile file,
+                              @RequestParam(required = false) List<MultipartFile> files,
                               HttpServletRequest request) {
 
-        Long noticeId = noticeService.createNotice(noticeRequestDto, file);
+        Long noticeId = noticeService.createNotice(noticeRequestDto, files);
 
         Notice notice = noticeService.getNoticeEntity(noticeId);
         String noticeUrl = request.getScheme() + "://" +
@@ -112,6 +115,7 @@ public class NoticeController {
     }
 
     // ── 수정 페이지 ───────────────────────────────────────────────────────────
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{id}/edit")
     public String noticeEditForm(@PathVariable Long id, Model model) {
         NoticeDetailResponseDto notice = noticeService.getNoticeForEdit(id);
@@ -121,16 +125,20 @@ public class NoticeController {
         ScheduleDetailResponseDto schedule = scheduleService.getScheduleByNotice(noticeEntity);
         model.addAttribute("linkedSchedule", schedule);
 
+        List<Attachment> attachments = noticeService.getAttachments(id);
+        model.addAttribute("attachments", attachments);
+
         return "notice/noticeEdit";
     }
 
     // ── 수정 처리 ─────────────────────────────────────────────────────────────
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/{id}/edit")
     public String noticeEdit(@PathVariable Long id,
                              @ModelAttribute NoticeRequestDto noticeRequestDto,
-                             @RequestParam(required = false) MultipartFile file,
+                             @RequestParam(required = false) List<MultipartFile> files,
                              HttpServletRequest request) {
-        noticeService.updateNotice(id, noticeRequestDto, file);
+        noticeService.updateNotice(id, noticeRequestDto, files);
 
         Notice notice = noticeService.getNoticeEntity(id);
         String noticeUrl = request.getScheme() + "://" +
@@ -138,7 +146,6 @@ public class NoticeController {
                 request.getServerPort() +
                 request.getContextPath() + "/notice/" + id;
 
-        // 연결된 일정 있으면 수정, 없으면 새로 등록
         ScheduleDetailResponseDto existing = scheduleService.getScheduleByNotice(notice);
         if (existing != null) {
             scheduleService.updateScheduleWithNotice(
@@ -166,6 +173,7 @@ public class NoticeController {
     }
 
     // ── 삭제 ──────────────────────────────────────────────────────────────────
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/{id}/delete")
     public String noticeDelete(@PathVariable Long id) {
         noticeService.deleteNotice(id);

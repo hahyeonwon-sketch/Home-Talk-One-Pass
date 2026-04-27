@@ -188,7 +188,7 @@ body {
     font-size: 12px;
 }
 
-/* 시/분 드롭박스 - 남은 공간 균등하게 */
+/* 시/분 드롭박스 */
 .modal-time-row select {
     flex: 1 !important;
     min-width: unset !important;

@@ -120,9 +120,14 @@
                 <input type="hidden" id="scheduleStartAt" name="scheduleStartAt">
                 <input type="hidden" id="scheduleEndAt" name="scheduleEndAt">
 
+                <div class="file-section">
+                    <div class="file-section-title">📎 첨부파일</div>
+                    <div id="fileNames" class="file-list"></div>
+                </div>
+
                 <div class="button-group">
                     <div class="button-group-left">
-                        <input type="file" id="file" name="file">
+                        <input type="file" id="file" name="files" multiple>
                         <label for="file" class="btn btn-file">파일 올리기</label>
                     </div>
                     <div class="button-group-right">
@@ -198,6 +203,17 @@
 
     document.getElementById('title').addEventListener('input', function() {
         document.getElementById('charCount').innerText = this.value.length;
+    });
+
+    document.getElementById('file').addEventListener('change', function() {
+        var container = document.getElementById('fileNames');
+        container.innerHTML = '';
+        Array.from(this.files).forEach(function(f) {
+            var div = document.createElement('div');
+            div.className = 'file-item';
+            div.textContent = '📎 ' + f.name;
+            container.appendChild(div);
+        });
     });
 
     function registerSchedule() {
