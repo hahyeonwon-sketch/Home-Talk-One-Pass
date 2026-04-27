@@ -29,8 +29,8 @@
             <!-- 공지 정보 -->
             <table class="notice-table">
                 <tr>
-                    <td th:class="'badge-' + ${notice.badge.name().toLowerCase()}">
-                        <span th:text="${notice.badge.label}"></span>
+                    <td th:class="${notice.badge != null ? 'badge-' + notice.badge.name().toLowerCase() : ''}">
+                        <span th:text="${notice.badge != null ? notice.badge.label : '-'}"></span>
                     </td>
                     <td th:text="${notice.title}">공지 제목</td>
                     <td th:text="${#temporals.format(notice.createdAt, 'yyyy-MM-dd HH:mm')}">작성일시</td>

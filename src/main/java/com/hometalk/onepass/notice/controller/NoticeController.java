@@ -5,6 +5,7 @@ import com.hometalk.onepass.notice.dto.NoticeListResponseDto;
 import com.hometalk.onepass.notice.dto.NoticeRequestDto;
 import com.hometalk.onepass.notice.entity.Attachment;
 import com.hometalk.onepass.notice.entity.Notice;
+import com.hometalk.onepass.notice.entity.NoticeStatus;
 import com.hometalk.onepass.notice.service.NoticeService;
 import com.hometalk.onepass.schedule.dto.ScheduleDetailResponseDto;
 import com.hometalk.onepass.schedule.service.ScheduleService;
@@ -79,14 +80,14 @@ public class NoticeController {
         return "notice/noticeDetail";
     }
 
-    // ── 작성 페이지 ───────────────────────────────────────────────────────────
+    // ── 작성 페이지 ───────────────────────────────────────────────────────────\
+
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/write")
     public String noticeWriteForm() {
         return "notice/noticeForm";
     }
 
-    // ── 작성 처리 ─────────────────────────────────────────────────────────────
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/write")
     public String noticeWrite(@ModelAttribute NoticeRequestDto noticeRequestDto,
@@ -94,6 +95,12 @@ public class NoticeController {
                               HttpServletRequest request) {
 
         Long noticeId = noticeService.createNotice(noticeRequestDto, files);
+
+        if (NoticeStatus.DRAFT.equals(noticeRequestDto.getStatus())) {
+            return "redirect:/notice/write?saved=true";
+        }
+
+
 
         Notice notice = noticeService.getNoticeEntity(noticeId);
         String noticeUrl = request.getScheme() + "://" +
@@ -139,6 +146,10 @@ public class NoticeController {
                              @RequestParam(required = false) List<MultipartFile> files,
                              HttpServletRequest request) {
         noticeService.updateNotice(id, noticeRequestDto, files);
+
+        if (NoticeStatus.DRAFT.equals(noticeRequestDto.getStatus())) {
+            return "redirect:/notice/" + id + "/edit?saved=true";
+        }
 
         Notice notice = noticeService.getNoticeEntity(id);
         String noticeUrl = request.getScheme() + "://" +
@@ -220,5 +231,12 @@ public class NoticeController {
         } catch (IOException e) {
             throw new RuntimeException("이미지 업로드 실패: " + e.getMessage());
         }
+    }
+
+    @GetMapping("/api/drafts")
+    @ResponseBody
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<NoticeDetailResponseDto> getDrafts() {
+        return noticeService.getDraftList();
     }
 }

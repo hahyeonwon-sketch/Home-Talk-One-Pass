@@ -1,6 +1,7 @@
 package com.hometalk.onepass.notice.dto;
 
 import com.hometalk.onepass.notice.entity.Badge;
+import com.hometalk.onepass.notice.entity.NoticeStatus;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -25,6 +26,8 @@ public class NoticeRequestDto {
 
     @NotNull
     private Badge badge;
+
+    private NoticeStatus status;
 
     // 일정 관련 (선택사항)
     private String scheduleName;
