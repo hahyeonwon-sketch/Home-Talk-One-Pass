@@ -51,10 +51,12 @@
 
         <!-- 메인 콘텐츠 -->
         <main class="main-wrapper content-community" style="flex: 1; display: flex; flex-direction: column;">
-            <div th:replace="~{community/fragments/boardListHeader :: boardListHeader(boards=${boards}, boardId=${boardId}, loginUser=${loginUser})}"></div>
-            <div th:replace="~{community/fragments/categoryBanner :: categoryBanner(board=${board}, categories=${categories}, categoryId=${categoryId})}"></div>
-            <p>태그(tags)</p> <!-- fragment 구현 예정 -->
-            <div class="content-container">
+
+<!--            <p>태그(tags)</p> &lt;!&ndash; fragment 구현 예정 &ndash;&gt;-->
+            <div class="content-container" style="min-width: 130vh">
+
+                <div th:replace="~{community/fragments/boardListHeader :: boardListHeader(boards=${boards}, boardId=${boardId}, loginUser=${loginUser})}"></div>
+                <div th:replace="~{community/fragments/categoryBanner :: categoryBanner(board=${board}, categories=${categories}, categoryId=${categoryId})}"></div>
 
                 <div class="list-top-area">
                     <div class="search-info-box">

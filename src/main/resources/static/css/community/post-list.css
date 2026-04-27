@@ -242,9 +242,9 @@
 }
 
 
-.main-layout .content {
-    min-height: auto !important;
-    height: auto !important;
+.main-layout .content-community {
+    min-height: auto;
+    height: auto;
 }
 
 
