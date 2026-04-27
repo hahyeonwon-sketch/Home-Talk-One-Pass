@@ -4,6 +4,19 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>차량 등록 재신청</title>
+  <style>
+    /* ---------- 페이지 배경 ---------- */
+    :root {
+      --text-dark: #2D2D2D; /* 원하는 어두운 색상 코드를 입력하세요 */
+    }
+    body {
+      font-family: 'Pretendard', sans-serif;
+      background-color: #FAF4F0;
+      color: var(--text-dark);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+  </style>
   <meta name="_csrf" th:content="${_csrf.token}">
   <meta name="_csrf_header" th:content="${_csrf.headerName}">
   <link rel="stylesheet" th:href="@{/css/dashboard/style.css}">

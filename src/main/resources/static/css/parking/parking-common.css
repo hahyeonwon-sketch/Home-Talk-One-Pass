@@ -24,15 +24,6 @@
   --transition:  0.2s ease;
 }
 
-/* ---------- 페이지 배경 ---------- */
-body {
-    font-family: 'Pretendard', sans-serif;
-    background-color: #FAF4F0;
-    color: var(--text-dark);
-    line-height: 1.6;
-    min-height: 100vh;
-}
-
 /* ── 팀 기준 컨테이너 (수정 금지) ── */
 .container {
     width: calc(100% - 40px);
@@ -556,7 +547,7 @@ body {
   align-items: flex-start;
   width: 100%;
   margin-bottom: 0;
-  margin-top: 20px
+  margin-top: 20px;
   gap: 8px;
 }
 
