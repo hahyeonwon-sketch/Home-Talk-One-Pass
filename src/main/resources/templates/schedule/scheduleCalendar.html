@@ -160,6 +160,23 @@
                                 </select>
                             </td>
                         </tr>
+                        <tr id="formRepeatRow">
+                            <td class="modal-label">반복</td>
+                            <td>
+                                <select id="formRepeatType">
+                                    <option value="NONE">반복 없음</option>
+                                    <option value="DAILY">매일</option>
+                                    <option value="WEEKLY">매주</option>
+                                    <option value="MONTHLY">매월</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr id="formRepeatEndRow" style="display:none;">
+                            <td class="modal-label">반복 종료일</td>
+                            <td class="time-group">
+                                <input type="date" id="formRepeatEndDate">
+                            </td>
+                        </tr>
                         <tr>
                             <td class="modal-label">시작 *</td>
                             <td class="time-group">
@@ -197,6 +214,23 @@
             </div>
         </div>
 
+        <!-- 반복 일정 삭제 옵션 모달 -->
+        <div class="modal-overlay" id="repeatDeleteModalOverlay">
+            <div class="modal-box" style="max-width:360px;">
+                <div class="modal-header">
+                    <span>반복 일정 삭제</span>
+                    <button class="modal-close" onclick="closeRepeatDeleteModal()">✕</button>
+                </div>
+                <div class="modal-body">
+                    <div class="modal-bottom" style="flex-direction:column; gap:8px;">
+                        <button class="repeat-delete-btn" onclick="confirmRepeatDelete('this')">이 일정만 삭제</button>
+                        <button class="repeat-delete-btn danger" onclick="confirmRepeatDelete('after')">이 일정 이후 전체 삭제</button>
+                        <button class="repeat-delete-btn" onclick="closeRepeatDeleteModal()">취소</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <footer th:replace="~{fragments/footer :: footer}"></footer>
 
     </div>
@@ -213,6 +247,7 @@
     var scheduleData = [];
     var editingScheduleId = null;
     var editingNoticeId = null;
+    var deletingScheduleId = null;
     var WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
 
     var BADGE_LABEL = {
@@ -310,12 +345,16 @@
         });
 
         var btnAdd = document.getElementById('btnAddSchedule');
-        if (btnAdd) btnAdd.addEventListener('click', function() { openFormModal(null); });
+        if (btnAdd) btnAdd.addEventListener('click', function() {
+            editingScheduleId = null;
+            openFormModal(null);
+        });
 
         var btnEdit = document.getElementById('btnEditSchedule');
         if (btnEdit) btnEdit.addEventListener('click', function() {
+            var id = editingScheduleId;
             closeDetailModal();
-            openFormModal(editingScheduleId);
+            openFormModal(id);
         });
 
         var btnDelete = document.getElementById('btnDeleteSchedule');
@@ -325,11 +364,19 @@
 
         document.getElementById('btnSubmitSchedule').addEventListener('click', submitSchedule);
 
+        document.getElementById('formRepeatType').addEventListener('change', function() {
+            var row = document.getElementById('formRepeatEndRow');
+            row.style.display = this.value === 'NONE' ? 'none' : '';
+        });
+
         document.getElementById('detailModalOverlay').addEventListener('click', function(e) {
             if (e.target === this) closeDetailModal();
         });
         document.getElementById('formModalOverlay').addEventListener('click', function(e) {
             if (e.target === this) closeFormModal();
+        });
+        document.getElementById('repeatDeleteModalOverlay').addEventListener('click', function(e) {
+            if (e.target === this) closeRepeatDeleteModal();
         });
     }
 
@@ -341,10 +388,6 @@
                 renderCalendar();
                 renderTodaySchedules();
             });
-    }
-
-    function dateKey(year, month, day) {
-        return year + '-' + pad(month) + '-' + pad(day);
     }
 
     function isMultiDay(s) {
@@ -397,14 +440,12 @@
                 var weekStart = w * 7;
                 var weekEnd = weekStart + 6;
                 var weekStartDate = null;
-                var weekEndDate = null;
 
                 for (var c = weekStart; c <= weekEnd; c++) {
                     if (c < cells.length && !cells[c].otherMonth) {
                         var cellDate = new Date(currentYear, currentMonth - 1, cells[c].day);
                         if (cellDate >= sd && cellDate <= ed) {
                             if (!weekStartDate) weekStartDate = cellDate;
-                            weekEndDate = cellDate;
                         }
                     }
                 }
@@ -438,10 +479,10 @@
             num.className = 'cal-date-num';
             num.textContent = cell.day;
             if (!cell.otherMonth) {
-                var isToday = (cell.day === today.getDate() &&
+                var isToday2 = (cell.day === today.getDate() &&
                                currentMonth === today.getMonth() + 1 &&
                                currentYear === today.getFullYear());
-                if (isToday) num.classList.add('today-circle');
+                if (isToday2) num.classList.add('today-circle');
             }
             div.appendChild(num);
 
@@ -475,8 +516,6 @@
 
         cellDivs.forEach(function(item) {
             if (item.cell.otherMonth) return;
-            var cellDate = new Date(currentYear, currentMonth - 1, item.cell.day);
-
             var daySingles = singleDaySchedules.filter(function(s) {
                 var sd = new Date(s.startAt);
                 return sd.getFullYear() === currentYear &&
@@ -539,7 +578,6 @@
 
     function renderTodaySchedules() {
         var count = document.getElementById('todayCount');
-
         var todayList = scheduleData.filter(function(s) {
             var sd = new Date(s.startAt);
             var ed = s.endAt ? new Date(s.endAt) : sd;
@@ -548,7 +586,6 @@
             ed.setHours(23, 59, 59, 999);
             return todayDate >= sd && todayDate <= ed;
         });
-
         count.textContent = '오늘의 일정 · ' + todayList.length + '건';
     }
 
@@ -563,7 +600,6 @@
                 badgeEl.textContent = s.badge ? (BADGE_LABEL[s.badge] || s.badge) : '-';
                 document.getElementById('detailStart').textContent = formatDateTime(s.startAt);
 
-                // 종료일 없으면 행 숨김
                 var endRow = document.getElementById('detailEndRow');
                 if (s.endAt) {
                     document.getElementById('detailEnd').textContent = formatDateTime(s.endAt);
@@ -577,12 +613,10 @@
 
                 var noticeRow = document.getElementById('detailNoticeRow');
                 if (s.referenceUrl) {
-                    var link = document.getElementById('detailNoticeLink');
-                    link.href = s.referenceUrl;
+                    document.getElementById('detailNoticeLink').href = s.referenceUrl;
                     noticeRow.style.display = '';
                 } else if (s.noticeId) {
-                    var link = document.getElementById('detailNoticeLink');
-                    link.href = contextPath + 'notice/' + s.noticeId;
+                    document.getElementById('detailNoticeLink').href = contextPath + 'notice/' + s.noticeId;
                     noticeRow.style.display = '';
                 } else {
                     noticeRow.style.display = 'none';
@@ -607,10 +641,12 @@
     }
 
     function openFormModal(id) {
-        editingScheduleId = id;
         var badgeRow = document.getElementById('formBadgeRow');
+        var repeatRow = document.getElementById('formRepeatRow');
+        var repeatEndRow = document.getElementById('formRepeatEndRow');
 
         if (id) {
+            editingScheduleId = id;
             document.getElementById('formModalTitle').textContent = '일정 수정';
             document.getElementById('btnSubmitSchedule').textContent = '수정';
             fetch(contextPath + 'schedule/api/' + id)
@@ -635,6 +671,18 @@
                     document.getElementById('formLocation').value = s.location || '';
                     document.getElementById('formUrl').value = s.referenceUrl || '';
 
+                    if (s.repeatType && s.repeatType !== 'NONE') {
+                        repeatRow.style.display = '';
+                        document.getElementById('formRepeatType').value = s.repeatType;
+                        repeatEndRow.style.display = '';
+                        if (s.repeatEndAt) {
+                            document.getElementById('formRepeatEndDate').value = s.repeatEndAt.substring(0, 10);
+                        }
+                    } else {
+                        repeatRow.style.display = 'none';
+                        repeatEndRow.style.display = 'none';
+                    }
+
                     if (s.noticeId) {
                         badgeRow.style.display = 'none';
                     } else {
@@ -643,16 +691,21 @@
                     }
                 });
         } else {
+            editingScheduleId = null;
             document.getElementById('formModalTitle').textContent = '일정 등록';
             document.getElementById('btnSubmitSchedule').textContent = '등록';
             document.getElementById('formName').value = '';
             document.getElementById('formStartDate').value = '';
             document.getElementById('formEndDate').value = '';
+            document.getElementById('formRepeatEndDate').value = '';
             document.getElementById('formInfo').value = '';
             document.getElementById('formLocation').value = '';
             document.getElementById('formUrl').value = '';
             document.getElementById('formBadge').value = '';
+            document.getElementById('formRepeatType').value = 'NONE';
             badgeRow.style.display = '';
+            repeatRow.style.display = '';
+            repeatEndRow.style.display = 'none';
         }
         document.getElementById('formModalOverlay').style.display = 'flex';
     }
@@ -668,25 +721,27 @@
         if (!name) { alert('일정명을 입력해주세요.'); return; }
 
         var startDate = document.getElementById('formStartDate').value;
-        var endDate = document.getElementById('formEndDate').value;
         if (!startDate) { alert('시작 날짜를 입력해주세요.'); return; }
 
-        var startAt = new Date(startDate + 'T' +
-            document.getElementById('formStartHour').value + ':' +
-            document.getElementById('formStartMinute').value + ':00');
+        var endDate = document.getElementById('formEndDate').value;
+
+        var repeatRow = document.getElementById('formRepeatRow');
+        var repeatType = (repeatRow.style.display !== 'none' || editingScheduleId)
+            ? document.getElementById('formRepeatType').value || 'NONE'
+            : null;
+
+        var repeatEndRow = document.getElementById('formRepeatEndRow');
+        var repeatEndDate = repeatEndRow.style.display !== 'none'
+            ? document.getElementById('formRepeatEndDate').value
+            : null;
 
         if (endDate) {
-            var endAt = new Date(endDate + 'T' +
-                document.getElementById('formEndHour').value + ':' +
-                document.getElementById('formEndMinute').value + ':00');
-            if (endAt <= startAt) {
-                alert('종료 시간이 시작 시간보다 이후여야 합니다.');
-                return;
-            }
+            var startAt = new Date(startDate + 'T' + document.getElementById('formStartHour').value + ':' + document.getElementById('formStartMinute').value + ':00');
+            var endAt = new Date(endDate + 'T' + document.getElementById('formEndHour').value + ':' + document.getElementById('formEndMinute').value + ':00');
+            if (endAt <= startAt) { alert('종료 시간이 시작 시간보다 이후여야 합니다.'); return; }
         }
 
         var badgeVal = document.getElementById('formBadge').value;
-
         var dto = {
             title: name,
             startAt: startDate + 'T' + document.getElementById('formStartHour').value + ':' + document.getElementById('formStartMinute').value + ':00',
@@ -694,7 +749,9 @@
             info: document.getElementById('formInfo').value,
             location: document.getElementById('formLocation').value,
             referenceUrl: document.getElementById('formUrl').value,
-            badge: badgeVal || null
+            badge: badgeVal || null,
+            repeatType: repeatType,
+            repeatEndAt: repeatEndDate ? repeatEndDate + 'T23:59:59' : null
         };
 
         var csrfToken = document.querySelector('meta[name="_csrf"]').content;
@@ -704,7 +761,7 @@
 
         var url = editingScheduleId
             ? contextPath + 'schedule/api/' + editingScheduleId + '/edit'
-            : contextPath + 'schedule/write';
+            : (repeatType && repeatType !== 'NONE' ? contextPath + 'schedule/write/repeat' : contextPath + 'schedule/write');
 
         fetch(url, { method: 'POST', headers: headers, body: JSON.stringify(dto) })
             .then(function(res) {
@@ -714,16 +771,45 @@
     }
 
     function deleteSchedule(id) {
-        if (!confirm('삭제하시겠습니까?')) return;
+        var schedule = scheduleData.find(function(s) { return s.id === id; });
+        var hasRepeat = schedule && schedule.repeatGroupId;
+
+        if (hasRepeat) {
+            deletingScheduleId = id;
+            closeDetailModal();
+            document.getElementById('repeatDeleteModalOverlay').style.display = 'flex';
+        } else {
+            if (!confirm('삭제하시겠습니까?')) return;
+            var csrfToken = document.querySelector('meta[name="_csrf"]').content;
+            var csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+            var headers = {};
+            headers[csrfHeader] = csrfToken;
+            fetch(contextPath + 'schedule/api/' + id, { method: 'DELETE', headers: headers })
+                .then(function(res) {
+                    if (res.ok) { closeDetailModal(); loadSchedules(); }
+                    else { alert('삭제에 실패했습니다.'); }
+                });
+        }
+    }
+
+    function closeRepeatDeleteModal() {
+        document.getElementById('repeatDeleteModalOverlay').style.display = 'none';
+        deletingScheduleId = null;
+    }
+
+    function confirmRepeatDelete(deleteType) {
         var csrfToken = document.querySelector('meta[name="_csrf"]').content;
         var csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
         var headers = {};
         headers[csrfHeader] = csrfToken;
-        fetch(contextPath + 'schedule/api/' + id, { method: 'DELETE', headers: headers })
-            .then(function(res) {
-                if (res.ok) { closeDetailModal(); loadSchedules(); }
-                else { alert('삭제에 실패했습니다.'); }
-            });
+
+        fetch(contextPath + 'schedule/api/' + deletingScheduleId + '/repeat?deleteType=' + deleteType, {
+            method: 'DELETE', headers: headers
+        })
+        .then(function(res) {
+            if (res.ok) { closeRepeatDeleteModal(); loadSchedules(); }
+            else { alert('삭제에 실패했습니다.'); }
+        });
     }
 
     function formatDateTime(str) {

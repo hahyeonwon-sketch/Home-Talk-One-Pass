@@ -447,9 +447,9 @@
 }
 
 .btn-submit {
-    background: var(--color-main);
-    color: #fff;
-    border: none;
+    background: white;
+    color: #666;
+    border:1px solid var(--border-color);
     border-radius: 8px;
     padding: 9px 22px;
     font-size: 14px;
@@ -458,7 +458,10 @@
     transition: background 0.2s;
 }
 
-.btn-submit:hover { background: var(--color-sub); }
+.btn-submit:hover {
+    background: #f5f5f5;;
+    color: #888;
+}
 
 .btn-cancel-modal {
     background: #f0f4f8;
@@ -475,9 +478,9 @@
 .btn-cancel-modal:hover { background: #e2e8f0; }
 
 .btn-edit-modal {
-    background: var(--color-btn-secondary);
-    color: #fff;
-    border: none;
+    background: white;
+    color: #666;
+    border:1px solid var(--border-color);
     border-radius: 8px;
     padding: 9px 18px;
     font-size: 14px;
@@ -486,7 +489,10 @@
     transition: background 0.2s;
 }
 
-.btn-edit-modal:hover { background: var(--color-sub); }
+.btn-edit-modal:hover {
+    background: #f5f5f5;;
+    color: #888;
+}
 
 .btn-delete-modal {
     background: var(--color-btn-point);
@@ -501,6 +507,37 @@
 }
 
 .btn-delete-modal:hover { background: #d65a45; }
+
+.repeat-delete-btn {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 400;
+    cursor: pointer;
+    border:1px solid var(--border-color);
+    background: white;
+    color: #888;
+    transition: all 0.2s;
+}
+
+
+.repeat-delete-btn:hover {
+    background: #f5f5f5;
+    color: #888;
+}
+
+.repeat-delete-btn.danger, .repeat-delete-btn.this {
+    border:1px solid var(--border-color);
+    color: #888;
+}
+
+.repeat-delete-btn.danger:hover,
+.repeat-delete-btn.this:hover {
+    background: #9EBFDB;
+    color: white;
+}
+
 
 .detail-link {
     color: var(--color-main);

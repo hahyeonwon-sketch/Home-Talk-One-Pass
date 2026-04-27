@@ -72,4 +72,22 @@ public class ScheduleController {
         scheduleService.deleteSchedule(id);
         return ResponseEntity.ok().build();
     }
+
+    @PostMapping("/write/repeat")
+    @ResponseBody
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Long> createRepeatSchedule(@RequestBody ScheduleRequestDto dto) {
+        Long id = scheduleService.createRepeatSchedule(dto);
+        return ResponseEntity.ok(id);
+    }
+
+    @DeleteMapping("/api/{id}/repeat")
+    @ResponseBody
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> deleteRepeatSchedule(
+            @PathVariable Long id,
+            @RequestParam String deleteType) {
+        scheduleService.deleteRepeatSchedule(id, deleteType);
+        return ResponseEntity.ok().build();
+    }
 }

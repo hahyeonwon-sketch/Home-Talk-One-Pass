@@ -15,4 +15,11 @@ public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
 
     // 공지로 연결된 일정 조회
     Optional<Schedule> findFirstByNotice(Notice notice);
+
+    // 같은 반복 그룹 조회
+    List<Schedule> findByRepeatGroupId(Long repeatGroupId);
+
+    // 같은 반복 그룹에서 특정 날짜 이후 조회
+    List<Schedule> findByRepeatGroupIdAndStartAtGreaterThanEqual(Long repeatGroupId, LocalDateTime startAt);
+
 }
