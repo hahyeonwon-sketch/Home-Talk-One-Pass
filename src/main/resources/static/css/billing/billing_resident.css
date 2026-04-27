@@ -77,3 +77,20 @@
 .bm-status-box.done     { background: var(--color-paid-bg); border: 1px solid var(--color-paid-border); color: var(--color-paid-text); }
 .bm-status-title { font-weight: 500; margin-bottom: 4px; }
 .bm-status-sub   { font-size: 12px; margin-top: 4px; }
+
+/* ── 필터 드롭다운 ── */
+.bp-filter-row select {
+    height: 36px;
+    padding: 0 12px;
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    font-size: 13px;
+    color: var(--color-text);
+    cursor: pointer;
+    outline: none;
+    appearance: auto;
+}
+.bp-filter-row select:focus {
+    border-color: var(--color-sub);
+}
