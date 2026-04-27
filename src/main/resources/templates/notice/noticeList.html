@@ -49,7 +49,7 @@
                 </thead>
                 <tbody>
                 <tr th:each="notice : ${notices.content}"
-                    th:classappend="${notice.isPinned} ? ' pinned-row'"
+                    th:classappend="${notice.isPinned} ? 'pinned-row-community'"
                     th:onclick="|location.href='@{/notice/{id}(id=${notice.id})}'|"
                     style="cursor:pointer;">
 

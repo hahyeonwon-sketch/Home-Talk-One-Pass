@@ -128,7 +128,7 @@
 }
 
 /* 5. 제목 셀 디테일 (말줄임표 포함) */
-.title-cell { text-align: left !important; white-space: nowrap; }
+.title-cell-community { text-align: left; white-space: nowrap; }
 
 .title-cell a {
     display: inline-block;
@@ -205,8 +205,8 @@
 }
 
 /* 고정된 행 배경색  */
-.pinned-row {
-    background-color: #f1f3f5 !important;
+.pinned-row-community {
+    background-color: #f1f3f5;
     font-weight: 600;
     border-bottom: 2px solid #dee2e6;
 }
@@ -235,10 +235,16 @@
     vertical-align: middle;
 }
 
-.main-layout, .right-section, .main-wrapper {
+.main-layout, .main-wrapper {
     max-height: none !important;
     height: auto !important;
     overflow: visible !important;
+}
+
+.right-section-community {
+    max-height: none;
+    height: auto;
+    overflow: visible;
 }
 
 
@@ -248,15 +254,15 @@
 }
 
 
-.page-footer {
+.page-footer-community {
     display: block;
     width: 100%;
-    visibility: visible !important;
-    opacity: 1 !important;
-    margin-top: 30px !important;
-    padding-bottom: 50px !important;
+    visibility: visible;
+    opacity: 1;
+    margin-top: 30px;
+    padding-bottom: 50px;
 }
 
-.pagination-wrapper {
-    width: 100% !important;
+.pagination-wrapper-community {
+    width: 100%;
 }

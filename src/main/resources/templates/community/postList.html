@@ -110,13 +110,13 @@
                             </tr>
                         </thead>
                         <tbody th:if="${not #lists.isEmpty(posts)}">
-                            <tr th:each="post : ${posts}" th:classappend="${post.pinned} ? 'pinned-row' : ''">
+                            <tr th:each="post : ${posts}" th:classappend="${post.pinned} ? 'pinned-row-community' : ''">
                                 <td>
                                     <span th:if="${post.pinned}" class="pin-badge">📌</span>
                                     <span th:text="${post.categoryName}" class="list-category"
                                           th:classappend="${post.categoryCode != null} ? ${#strings.toLowerCase(post.categoryCode)} : ''">카테고리</span>
                                 </td>
-                                <td class="title-cell">
+                                <td class="title-cell-community">
                                     <a th:href="@{/community/{bCode}/{cCode}/{id}(bCode=${board.code}, cCode=${categoryCode}, id=${post.id})}"
                                        th:text="${post.title}"></a> <span th:if="${post.commentCount > 0}"
                                           th:text="'[' + ${post.commentCount} + ']'"
@@ -135,8 +135,8 @@
                     </div>
                 </div>
 
-                <div class="page-footer">
-                    <div class="pagination-wrapper" th:if="${not #lists.isEmpty(posts)}">
+                <div class="page-footer-community">
+                    <div class="pagination-wrapper-community" th:if="${not #lists.isEmpty(posts)}">
                         <div th:replace="~{community/fragments/postpaging :: pagination(page=${page}, boardCode=${boardCode}, categoryCode=${categoryCode})}"></div>
                     </div>
                 </div>
