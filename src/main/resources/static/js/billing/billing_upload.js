@@ -134,7 +134,9 @@ async function runValidation(rows) {
 
     validRows = trimmedRows.map((row, idx) => {
         const dongHo = String(row['동/호'] ?? '').trim();
-        const total  = parseFloat(String(row['당월부과액']).replace(/,/g, '')) || 0;
+        const totalRaw   = parseFloat(String(row['당월부과액']).replace(/,/g, ''));
+        const total      = isNaN(totalRaw) ? 0 : totalRaw;
+        const totalInvalid = isNaN(totalRaw) || totalRaw < 0;
         const dong   = row._dong || '';
         const hoPart = dongHo.split('-')[1] || '';
         const unit   = dongHo ? `${dong} ${hoPart}호` : dongHo;
@@ -171,6 +173,7 @@ async function runValidation(rows) {
         let valid = '정상';
         if (!dongHo || !month)         valid = '오류';
         else if (hasInvalidItem)       valid = '항목 오류';
+        else if (totalInvalid)         valid = '금액 오류';
         else if (total === 0)          valid = '금액 누락';
         else if (hasMissingItem)       valid = '금액 누락';
         else if (details.length === 0) valid = '항목 누락';
