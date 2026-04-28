@@ -580,7 +580,7 @@
         var count = document.getElementById('todayCount');
         var todayList = scheduleData.filter(function(s) {
             var sd = new Date(s.startAt);
-            var ed = s.endAt ? new Date(s.endAt) : sd;
+            var ed = s.endAt ? new Date(s.endAt) : new Date(s.startAt);
             var todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
             sd.setHours(0, 0, 0, 0);
             ed.setHours(23, 59, 59, 999);
@@ -797,17 +797,22 @@
         deletingScheduleId = null;
     }
 
+    // ✅ 여기가 핵심 수정 부분!
     function confirmRepeatDelete(deleteType) {
+        var idToDelete = deletingScheduleId; // id 먼저 저장
+        closeRepeatDeleteModal();            // 그다음 모달 닫기 (이때 deletingScheduleId = null 됨)
+        if (!confirm('삭제하시겠습니까?')) return;
+
         var csrfToken = document.querySelector('meta[name="_csrf"]').content;
         var csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
         var headers = {};
         headers[csrfHeader] = csrfToken;
 
-        fetch(contextPath + 'schedule/api/' + deletingScheduleId + '/repeat?deleteType=' + deleteType, {
+        fetch(contextPath + 'schedule/api/' + idToDelete + '/repeat?deleteType=' + deleteType, {
             method: 'DELETE', headers: headers
         })
         .then(function(res) {
-            if (res.ok) { closeRepeatDeleteModal(); loadSchedules(); }
+            if (res.ok) { loadSchedules(); }
             else { alert('삭제에 실패했습니다.'); }
         });
     }

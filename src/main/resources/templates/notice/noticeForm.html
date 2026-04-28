@@ -279,17 +279,38 @@
                 data.forEach(function(draft) {
                     var div = document.createElement('div');
                     div.className = 'draft-item';
-                    div.style.cursor = 'pointer';
                     var title = draft.title && draft.title.trim() !== '' ? draft.title : '(제목 없음)';
                     var date = typeof draft.createdAt === 'string' ? draft.createdAt.substring(0, 10) : '';
                     div.innerHTML =
-                        '<div class="draft-item-title">' + title + '</div>' +
-                        '<div class="draft-item-date">' + date + '</div>';
-                    div.addEventListener('click', function() {
+                        '<div class="draft-item-title" style="cursor:pointer;">' + title + '</div>' +
+                        '<div style="display:flex; align-items:center; gap:8px;">' +
+                        '<div class="draft-item-date">' + date + '</div>' +
+                        '<button class="draft-delete-btn" data-id="' + draft.id + '" style="background:none; border:none; color:#888; padding:2px 8px; font-size:11px; cursor:pointer;">삭제</button>' +
+                        '</div>';
+
+                    div.querySelector('.draft-item-title').addEventListener('click', function() {
                         window.location.href = contextPath + 'notice/' + draft.id + '/edit';
                     });
+
+                    div.querySelector('.draft-delete-btn').addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        if (!confirm('임시저장을 삭제하시겠습니까?')) return;
+                        var csrfToken = document.querySelector('meta[name="_csrf"]').content;
+                        var csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+                        var headers = {};
+                        headers[csrfHeader] = csrfToken;
+                        fetch(contextPath + 'notice/' + draft.id + '/delete', {
+                            method: 'POST',
+                            headers: headers
+                        }).then(function(res) {
+                            if (res.ok) loadDrafts();
+                            else alert('삭제에 실패했습니다.');
+                        });
+                    });
+
                     container.appendChild(div);
                 });
+                updateDraftCount();
             });
     }
 

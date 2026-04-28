@@ -26,16 +26,50 @@
 
         <div class="container">
 
+            <!-- 헤더 -->
             <div class="notice-header">
-                <div class="notice-header-title">📋 공지사항</div>
+                <div class="notice-header-title">공지사항</div>
                 <div class="notice-header-sub">단지 내 중요한 공지를 확인하세요</div>
             </div>
 
-            <div class="top-bar">
-                <a th:href="@{/notice/write}" class="btn-write"
-                   sec:authorize="hasRole('ADMIN')">+ 글 작성</a>
+
+
+
+            <!-- 검색 + 결과건수 -->
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:16px;">
+                <div th:if="${keyword != null and !#strings.isEmpty(keyword)}" style="font-size:16px; color:#000000;">
+                    '<span th:text="${keyword}" style="font-weight:600;"></span>' 검색 결과 <span th:text="${notices.totalElements}"></span>건
+                </div>
+                <div th:if="${keyword == null or #strings.isEmpty(keyword)}"></div>
+
+                <form th:action="@{/notice}" method="get" class="notice-search">
+                    <div class="select-wrapper">
+                        <select name="searchType" class="search-select">
+                            <option value="tc" th:selected="${searchType == 'tc'}">제목+내용</option>
+                            <option value="title" th:selected="${searchType == 'title'}">제목</option>
+                        </select>
+                    </div>
+                    <div class="search-input-container">
+                        <input type="text" name="keyword" th:value="${keyword}" placeholder="검색어를 입력하세요." class="search-input">
+                        <button type="submit" class="btn-search-submit">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
+                                 stroke="#aebbca" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                        </button>
+                        <a th:href="@{/notice}" class="btn-reset-icon" title="검색 초기화">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
+                                 stroke="#98a4b3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M23 4v6h-6"></path>
+                                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                            </svg>
+                        </a>
+                    </div>
+                </form>
             </div>
 
+            <!-- 목록 테이블 -->
             <table class="notice-list">
                 <thead>
                 <tr>
@@ -74,60 +108,46 @@
                     <td th:text="${notice.updatedAt != null ? #temporals.format(notice.updatedAt, 'yyyy-MM-dd') : '-'}"></td>
                     <td th:text="${notice.viewCount}"></td>
                 </tr>
-
-                <tr th:each="i : ${#numbers.sequence(1, 10 - notices.content.size())}"
-                    th:if="${notices.content.size() < 10}"
-                    class="empty-row">
-                    <td></td><td></td><td></td><td></td><td></td><td></td>
-                </tr>
                 </tbody>
             </table>
 
-            <!-- 하단 페이지네이션 + 검색 -->
-            <div class="bottom-wrap">
+
+
+            <div th:if="${notices.content.isEmpty()}" style="text-align:center; padding:80px 0; color:#94a3b8; font-size:1rem; line-height:1.6;">
+                <p th:if="${keyword != null and !keyword.isEmpty()}">
+                    '<span th:text="${keyword}" style="font-weight:600;"></span>' 검색 결과와 일치하는 공지가 없습니다.
+                </p>
+                <p th:if="${keyword == null or keyword.isEmpty()}">
+                    등록된 공지가 없습니다.
+                </p>
+            </div>
+
+            <!-- 페이지네이션 (하단 중앙) -->
+            <div class="page-footer">
                 <div class="pagination">
                     <a th:if="${currentPage > 0}"
-                       th:href="@{/notice(page=${currentPage - 1}, keyword=${keyword != null ? keyword : ''}, searchType=${searchType})}">
-                        &lt;
-                    </a>
+                       th:href="@{/notice(page=${currentPage - 1}, keyword=${keyword != null ? keyword : ''}, searchType=${searchType})}">&laquo;</a>
+                    <span th:if="${currentPage == 0}" style="color:#ddd; padding:6px 12px;">&laquo;</span>
+
                     <a th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
                        th:if="${totalPages > 0}"
                        th:href="@{/notice(page=${i}, keyword=${keyword != null ? keyword : ''}, searchType=${searchType})}"
                        th:text="${i + 1}"
                        th:classappend="${i == currentPage} ? 'active-page'"></a>
+
                     <a th:if="${currentPage < totalPages - 1}"
-                       th:href="@{/notice(page=${currentPage + 1}, keyword=${keyword != null ? keyword : ''}, searchType=${searchType})}">
-                        &gt;
-                    </a>
+                       th:href="@{/notice(page=${currentPage + 1}, keyword=${keyword != null ? keyword : ''}, searchType=${searchType})}">&raquo;</a>
+                    <span th:if="${currentPage >= totalPages - 1}" style="color:#ddd; padding:6px 12px;">&raquo;</span>
                 </div>
 
-                <!-- 검색 -->
-                <form th:action="@{/notice}" method="get" class="notice-search">
-                    <div class="select-wrapper">
-                        <select name="searchType" class="search-select">
-                            <option value="tc" th:selected="${searchType == 'tc'}">제목+내용</option>
-                            <option value="title" th:selected="${searchType == 'title'}">제목</option>
-                        </select>
-                    </div>
-                    <div class="search-input-container">
-                        <input type="text" name="keyword" th:value="${keyword}" placeholder="검색어를 입력하세요." class="search-input">
-                        <button type="submit" class="btn-search-submit">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
-                                 stroke="#aebbca" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="11" cy="11" r="8"></circle>
-                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                            </svg>
-                        </button>
-                        <a th:href="@{/notice}" class="btn-reset-icon" title="검색 초기화">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
-                                 stroke="#98a4b3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M23 4v6h-6"></path>
-                                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
-                            </svg>
-                        </a>
-                    </div>
-                </form>
+                <a th:href="@{/notice/write}"
+                   sec:authorize="hasRole('ADMIN')"
+                   class="btn-write"
+                   style="position:absolute; right:0; margin:0;">글 작성
+                </a>
             </div>
+
+
 
         </div>
 

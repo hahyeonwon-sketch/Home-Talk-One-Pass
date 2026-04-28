@@ -39,7 +39,7 @@ public class Schedule extends BaseTimeEntity {
     @Column(nullable = false)
     private LocalDateTime startAt;
 
-    @Column(nullable = false)
+    @Column
     private LocalDateTime endAt;
 
     // 공지 없는 독립 일정의 배지 (공지 연동 시 공지 배지 우선)

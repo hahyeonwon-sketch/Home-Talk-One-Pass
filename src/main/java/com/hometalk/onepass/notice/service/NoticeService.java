@@ -9,9 +9,11 @@ import com.hometalk.onepass.notice.dto.NoticeRequestDto;
 import com.hometalk.onepass.notice.entity.Attachment;
 import com.hometalk.onepass.notice.entity.Notice;
 import com.hometalk.onepass.notice.entity.NoticeStatus;
+import com.hometalk.onepass.notice.entity.ReadLog;
 import com.hometalk.onepass.notice.exception.NoticeNotFoundException;
 import com.hometalk.onepass.notice.repository.AttachmentRepository;
 import com.hometalk.onepass.notice.repository.NoticeRepository;
+import com.hometalk.onepass.notice.repository.ReadLogRepository;
 import com.hometalk.onepass.schedule.repository.ScheduleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,6 +43,7 @@ public class NoticeService {
     private final AttachmentRepository attachmentRepository;
     private final LocalAccountRepository localAccountRepository;
     private final ScheduleRepository scheduleRepository;
+    private final ReadLogRepository readLogRepository;
 
     @Value("${file.upload.path}")
     private String uploadPath;
@@ -162,6 +165,8 @@ public class NoticeService {
         scheduleRepository.findFirstByNotice(notice)
                 .ifPresent(scheduleRepository::delete);
 
+        readLogRepository.deleteByNotice(notice);
+
         List<Attachment> attachments = attachmentRepository.findByNotice(notice);
         for (Attachment attachment : attachments) {
             File attFile = new File(attachment.getFilePath());
@@ -177,6 +182,22 @@ public class NoticeService {
                 .orElseThrow(() -> new NoticeNotFoundException(id));
 
         notice.increaseViewCount();
+
+        // 읽음 처리 추가
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
+                LocalAccount account = localAccountRepository.findByLoginId(auth.getName()).orElse(null);
+                if (account != null) {
+                    User user = account.getUser();
+                    if (!readLogRepository.existsByUserAndNotice(user, notice)) {
+                        readLogRepository.save(new ReadLog(user, notice));
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // 읽음 처리 실패해도 공지 조회는 정상 동작
+        }
 
         return new NoticeDetailResponseDto(
                 notice.getId(),
@@ -305,5 +326,23 @@ public class NoticeService {
                         resolveUpdatedAt(notice)
                 ))
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<Notice> getUnreadRecentNotices() {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+                return List.of();
+            }
+            LocalAccount account = localAccountRepository.findByLoginId(auth.getName()).orElse(null);
+            if (account == null) return List.of();
+
+            User user = account.getUser();
+            LocalDateTime since = LocalDateTime.now().minusDays(7);
+            return readLogRepository.findUnreadRecentNotices(user, since);
+        } catch (Exception e) {
+            return List.of();
+        }
     }
 }
