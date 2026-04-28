@@ -54,7 +54,12 @@
         <main class="main-wrapper content-community" style="flex: 1; display: flex; flex-direction: column;">
             <div th:replace="~{community/fragments/boardListHeader :: boardListHeader(boards=${boards}, boardId=${boardId}, loginUser=${loginUser})}"></div>
             <div th:replace="~{community/fragments/categoryBanner :: categoryBanner(board=${board}, categories=${categories}, categoryId=${categoryId})}"></div>
-            <p>태그(tags)</p> <!-- fragment 구현 예정 -->
+
+            <div class="tag-filter-container" th:if="${boardTags != null and !boardTags.isEmpty()}" style="padding: 15px 25px; background: #fdfdfd; border-bottom: 1px solid #eee;">
+                <span style="font-size: 13px; color: #888; margin-right: 12px;"><i class="fa-solid fa-tags"></i></span>
+                <div th:replace="~{community/fragments/postTag :: tagList(tags=${boardTags}, boardCode=${currentBoardCode})}" style="display: inline-block;"></div>
+            </div>
+
             <div class="content-container">
 
                 <div class="list-top-area">

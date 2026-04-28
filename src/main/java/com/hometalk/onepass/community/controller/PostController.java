@@ -219,6 +219,10 @@ public class PostController {
         // 댓글
         List<CommentRsDTO> comments = commentService.findAllByPostId(id);
         model.addAttribute("comments", comments);
+
+        // 태그
+        List<String> boardTags = postService.getTagsByBoardId(board.getId());
+        model.addAttribute("boardTags", boardTags);
         return "community/postDetail";
     }
 
@@ -249,6 +253,7 @@ public class PostController {
         model.addAttribute("categories", categories); // 카테고리 배너용
         model.addAttribute("boardId", board.getId());
         model.addAttribute("categoryId", (category != null) ? category.getId() : null);
+        model.addAttribute("currentBoardCode", board.getCode());
     }
 
     // 공통 method - 배너 가져올 페이지/기능들에 모두 쓰임
@@ -287,6 +292,10 @@ public class PostController {
         // 검색 조건
         model.addAttribute("searchType", searchType);
         model.addAttribute("keyword", keyword);
+
+        // 상단 태그 나열
+        List<String> boardTags = postService.getTagsByBoardId(board.getId());
+        model.addAttribute("boardTags", boardTags);
         return "community/postList";
     }
 }

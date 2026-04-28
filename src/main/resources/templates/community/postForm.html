@@ -64,12 +64,6 @@
                     <input type="hidden" name="categoryCode" value="all">
                     <input type="hidden" name="isTemp" id="isTemp" value="false">
                     <div class="page-body">
-                        <div class="form-group tag-group">
-                            <span class="form-label">태그: </span>
-                            <label><input type="checkbox" name="tags" value="공지"> 공지</label>
-                            <label><input type="checkbox" name="tags" value="질문"> 질문</label>
-                            <label><input type="checkbox" name="tags" value="정보"> 정보</label>
-                        </div>
 
                         <div class="form-inline-group">
                             <div class="category-field">
@@ -90,6 +84,17 @@
                         <div class="editor-wrapper">
                             <input type="hidden" th:field="*{content}" id="content">
                             <div id="editor" style="height: 450px; background: white;" th:utext="${post.content}"></div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">태그 입력</label>
+                            <div class="tag-container">
+                                <div id="tag-list"></div>
+                                <input type="text" id="tagInput" />
+                            </div>
+                            <div class="tag-help-text">
+                                태그를 입력 후 Enter를 누르세요
+                            </div>
+                            <div id="hidden-tags"></div>
                         </div>
                     </div>
 
@@ -121,6 +126,9 @@
     </div>
 </div>
 <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+<script th:inline="javascript">
+    window.initialTags = [[${post.tags}]] || [];
+</script>
 <script th:src="@{/js/community/post.js}" defer></script>
 </body>
 </html>

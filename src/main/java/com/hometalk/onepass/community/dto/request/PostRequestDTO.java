@@ -6,6 +6,8 @@ import com.hometalk.onepass.community.enums.MarketStatus;
 import com.hometalk.onepass.community.enums.PostStatus;
 import lombok.*;
 
+import java.util.List;
+
 @Getter
 @Setter
 @Builder
@@ -22,6 +24,8 @@ public class PostRequestDTO {
     private PostStatus postStatus;      // 게시글 상태 변경
     private MarketStatus marketStatus;
     private boolean pinned;             // 관리자 상단 고정
+
+    private List<String> tags;
 
     public Post toEntity(Category category, Board board, User writer) {
         return Post.builder().title(this.title)

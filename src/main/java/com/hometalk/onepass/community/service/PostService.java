@@ -6,15 +6,14 @@ import com.hometalk.onepass.community.dto.request.PostRequestDTO;
 import com.hometalk.onepass.community.dto.response.PostListResponse;
 import com.hometalk.onepass.community.dto.response.PostResponseDTO;
 import com.hometalk.onepass.community.dto.response.PostUserRsDTO;
-import com.hometalk.onepass.community.entity.Board;
-import com.hometalk.onepass.community.entity.Category;
-import com.hometalk.onepass.community.entity.Post;
+import com.hometalk.onepass.community.entity.*;
 import com.hometalk.onepass.community.enums.PostStatus;
 import com.hometalk.onepass.community.exception.InvalidBoardCodeException;
 import com.hometalk.onepass.community.exception.PostNotFoundException;
 import com.hometalk.onepass.community.repository.BoardRepository;
 import com.hometalk.onepass.community.repository.CategoryRepository;
 import com.hometalk.onepass.community.repository.PostRepository;
+import com.hometalk.onepass.community.repository.TagRepository;
 import com.hometalk.onepass.community.validator.PostValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -38,6 +37,7 @@ public class PostService {
     private final PostValidator postValidator;
     private final CategoryRepository categoryRepository;
     private final BoardRepository boardRepository;
+    private final TagRepository tagRepository;
 
     // Create
     @Transactional
@@ -64,11 +64,28 @@ public class PostService {
 
             // 기존 엔티티의 필드만 변경 (Dirty Checking으로 자동 반영)
             post.update(dto.getTitle(), dto.getContent(), category, dto.getPostStatus());
-            // 만약 카테고리도 수정 가능하게 하려면 post.setCategory(category) 등을 추가
+
+            // 기존 태그 관계 초기화
+            post.getPostTags().clear();
         } else {
             // [CASE: 신규] ID가 없으면 새로 생성
             post = dto.toEntity(category, board, writer);
             post = postRepository.save(post);
+        }
+
+        // 태그
+        if (dto.getTags() != null && !dto.getTags().isEmpty()) {
+            for (String tagName : dto.getTags()) {
+                Tag tag = tagRepository.findByName(tagName)
+                        .orElseGet(() -> tagRepository.save(Tag.builder().name(tagName).build()));
+
+                // 중간 엔티티 생성 및 Post에 추가
+                PostTag postTag = PostTag.builder()
+                        .post(post)
+                        .tag(tag)
+                        .build();
+                post.addPostTag(postTag);
+            }
         }
 
         return post.getId();
@@ -99,6 +116,7 @@ public class PostService {
             case "title" -> postRepository.findByTitle(board, keyword, status, pageable);
             case "nickname" -> postRepository.findByNickname(board, keyword, status, pageable);
             case "tc" -> postRepository.findByTitleOrContent(board, keyword, status, pageable);
+            case "tag" -> postRepository.findByTagName(board.getId(), keyword, status, pageable);
             default -> getNormalList(boardId, categoryId, status, pageable);
         };
         return posts.map(PostListResponse::new);
@@ -134,6 +152,10 @@ public class PostService {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new PostNotFoundException(id, boardCode));
 
+        List<String> tagNames = post.getPostTags().stream()
+                .map(postTag -> postTag.getTag().getName())
+                .collect(Collectors.toList());
+
         // 엔티티를 바로 RequestDTO로 변환해서 반환
         return PostRequestDTO.builder()
                 .id(post.getId())
@@ -142,6 +164,7 @@ public class PostService {
                 .categoryId(post.getCategory() != null ? post.getCategory().getId() : null)
                 .postStatus(post.getPostStatus())
                 .pinned(post.isPinned())
+                .tags(tagNames)
                 .build();
     }
 
@@ -164,6 +187,13 @@ public class PostService {
                 .stream()
                 .map(PostListResponse::new)
                 .collect(Collectors.toList());
+    }
+
+
+
+    // 태그
+    public List<String> getTagsByBoardId(Long boardId) {
+        return tagRepository.findAllTagNamesByBoardId(boardId);
     }
 
 }

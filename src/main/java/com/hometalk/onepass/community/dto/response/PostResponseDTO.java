@@ -4,6 +4,9 @@ import com.hometalk.onepass.community.entity.Post;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter @Setter
 @NoArgsConstructor
@@ -17,7 +20,7 @@ public class PostResponseDTO {
     private Long categoryId;
     private String categoryName;
     private String categoryCode;
-    //private List<String> tags;
+    private List<String> tags;
     private LocalDateTime createdAt;
     private int viewCount;
     private int commentCount;
@@ -42,12 +45,26 @@ public class PostResponseDTO {
         this.title = post.getTitle();
         this.content = post.getContent();
         this.pinned = post.isPinned();
-        this.boardName = post.getCategory().getBoard().getName();
-        this.categoryId = post.getCategory().getId();
-        this.categoryName = post.getCategory().getName();
-        this.categoryCode = post.getCategory().getCode();
+
+        if (post.getCategory() != null) {
+            this.categoryId = post.getCategory().getId();
+            this.categoryName = post.getCategory().getName();
+            this.categoryCode = post.getCategory().getCode();
+
+            // 종속 관계를 안전하게 연결
+            if (post.getCategory().getBoard() != null) {
+                this.boardName = post.getCategory().getBoard().getName();
+            }
+        }
+
         this.writer = post.getWriter().getNickname();
-        //this.tags = post.getTags().stream().map(tag -> tag.getName()).collect(Collectors.toList());
+        if (post.getPostTags() != null && !post.getPostTags().isEmpty()) {
+            this.tags = post.getPostTags().stream()
+                    .map(pt -> pt.getTag().getName())
+                    .collect(Collectors.toList());
+        } else {
+            this.tags = new ArrayList<>(); // null 대신 빈 리스트
+        }
         this.createdAt = post.getCreatedAt();
         this.isDeleted = (post.getDeletedAt() != null);
         this.viewCount = post.getViewCount();

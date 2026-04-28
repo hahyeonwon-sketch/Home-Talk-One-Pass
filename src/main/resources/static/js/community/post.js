@@ -128,8 +128,6 @@ function updateCharCount() {
     }
 }
 
-
-
 // 임시저장 실행
 function saveTemp() {
     const categoryElement = document.getElementById('categoryId');
@@ -371,4 +369,63 @@ function updateStatus(postId, status) {
         if (res.ok) alert("상태가 변경되었습니다.");
         else alert("오류가 발생했습니다.");
     });
+}
+
+/* ================================================
+    [6] 태그
+=================================================== */
+const tagInput = document.querySelector('#tagInput');
+const tagList = document.querySelector('#tag-list');
+const hiddenTags = document.querySelector('#hidden-tags');
+let tags = window.initialTags || [];
+
+document.addEventListener('DOMContentLoaded', () => {
+    // 수정 모드 - 기존 태그 보여줌
+    if (tags.length > 0) {
+        renderTags();
+    }
+});
+
+tagInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+        e.preventDefault(); // 폼 제출 방지
+        const tagName = tagInput.value.trim();
+
+        if (tagName.length > 15) {
+            alert("태그는 최대 20자까지만 입력 가능합니다.");
+            return;
+        }
+
+        if (tagName && !tags.includes(tagName)) {
+            tags.push(tagName);
+            renderTags();
+        }
+        tagInput.value = '';
+        return false;
+    }
+});
+
+function renderTags() {
+    tagList.innerHTML = '';
+    hiddenTags.innerHTML = '';
+
+    tags.forEach((tag, index) => {
+        // 1. 화면 표시용 배지 생성
+        const span = document.createElement('span');
+        span.className = 'tag-badge';
+        span.innerHTML = `${tag} <i class="remove-tag" onclick="removeTag(${index})">&times;</i>`;
+        tagList.appendChild(span);
+
+        // 2. 서버 전송용 hidden input 생성 (name="tags"로 맞춰야 DTO로 들어감)
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'tags';
+        input.value = tag;
+        hiddenTags.appendChild(input);
+    });
+}
+
+function removeTag(index) {
+    tags.splice(index, 1);
+    renderTags();
 }

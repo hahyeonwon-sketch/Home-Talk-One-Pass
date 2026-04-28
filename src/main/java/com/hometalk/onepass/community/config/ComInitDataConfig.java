@@ -2,8 +2,10 @@ package com.hometalk.onepass.community.config;
 
 import com.hometalk.onepass.community.entity.Board;
 import com.hometalk.onepass.community.entity.Category;
+import com.hometalk.onepass.community.entity.Tag;
 import com.hometalk.onepass.community.repository.BoardRepository;
 import com.hometalk.onepass.community.repository.CategoryRepository;
+import com.hometalk.onepass.community.repository.TagRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -18,6 +20,7 @@ public class ComInitDataConfig implements CommandLineRunner {
 
     private final BoardRepository boardRepository;
     private final CategoryRepository categoryRepository;
+    private final TagRepository tagRepository;
 
     @Override
     public void run(String... args) throws Exception {
@@ -31,7 +34,6 @@ public class ComInitDataConfig implements CommandLineRunner {
 
             // 2. 생성된 게시판 객체(square, market)를 사용하여 Category 연결
             // 광장 카테고리
-            categoryRepository.save(Category.builder().name("전체").code("all").board(square).build());
             categoryRepository.save(Category.builder().name("자유").code("free").board(square).build());
             categoryRepository.save(Category.builder().name("토론").code("debate").board(square).build());
 
@@ -39,6 +41,11 @@ public class ComInitDataConfig implements CommandLineRunner {
             categoryRepository.save(Category.builder().name("분실물").code("lost").board(market).build());
 
             categoryRepository.save(Category.builder().name("설문").code("survey").board(talk).build());
+
+            if (tagRepository.count() == 0) {
+                List<String> tagNames = List.of("공지", "맛집", "질문", "정보", "이벤트", "꿀팁", "운동");
+                tagNames.forEach(name -> tagRepository.save(Tag.builder().name(name).build()));
+            }
 
             log.info("초기 데이터 생성 완료");
         } else {
