@@ -308,14 +308,12 @@
 .cal-badge-multi.multi-mid {
     border-radius: 0;
     margin: 0;
-    opacity: 0.85;
     min-height: 22px;
 }
 
 .cal-badge-multi.multi-end {
     border-radius: 0 4px 4px 0;
     margin: 0;
-    opacity: 0.85;
     min-height: 22px;
 }
 

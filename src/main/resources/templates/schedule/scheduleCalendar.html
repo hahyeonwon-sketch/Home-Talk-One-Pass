@@ -223,7 +223,7 @@
                 </div>
                 <div class="modal-body">
                     <div class="modal-bottom" style="flex-direction:column; gap:8px;">
-                        <button class="repeat-delete-btn" onclick="confirmRepeatDelete('this')">이 일정만 삭제</button>
+                        <button class="repeat-delete-btn this" onclick="confirmRepeatDelete('this')">이 일정만 삭제</button>
                         <button class="repeat-delete-btn danger" onclick="confirmRepeatDelete('after')">이 일정 이후 전체 삭제</button>
                         <button class="repeat-delete-btn" onclick="closeRepeatDeleteModal()">취소</button>
                     </div>
@@ -555,10 +555,10 @@
             badge.textContent = s.title;
             badge.classList.add('multi-start');
         } else if (isLast) {
-            badge.textContent = '';
+            badge.innerHTML = '&nbsp;';
             badge.classList.add('multi-end');
         } else {
-            badge.textContent = '';
+            badge.innerHTML = '&nbsp;';
             badge.classList.add('multi-mid');
         }
 
