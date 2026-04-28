@@ -543,11 +543,13 @@ function resetUpload() {
     sortKey      = null;
     sortDir      = 1;
 
-    document.getElementById('uploadZone').style.display      = '';
+    document.getElementById('uploadZone').style.display       = '';
     document.getElementById('uploadDoneBanner').style.display = 'none';
-    document.getElementById('filterBar').style.display       = 'none';
-    document.getElementById('tableSection').style.display    = 'none';
-    document.getElementById('fileInput').value               = '';
+    document.getElementById('filterBar').style.display        = 'none';
+    document.getElementById('tableSection').style.display     = 'block';  // ← none → block
+    document.getElementById('tableBody').innerHTML            =
+        `<tr><td colspan="7" style="text-align:center;padding:36px;color:#aaa;">파일을 업로드하면 여기에 표시됩니다.</td></tr>`;
+    document.getElementById('fileInput').value                = '';
 }
 
 /* ================================================================
