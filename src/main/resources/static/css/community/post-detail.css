@@ -34,6 +34,10 @@
     line-height: 1.8;
     color: #334155;
     font-size: 1.1rem;
+    /* \n을 브라우저가 줄바꿈으로 인식 */
+    white-space: pre-wrap;
+    /* 단어가 너무 길면 자동 줄바꿈 */
+    word-wrap: break-word;
 }
 
 .page-body p { margin-bottom: 1.5rem; }

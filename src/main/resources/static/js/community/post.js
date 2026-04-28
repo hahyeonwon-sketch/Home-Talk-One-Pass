@@ -9,7 +9,30 @@ document.addEventListener('DOMContentLoaded', () => {
         titleInput.addEventListener('input', updateCharCount);
     }
 
-    // 2. 임시저장 목록 모달 열기
+    // 2. Quill 에디터 초기화
+    if (document.getElementById('editor')) {
+        initQuillEditor();
+    }
+
+    // 2-1. 폼 제출 시 Quill 내용 처리
+    const postForm = document.getElementById('postForm');
+    if (postForm) {
+        postForm.addEventListener('submit', function(e) {
+            // 에디터 내용을 hidden input에 담기
+            const contentInput = document.getElementById('content');
+            if (quill && contentInput) {
+                const html = quill.root.innerHTML;
+                if (html === '<p><br></p>') {
+                    alert('내용을 입력해주세요.');
+                    e.preventDefault();
+                    return;
+                }
+                contentInput.value = html;
+            }
+        });
+    }
+
+    // 3. 임시저장 목록 모달 열기
     const btnLoadTemp = document.getElementById('btnLoadTemp');
     if (btnLoadTemp) {
         btnLoadTemp.addEventListener('click', function() {
@@ -18,7 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 3. 모달 닫기
+    // 4. 모달 닫기
     const closeBtn = document.querySelector('.close-modal');
     if (closeBtn) {
         closeBtn.onclick = () => {
@@ -26,20 +49,76 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    // 4. 삭제 버튼 (상세 페이지)
+    // 5. 삭제 버튼 (상세 페이지)
     const btnDelete = document.getElementById('btn-delete');
     if (btnDelete) {
         btnDelete.addEventListener('click', deletePost);
     }
 
-    // 5. 임시저장 실행 버튼 (작성 페이지)
+    // 6. 임시저장 실행 버튼 (작성 페이지)
     const btnSaveTemp = document.getElementById('btnSaveTemp');
     if (btnSaveTemp) {
         btnSaveTemp.addEventListener('click', saveTemp);
     }
 });
+
 /* ================================================
-    [2] 게시글 작성 & 임시저장 기능
+    [2] Quill 에디터 설정 & 이미지 업로드
+=================================================== */
+function initQuillEditor() {
+    quill = new Quill('#editor', {
+        theme: 'snow',
+        modules: {
+            toolbar: {
+                container: [
+                    ['bold', 'italic', 'underline'],
+                    [{ 'align': [] }],
+                    [{ 'size': ['small', false, 'large', 'huge'] }],
+                    [{ 'color': [] }],
+                    ['link', 'image']
+                ],
+                handlers: {
+                    image: imageHandler // 이미지 업로드 커스텀 핸들러
+                }
+            }
+        }
+    });
+}
+
+function imageHandler() {
+    const input = document.createElement('input');
+    input.setAttribute('type', 'file');
+    input.setAttribute('accept', 'image/*');
+    input.click();
+
+    input.onchange = async () => {
+        const file = input.files[0];
+        const formData = new FormData();
+        formData.append('file', file);
+
+        // 기존 코드에 있는 CSRF 토큰 활용
+        const token = document.querySelector('meta[name="_csrf"]')?.content;
+        const header = document.querySelector('meta[name="_csrf_header"]')?.content;
+
+        try {
+            const res = await fetch('/notice/image-upload', { // 경로 본인 프로젝트에 맞게 수정
+                method: 'POST',
+                headers: { [header]: token },
+                body: formData
+            });
+            const data = await res.json();
+
+            const range = quill.getSelection();
+            quill.insertEmbed(range.index, 'image', data.url);
+        } catch (err) {
+            console.error("이미지 업로드 실패:", err);
+        }
+    };
+}
+
+
+/* ================================================
+    [3] 게시글 작성 & 임시저장 기능
 =================================================== */
 // 제목 글자 수 업데이트
 function updateCharCount() {
@@ -49,17 +128,7 @@ function updateCharCount() {
     }
 }
 
-        /*// 게시글 수정 시 카테고리 변화
-        document.addEventListener('DOMContentLoaded', function() {
-            const categorySelect = document.querySelector('.category-select');
-            const hiddenCategoryCode = document.querySelector('#hiddenCategoryCode');
 
-            // 카테고리 선택이 바뀔 때마다 실행
-            categorySelect.addEventListener('change', function() {
-                const selectedText = categorySelect.options[categorySelect.selectedIndex].text;
-                hiddenCategoryCode.value = selectedText;
-            });
-        });*/
 
 // 임시저장 실행
 function saveTemp() {
@@ -187,7 +256,7 @@ function submitPost() {
 }
 
 /* ================================================
-    [3] 게시글 상세 & 삭제 기능
+    [4] 게시글 상세 & 삭제 기능
 =================================================== */
 // 취소 버튼 컨펌
 function confirmCancel() {
@@ -210,33 +279,39 @@ function deletePost() {
 
 // 상단 고정
 function togglePin(postId) {
-    // 1. 확인 메시지
-    if (!confirm("이 게시글을 상단 고정하시겠습니까?")) return;
+    const pinBtn = document.getElementById('pinBtn');
+    const isCurrentlyPinned = pinBtn.classList.contains('active');
+    const actionText = isCurrentlyPinned ? "고정 해제" : "상단 고정";
 
-    // 1. 메타 태그에서 CSRF 토큰과 헤더 이름 가져오기
-    const token = document.querySelector('meta[name="_csrf"]').content;
-    const header = document.querySelector('meta[name="_csrf_header"]').content;
+    if (!confirm(`이 게시글을 ${actionText}하시겠습니까?`)) return;
 
-    // 2. 서버로 상태 변경 요청 (Fetch API 사용)
+    const tokenTag = document.querySelector('meta[name="_csrf"]');
+    const headerTag = document.querySelector('meta[name="_csrf_header"]');
+
+    if (!tokenTag || !headerTag) {
+        console.error("CSRF 태그를 찾을 수 없습니다. 로그인이 되어 있나요?");
+        return;
+    }
+
+    const token = tokenTag.content;
+    const header = headerTag.content;
+
     fetch(`/hometop/api/posts/${postId}/pin`, {
-            method: 'POST',
-            headers: {
-                "Content-Type": "application/json",
-                [header]: token
-            }
-        })
+        method: 'POST',
+        headers: {
+            "Content-Type": "application/json",
+            [header]: token
+        }
+    })
         .then(response => {
-            if (response.ok) {
-                alert("상태가 변경되었습니다.");
-                location.reload(); // 성공 시 화면 새로고침하여 바뀐 상태 반영
-            } else {
-                return response.json().then(err => { throw new Error(err.message); });
-            }
-        })
-        .catch(err => {
-            console.error(err);
-            alert("고정 처리 중 오류가 발생했습니다: " + err.message);
-        });
+        if (response.ok) {
+            alert(`${actionText} 되었습니다.`);
+            location.reload(); // UI 업데이트를 위해 새로고침
+        } else {
+            alert("처리 중 오류가 발생했습니다.");
+        }
+    })
+        .catch(err => console.error("Error:", err));
 }
 
 // 숨김 처리
@@ -271,11 +346,29 @@ function hidePost(postId) {
 }
 
 /* ================================================
-    [4] 목록 조회 & 페이징 기능
+    [5] 목록 조회 & 페이징 기능
 =================================================== */
 // 페이지 이동
 function changePage(pageNumber) {
     const urlParams = new URLSearchParams(window.location.search);
     urlParams.set('page', pageNumber);
     location.href = window.location.pathname + "?" + urlParams.toString();
+}
+
+// 상태 변경 함수 (post.js)
+function updateStatus(postId, status) {
+    const token = document.querySelector('meta[name="_csrf"]')?.content;
+    const header = document.querySelector('meta[name="_csrf_header"]')?.content;
+
+    fetch(`/hometop/api/posts/${postId}/status`, {
+        method: 'POST',
+        headers: {
+            "Content-Type": "application/json",
+            [header]: token
+        },
+        body: JSON.stringify({ status: status })
+    }).then(res => {
+        if (res.ok) alert("상태가 변경되었습니다.");
+        else alert("오류가 발생했습니다.");
+    });
 }
