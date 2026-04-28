@@ -25,6 +25,7 @@ body {
     background-color: #ffffff;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* 하단 가벼운 그림자 효과 */
 }
+
 .site-header .brand {
     /*font-size: 1.25rem; font-weight: bold; color: #fff; text-decoration: none;*/
 
@@ -285,3 +286,4 @@ body {
 .book-table tbody tr:hover {
     background-color: #eef1ff;
 }
+

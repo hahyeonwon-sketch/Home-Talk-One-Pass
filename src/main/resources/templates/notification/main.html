@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 
 <head th:replace="~{fragments/head :: head(pageTitle='알람')}"></head>
-<body>
+    <body>
     <div class="main-layout" style="display: flex;">
 
         <!-- 1. 왼쪽 사이드바 -->
@@ -18,33 +18,69 @@
 
             <!-- 메인 콘텐츠 -->
             <main class="content">
-                <div class="container">
-                    <h1 class="page-title">알람 목록</h1>
+                <div class="container" style="min-width: 80vh">
+
+                    <h1 class="page-title" style="margin: 0;">알림</h1>
+<!--                    <div style="display: flex; align-items: center; gap: 15px;">-->
+<!--                        <a class="btn" href="#" th:href="@{/index}">포레스트리움</a>-->
+<!--                        <h1 class="page-title" style="margin: 0;">알림</h1>-->
+<!--                    </div>-->
 
                     <!-- 알람이 없을 때 -->
                     <p class="empty-msg-notification" th:if="${#lists.isEmpty(isNotReadAlarmList)}">
                         새로운 알람이 없습니다.
                     </p>
 
-                    <!--알람이 있을 때-->
+                        <!--알람이 있을 때-->
                     <table class="book-table" th:unless="${#lists.isEmpty(isNotReadAlarmList)}">
                         <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>모듈 이름</th>
-                            <th>알람 타입</th>
-                            <th>메세지</th>
-                            <th>생성 시간</th>
-                        </tr>
+<!--                            <tr>-->
+<!--                                <th>알림</th>-->
+<!--                            </tr>-->
+                            <tr>
+
+                                <th style="padding-left: 35px">
+                                    <!-- 1. 기존 알림 텍스트 -->
+                                    <span th:text="'안 읽은 알림 ' + ${not #lists.isEmpty(isNotReadAlarmList) ?
+                                                                                #lists.size(isNotReadAlarmList) : 0} + '건'"> '안 읽은 알림' 0건 </span>
+                                </th>
+                                <th style="display: flex; gap: 10px; padding-left: 400px">
+                                    <!-- 2. 버튼 영역 -->
+                                    <a class="btn" href="#" th:href="@{/alarm/readAll}" style="padding: 5px 10px; font-size: 0.8rem;">Prev</a>
+                                    <a class="btn" href="#" th:href="@{/alarm/deleteAll}" style="padding: 5px 10px; font-size: 0.8rem;">Next</a>
+                                </th>
+                            </tr>
+
                         </thead>
                         <tbody>
-                        <tr th:each="alarm : ${isNotReadAlarmList}">
-                            <td th:text="${alarm.id}">1</td>
-                            <td th:text="${alarm.moduleName}">모듈 이름</td>
-                            <td th:text="${alarm.categoryType}">알람 타입</td>
-                            <td th:text="${alarm.message}">메세지</td>
-                            <td th:text="${#temporals.format(alarm.createdAt, 'yyyy-MM-dd HH:mm:ss')} ?: '-'">생성 시간</td>
-                        </tr>
+                            <tr th:each="alarm : ${isNotReadAlarmList}">
+                                <td th:with="
+                                    now=${#temporals.createNow()},
+                                    diffMinutes=${T(java.time.temporal.ChronoUnit).MINUTES.between(alarm.createdAt, now)},
+                                    diffHours=${T(java.time.temporal.ChronoUnit).HOURS.between(alarm.createdAt, now)}">
+
+                                    <div style="display: flex; gap: 15px; padding-left: 20px">
+
+                                        <span th:text="${alarm.getAlarmCategory().getTitle()}"></span>
+
+                                        <div>
+                                            <span th:if="${diffMinutes < 1}">방금 전</span>
+                                            <span th:if="${diffMinutes >= 1 && diffHours < 1}" th:text="|${diffMinutes} 분 전|"></span>
+                                            <span th:if="${diffHours >= 1 && diffHours < 24}" th:text="|${diffHours} 시간 전|"></span>
+                                            <span th:if="${diffHours >= 24}" th:text="${#temporals.format(alarm.createdAt, 'MM-dd')}"></span>
+                                        </div>
+                                    </div>
+
+                                    <div style="padding-left: 20px">
+                                        <span th:text="|'${alarm.getAlarmCategory().getTitle()}' ${alarm.getMessage()}|"></span>
+                                    </div>
+
+                                </td>
+                                <td style="padding-left: 400px">
+                                    <a class="btn" href="#" th:href="@{/index}">View Details</a>
+                                </td>
+                            </tr>
+
                         </tbody>
                     </table>
 
@@ -52,11 +88,11 @@
 <!--                <h1>알람 홈 화면 입니다.ㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇ</h1>-->
             </main>
 
-            <!-- 하단 푸터 삽입 -->
+                <!-- 하단 푸터 삽입 -->
             <footer th:replace="~{fragments/footer :: footer}"></footer>
 
         </div>
     </div>
 
-</body>
+    </body>
 </html>

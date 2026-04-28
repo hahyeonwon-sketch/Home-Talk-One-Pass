@@ -1,6 +1,8 @@
 package com.hometalk.onepass.dashboard.dto.notification.response;
 
 import com.hometalk.onepass.dashboard.entity.notification.NotificationCommon;
+import com.hometalk.onepass.dashboard.enums.AlarmCategory;
+import com.hometalk.onepass.dashboard.enums.AlarmType;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -11,8 +13,8 @@ import java.time.LocalDateTime;
 public class NotificationCommonResponseDto {
 
     private Long id;
-    private String moduleName;         // 알림 발생 모듈
-    private String categoryType;      // 모듈별 세부 분류
+    private AlarmCategory alarmCategory;         // 알림 발생 카테고리
+    private AlarmType alarmType;      // 알림 타입 분류
     private Boolean isRead;            // 읽음 여부 상태
     private String message;            // 메세지 내용
     private LocalDateTime createdAt;
@@ -23,8 +25,8 @@ public class NotificationCommonResponseDto {
     public static NotificationCommonResponseDto from(NotificationCommon notification) {
         return NotificationCommonResponseDto.builder()
                 .id(notification.getId())
-                .moduleName(notification.getModuleName())
-                .categoryType(notification.getCategoryType())
+                .alarmCategory(notification.getAlarmCategory())
+                .alarmType(notification.getAlarmType())
                 .isRead(notification.getIsRead())
                 .message(notification.getMessage())
                 .createdAt(notification.getCreatedAt())

@@ -16,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Component
-@Order(1)
 @RequiredArgsConstructor
 public class DataInitializer implements CommandLineRunner {
 

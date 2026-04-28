@@ -3,6 +3,7 @@ package com.hometalk.onepass.dashboard.entity.notification;
 import com.hometalk.onepass.auth.entity.User;
 import com.hometalk.onepass.common.entity.BaseTimeEntity;
 import com.hometalk.onepass.dashboard.enums.AlarmCategory;
+import com.hometalk.onepass.dashboard.enums.AlarmType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -21,16 +22,16 @@ public class NotificationCommon extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-
-    @Column(name = "module_name", nullable = false, length = 50) // 알림 발생 모듈
-    private String moduleName;
-
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;          // 등록한 회원 ID FK
 
-    @Column(name = "category_alarm", nullable = false, length = 50)
-    private String categoryType;      // 모듈별 세부 분류
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private AlarmCategory alarmCategory;    // 알람 카테고리
+
+    @Enumerated(EnumType.STRING)
+    private AlarmType alarmType;      // 알람 타입
 
     @Column(nullable = false, length = 500)
     private String message;             // 알림 내용 메시지
