@@ -1,10 +1,4 @@
-:root {
-    --main-navy: #032154;
-    --sub-blue: #3C6ABC;
-    --point-coral: #EB6E57;
-    --text-dark: #170124;
-    --border-color: #E2E8F0;
-}
+/* noticeList.css */
 
 /* ── 상단 헤더 ─────────────────────────────────────────────────────────────── */
 .notice-header {
@@ -16,7 +10,7 @@
 .notice-header-title {
     font-size: 30px;
     font-weight: 700;
-    color: var(--main-navy);
+    color: var(--color-main);
     margin-bottom: 4px;
 }
 
@@ -33,7 +27,7 @@
 }
 
 .btn-write {
-    background: var(--main-navy);
+    background: var(--color-main);
     color: white;
     border: none;
     border-radius: 8px;
@@ -47,7 +41,7 @@
 }
 
 .btn-write:hover {
-    background: var(--sub-blue);
+    background: var(--color-sub);
     transform: translateY(-1px);
 }
 
@@ -59,23 +53,24 @@
 }
 
 .notice-list thead tr {
-    border-bottom: 2px solid var(--main-navy);
+    border-bottom: 2px solid var(--color-main);
 }
 
 .notice-list th {
     padding: 14px 10px;
-    color: var(--main-navy);
+    color: var(--color-main);
     font-weight: 600;
     font-size: 13px;
     text-align: center;
     background: white;
 }
 
-.notice-list th:nth-child(1) { width: 10%; }
-.notice-list th:nth-child(2) { width: auto; }
-.notice-list th:nth-child(3) { width: 12%; }
-.notice-list th:nth-child(4) { width: 12%; }
-.notice-list th:nth-child(5) { width: 8%; }
+.notice-list th:nth-child(1) { width: 5%; }   /* 고정 */
+.notice-list th:nth-child(2) { width: 11%; }  /* 분류 */
+.notice-list th:nth-child(3) { width: auto; } /* 제목 */
+.notice-list th:nth-child(4) { width: 14%; }  /* 작성일시 */
+.notice-list th:nth-child(5) { width: 14%; }  /* 수정일시 */
+.notice-list th:nth-child(6) { width: 8%; }   /* 조회수 */
 
 .notice-list td {
     padding: 0 10px;
@@ -87,23 +82,24 @@
     height: 52px;
 }
 
+/* ── 고정 아이콘 셀 ────────────────────────────────────────────────────────── */
+.pin-cell {
+    text-align: center;
+    vertical-align: middle;
+    padding:10px;
+}
+
 /* ── 제목 셀 ───────────────────────────────────────────────────────────────── */
 .title-cell { text-align: left !important; }
 
 .title-cell a {
-    color: var(--main-navy);
+    color: var(--color-main);
     font-size: 15px;
     font-weight: 600;
     text-decoration: none;
 }
 
-
 .notice-list tbody tr:hover td { background: #fafbff; cursor: pointer; }
-
-/* ── 상단고정 강조 ─────────────────────────────────────────────────────────── */
-.pinned-row td { background: #f8f9ff; }
-.pinned-row:hover td { background: #f0f3ff !important; }
-.pin-icon { font-size: 12px; margin-right: 4px; }
 
 /* ── 빈 행 ─────────────────────────────────────────────────────────────────── */
 .empty-row td {
@@ -135,6 +131,11 @@
     font-size: 13px;
 }
 
+.pagination a.active-page {
+    color: var(--color-main);
+    font-weight: 700;
+}
+
 /* ── 검색 ──────────────────────────────────────────────────────────────────── */
 .notice-search {
     display: flex;
@@ -144,27 +145,61 @@
     right: 0;
 }
 
-.notice-search input {
+.select-wrapper select.search-select {
+    padding: 8px 10px;
     border: 1px solid var(--border-color);
     border-radius: 8px;
-    padding: 8px 14px;
     font-size: 13px;
+    color: #64748b;
     outline: none;
-    width: 200px;
-    transition: 0.2s;
-}
-
-.notice-search input:focus { border-color: var(--main-navy); }
-
-.btn-search {
-    background: var(--main-navy);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 8px 14px;
     cursor: pointer;
-    font-size: 13px;
-    transition: 0.2s;
+    background: white;
+    min-width: unset;
+    width: auto;
 }
 
-.btn-search:hover { background: #051a3a; }
+.select-wrapper select.search-select:focus {
+    border-color: var(--color-main);
+}
+
+.search-input-container {
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+    background: white;
+}
+
+.search-input-container:focus-within {
+    border-color: var(--color-main);
+}
+
+.search-input {
+    border: none;
+    outline: none;
+    padding: 8px 12px;
+    font-size: 13px;
+    width: 180px;
+}
+
+.btn-search-submit {
+    background: none;
+    border: none;
+    padding: 6px 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+.btn-reset-icon {
+    padding: 6px 8px;
+    display: flex;
+    align-items: center;
+    border-left: 1px solid var(--border-color);
+}
+
+.btn-reset-icon:hover svg,
+.btn-search-submit:hover svg {
+    stroke: var(--color-main);
+}

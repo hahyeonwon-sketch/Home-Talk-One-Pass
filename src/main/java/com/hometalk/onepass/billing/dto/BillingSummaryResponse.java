@@ -32,6 +32,7 @@ public class BillingSummaryResponse {
     private final BigDecimal    totalAmount;
     private final BillingStatus status;
     private final String        upsertType;      // "INSERT" | "UPDATE" (미리보기 전용)
+    private final String        lastUploadType;  // "INSERT" / "UPDATE" / null
 
     // 입주민/업로드 DB 조회용
     public static BillingSummaryResponse from(Billing billing) {
@@ -45,7 +46,9 @@ public class BillingSummaryResponse {
                 .dueDate(billing.getDueDate())
                 .totalAmount(billing.getTotalAmount())
                 .status(billing.getStatus())
+                .lastUploadType(billing.getLastUploadType())
                 .build();
+
     }
 
     // 관리자 미납 목록용 (입주민명 포함)
@@ -61,6 +64,8 @@ public class BillingSummaryResponse {
                 .dueDate(billing.getDueDate())
                 .totalAmount(billing.getTotalAmount())
                 .status(billing.getStatus())
+                .lastUploadType(billing.getLastUploadType())
                 .build();
     }
+
 }

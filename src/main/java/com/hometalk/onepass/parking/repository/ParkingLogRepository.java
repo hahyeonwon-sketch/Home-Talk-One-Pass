@@ -2,6 +2,7 @@ package com.hometalk.onepass.parking.repository;
 
 import com.hometalk.onepass.auth.entity.Household;
 import com.hometalk.onepass.parking.entity.ParkingLog;
+import com.hometalk.onepass.parking.entity.VisitReservation;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
@@ -56,4 +57,15 @@ public interface ParkingLogRepository extends JpaRepository<ParkingLog, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT p FROM ParkingLog p WHERE p.parkingId = :id")
     Optional<ParkingLog> findByIdWithLock(@Param("id") Long id);
+
+    @Query("SELECT p FROM ParkingLog p WHERE p.household.id = :householdId " +
+            "AND YEAR(p.entryTime) = :year AND MONTH(p.entryTime) = :month " +
+            "AND p.deletedAt IS NULL ORDER BY p.entryTime DESC")
+    List<ParkingLog> findByHouseholdAndYearAndMonth(
+            @Param("householdId") Long householdId,
+            @Param("year") int year,
+            @Param("month") int month);
+
+
+    Optional<ParkingLog> findByReservationAndStatus(VisitReservation reservation, ParkingLog.ParkingStatus status);
 }

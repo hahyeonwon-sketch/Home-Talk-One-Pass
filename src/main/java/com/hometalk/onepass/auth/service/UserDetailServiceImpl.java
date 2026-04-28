@@ -24,6 +24,10 @@ public class UserDetailServiceImpl implements UserDetailsService {
         LocalAccount account = localAccountRepository.findByLoginId(loginId)
                 .orElseThrow(() -> new UsernameNotFoundException("아이디를 찾을 수 없습니다: " + loginId));
 
+        if (account.getUser().isDeleted()) {
+            throw new UsernameNotFoundException("탈퇴한 계정입니다: " + loginId);
+        }
+
         // username = loginId로 설정
         return User.builder()
                 .username(account.getLoginId())
