@@ -23,7 +23,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -34,6 +36,30 @@ public class BillingService {
     private final BillingDetailRepository billingDetailRepository;
     private final BillingLogRepository    billingLogRepository;
     private final HouseholdRepository     householdRepository;
+
+    // ─────────────────────────────────────────────
+    // 대시보드 - 관리자 특정 월의 '미납 총액' 합계
+    // ─────────────────────────────────────────────
+    public Map<String, Object> getAdminDashboardSummary() {
+        // 1. 현재 날짜 기준 부과월 계산 (예: 2026-02)
+        String currentMonth = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM"));
+
+        // 2. 미납 세대 수 조회 (기존 메서드 활용)
+        long unpaidCount = billingRepository.countByBillingMonthAndStatus(currentMonth, BillingStatus.UNPAID);
+
+        // 3. 미납 총액 조회 (신규 메서드 활용)
+        Long unpaidSum = billingRepository.sumTotalAmountByBillingMonthAndStatus(currentMonth, BillingStatus.UNPAID);
+
+        // null 방지 처리
+        long totalUnpaidAmount = (unpaidSum != null) ? unpaidSum : 0L;
+
+        // 4. 결과 맵핑 (DTO 생성이 귀찮다면 Map으로 우선 전달 가능)
+        return Map.of(
+                "billingMonth", currentMonth.substring(5, 7) + "월", // "02월"
+                "unpaidHouseholds", unpaidCount,
+                "totalUnpaidAmount", totalUnpaidAmount
+        );
+    }
 
     // ─────────────────────────────────────────────
     // AdminBillingStats
