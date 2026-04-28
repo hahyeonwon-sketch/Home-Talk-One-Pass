@@ -47,13 +47,19 @@
     --radius-xl:  4px;
 }
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
 body {
     font-family: 'Segoe UI', Arial, sans-serif;
-    background: #ffffff !important;
+    background-color: white;
     color: var(--color-text);
     line-height: 1.6;
+    min-height: 100vh;
+    font-size: 14px;
 }
 
 .wrapper {
@@ -74,13 +80,13 @@ body {
     vertical-align: middle;
 }
 .layout { display: flex; min-height: 100vh; }
-.main-content {
-    padding: 28px 32px;
-    background: var(--color-bg);
-    min-height: 100vh;
+
+.container {
     max-width: 1400px;
-    width: 100%;
-    margin: 0 auto;
+    margin: 40px auto;
+    padding: 40px 40px 90px 40px;
+    background: #ffffff;
+    width: calc(100% - 40px);
 }
 
 /* ── 공통 버튼 ── */
