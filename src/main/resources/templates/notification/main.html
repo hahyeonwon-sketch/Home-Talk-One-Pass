@@ -21,65 +21,132 @@
                 <div class="container" style="min-width: 80vh">
 
                     <h1 class="page-title" style="margin: 0;">알림</h1>
-<!--                    <div style="display: flex; align-items: center; gap: 15px;">-->
-<!--                        <a class="btn" href="#" th:href="@{/index}">포레스트리움</a>-->
-<!--                        <h1 class="page-title" style="margin: 0;">알림</h1>-->
-<!--                    </div>-->
+
+                    <!--정렬 버튼 영역-->
+                    <div class="sort-bar">
+
+                        <span style="font-size: 13px;color: #64748b">정렬: </span>
+
+                            <!--최신순 sortBy = `id` / direction=`desc` page=0-->
+                        <a th:href="@{/customer(sortBy='id', direction='desc', page=0, searchType=${searchType}, keyword=${keyword}, rating=${rating})}"
+                           th:class="${sortBy == 'id'} ? 'sort-btn active' : 'sort-btn'">최신순</a>
+
+                            <!--이름순 sortBy = `customerName` / direction='asc'
+                                - ORDER BY  customer_name ASC -> 이름 가나다 오름차순
+                                - searchType-keyword-rating을 그대로 전달 -->
+                        <a th:href="@{/customer(sortBy='customerName', direction='asc', page=0, searchType=${searchType}, keyword=${keyword}, rating=${rating})}"
+                           th:class="${sortBy == 'customerName'} ? 'sort-btn active' : 'sort-btn'">이름순</a>
+
+                            <!--적립금순 sortBy ='reserves' / direction='desc' -->
+                        <a th:href="@{/customer(sortBy='reserves', direction='desc', page=0, searchType=${searchType}, keyword=${keyword}, rating=${rating})}"
+                           th:class="${sortBy == 'reserves'} ? 'sort-btn active' : 'sort-btn'">적립금순</a>
+                    </div>
 
                     <!-- 알람이 없을 때 -->
-                    <p class="empty-msg-notification" th:if="${#lists.isEmpty(isNotReadAlarmList)}">
+                    <p class="empty-msg-notification" th:if="${#lists.isEmpty(isNotReadAlarmList) && #lists.isEmpty(isReadAlarmList)}">
                         새로운 알람이 없습니다.
                     </p>
 
                         <!--알람이 있을 때-->
-                    <table class="book-table" th:unless="${#lists.isEmpty(isNotReadAlarmList)}">
+                    <table class="book-table" th:unless="${#lists.isEmpty(isNotReadAlarmList) && #lists.isEmpty(isReadAlarmList)}">
                         <thead>
-<!--                            <tr>-->
-<!--                                <th>알림</th>-->
-<!--                            </tr>-->
                             <tr>
 
                                 <th style="padding-left: 35px">
                                     <!-- 1. 기존 알림 텍스트 -->
                                     <span th:text="'안 읽은 알림 ' + ${not #lists.isEmpty(isNotReadAlarmList) ?
-                                                                                #lists.size(isNotReadAlarmList) : 0} + '건'"> '안 읽은 알림' 0건 </span>
+                                                                                isNotReadAlarmList.totalElements : 0} + '건'"> '안 읽은 알림' 0건 </span>
                                 </th>
                                 <th style="display: flex; gap: 10px; padding-left: 400px">
                                     <!-- 2. 버튼 영역 -->
-                                    <a class="btn" href="#" th:href="@{/alarm/readAll}" style="padding: 5px 10px; font-size: 0.8rem;">Prev</a>
-                                    <a class="btn" href="#" th:href="@{/alarm/deleteAll}" style="padding: 5px 10px; font-size: 0.8rem;">Next</a>
+
+                                    <!--이전버튼-->
+                                    <a th:href="@{/notification(
+                                        page=${isNotReadAlarmList.number - 1},
+                                        sortBy=${sortBy},
+                                        direction=${direction})}"
+                                       th:classappend="${isNotReadAlarmList.first} ? 'btn-disabled' : 'btn'"
+                                       style="padding: 5px 10px; font-size: 0.8rem;">Prev</a>
+
+                                    <!--다음버튼-->
+                                    <a th:href="@{/notification(
+                                        page=${isNotReadAlarmList.number + 1},
+                                        sortBy=${sortBy},
+                                        direction=${direction})}"
+                                       th:classappend="${isNotReadAlarmList.last} ? 'btn-disabled' : 'btn'"
+                                       style="padding: 5px 10px; font-size: 0.8rem;">Next</a>
                                 </th>
                             </tr>
 
                         </thead>
                         <tbody>
-                            <tr th:each="alarm : ${isNotReadAlarmList}">
-                                <td th:with="
-                                    now=${#temporals.createNow()},
-                                    diffMinutes=${T(java.time.temporal.ChronoUnit).MINUTES.between(alarm.createdAt, now)},
-                                    diffHours=${T(java.time.temporal.ChronoUnit).HOURS.between(alarm.createdAt, now)}">
+<!--                        th:each="alarm : ${isNotReadAlarmList}"-->
+                            <tr th:each="i : ${#numbers.sequence(0, isNotReadAlarmList.size - 1)}">
 
+                                <!-- 실제 데이터가 있는 경우 -->
+                                <td th:if="${i < isNotReadAlarmList.numberOfElements}"
+                                    th:with="
+                                   now=${#temporals.createNow()},
+                                   diffMinutes=${T(java.time.temporal.ChronoUnit).MINUTES.between(isNotReadAlarmList.content[i].getCreatedAt(), now)},
+                                   diffHours=${T(java.time.temporal.ChronoUnit).HOURS.between(isNotReadAlarmList.content[i].getCreatedAt(), now)},
+                                   diffDays=${T(java.time.temporal.ChronoUnit).DAYS.between(isNotReadAlarmList.content[i].getCreatedAt(), now)}">
+
+
+                                        <div style="display: flex; gap: 15px; padding-left: 20px">
+
+                                            <span th:text="${isNotReadAlarmList.content[i].getAlarmCategory().getTitle()}"></span>
+
+                                            <div>
+                                                <span th:if="${diffMinutes < 1}">방금 전</span>
+                                                <span th:if="${diffMinutes >= 1 && diffHours < 1}" th:text="|${diffMinutes} 분 전|"></span>
+                                                <span th:if="${diffHours >= 1 && diffHours < 24}" th:text="|${diffHours} 시간 전|"></span>
+                                                <span th:if="${diffHours >= 24}" th:text="|${diffDays} 일 전|"></span>
+                                            </div>
+                                        </div>
+
+                                        <div style="padding-left: 20px">
+                                            <span th:text="|'${isNotReadAlarmList.content[i].getAlarmCategory().getTitle()}' ${isNotReadAlarmList.content[i].getMessage()}|"></span>
+                                        </div>
+
+                                </td>
+
+                                <td th:if="${i >= isNotReadAlarmList.numberOfElements}">
                                     <div style="display: flex; gap: 15px; padding-left: 20px">
 
-                                        <span th:text="${alarm.getAlarmCategory().getTitle()}"></span>
+                                        <span>&nbsp;</span>
 
                                         <div>
-                                            <span th:if="${diffMinutes < 1}">방금 전</span>
-                                            <span th:if="${diffMinutes >= 1 && diffHours < 1}" th:text="|${diffMinutes} 분 전|"></span>
-                                            <span th:if="${diffHours >= 1 && diffHours < 24}" th:text="|${diffHours} 시간 전|"></span>
-                                            <span th:if="${diffHours >= 24}" th:text="${#temporals.format(alarm.createdAt, 'MM-dd')}"></span>
+                                            <span>&nbsp;</span>
+                                            <span>&nbsp;</span>
+                                            <span>&nbsp;</span>
+                                            <span>&nbsp;</span>
                                         </div>
                                     </div>
 
                                     <div style="padding-left: 20px">
-                                        <span th:text="|'${alarm.getAlarmCategory().getTitle()}' ${alarm.getMessage()}|"></span>
+                                        <span>&nbsp;</span>
                                     </div>
-
                                 </td>
-                                <td style="padding-left: 400px">
+
+                                <td th:if="${i < isNotReadAlarmList.numberOfElements}" style="padding-left: 400px">
                                     <a class="btn" href="#" th:href="@{/index}">View Details</a>
                                 </td>
+
                             </tr>
+
+                            <!-- 실제 데이터가 있는 경우 -->
+                            <!--                                <th:block th:if="${i < isNotReadAlarmList.numberOfElements}">-->
+                            <!--                                    <td th:text="${isNotReadAlarmList.content[i].id}">1</td>-->
+                            <!--                                    <td th:text="${isNotReadAlarmList.content[i].title}">알림 제목입니다.</td>-->
+                            <!--                                    <td th:text="${isNotReadAlarmList.content[i].createdAt}">2024-05-01</td>-->
+                            <!--                                </th:block>-->
+
+                            <!-- 데이터가 없어 빈 줄로 채워야 하는 경우 -->
+                            <!--                                <th:block th:unless="${i < isNotReadAlarmList.numberOfElements}">-->
+                            <!--                                    <td>&nbsp;</td>-->
+                            <!--                                    <td style="color: #ccc;">데이터가 없습니다.</td>-->
+                            <!--                                    <td>&nbsp;</td>-->
+                            <!--                                </th:block>-->
 
                         </tbody>
                     </table>

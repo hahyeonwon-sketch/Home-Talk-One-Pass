@@ -247,6 +247,13 @@ body {
 }
 .btn:hover { background: #2563eb; }
 
+/* 비활성화된 버튼의 스타일 */
+.btn-disabled {
+    display: inline-block; padding: 0.5rem 1.2rem; background: #cccccc;
+    color: #666666; text-decoration: none; border-radius: 8px; font-size: 0.85rem;
+    font-weight: bold; border:none; cursor: not-allowed; pointer-events: none;
+}
+
 .empty-msg {
     text-align: center;
     padding: 40px 0;
@@ -285,5 +292,35 @@ body {
 
 .book-table tbody tr:hover {
     background-color: #eef1ff;
+}
+
+/* 정렬 버튼 스타일 */
+.sort-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+/* 정렬 버튼 기본 스타일 */
+.sort-btn {
+    padding: 4px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 99px;
+    font-size: 13px;
+    color: #475569;
+    text-decoration: none;
+    background: #fff;
+    transition: all 0.15s;
+}
+.sort-btn:hover {
+    background: #f1f5f9;
+    border-color: #94a3b8;
+}
+/* 현재 정렬 기준 버튼 강조 - 파란 채움 */
+.sort-btn:active {
+    background: #4361ee;
+    color: #fff;
+    border-color: #4361ee;
 }
 

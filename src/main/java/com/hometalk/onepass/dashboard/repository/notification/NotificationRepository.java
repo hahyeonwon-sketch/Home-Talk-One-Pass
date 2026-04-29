@@ -1,6 +1,8 @@
 package com.hometalk.onepass.dashboard.repository.notification;
 
 import com.hometalk.onepass.dashboard.entity.notification.NotificationCommon;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -16,5 +18,6 @@ import java.util.List;
 public interface NotificationRepository extends JpaRepository<NotificationCommon, Long> {
 
     // boolean 값(status)을 인자로 받아 검색
-    List<NotificationCommon> findByIsReadOrderByCreatedAtDesc(Boolean status);
+    List<NotificationCommon> findByIsRead(Boolean status);
+    Page<NotificationCommon> findByIsRead(Boolean status, Pageable pageable);
 }
