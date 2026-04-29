@@ -1,30 +1,5 @@
 /* schedule.css */
 
-:root {
-    --color-bg:              white;
-    --color-main:            #032154;
-    --color-sub:             #3C6ABC;
-    --color-btn:             #4073C9;
-    --color-btn-secondary:   #9EBFDB;
-    --color-btn-point:       #EB6E57;
-    --color-btn-point-hover: #D65A45;
-    --color-text-muted:      #888888;
-    --color-bg-white-btn:    #F5F5F5;
-    --color-modal-line:      #F1F5F9;
-    --color-point-text:      #7ED3D9;
-    --color-text:            #000000;
-    --border-color:          #E2E8F0;
-
-    /* 배지 색 */
-    --badge-facility:       #d2eed8;
-    --badge-facility-font:  #6c977a;
-    --badge-safety:         #fff8e1;
-    --badge-safety-font:    #b8860b;
-    --badge-normal:         #e6f4f5;
-    --badge-normal-font:    #2a9da4;
-    --badge-default:        #c9c9c9;
-    --badge-default-font:   #5b5b5b;
-}
 
 .container { padding: 24px 40px; background: var(--color-bg); }
 
@@ -524,3 +499,7 @@
 }
 
 .detail-link:hover { text-decoration: underline; }
+
+.cal-cell:not(.other-month) {
+    cursor: pointer;
+}

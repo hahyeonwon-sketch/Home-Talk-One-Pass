@@ -327,14 +327,15 @@ public class ScheduleService {
 
     // 공지 연동 일정 삭제
     public void deleteScheduleByNotice(Notice notice) {
-        scheduleRepository.findFirstByNotice(notice)
-                .ifPresent(schedule -> {
-                    if (schedule.getRepeatGroupId() != null) {
-                        List<Schedule> group = scheduleRepository.findByRepeatGroupId(schedule.getRepeatGroupId());
-                        scheduleRepository.deleteAll(group);
-                    } else {
-                        scheduleRepository.delete(schedule);
-                    }
-                });
+        List<Schedule> schedules = scheduleRepository.findByNotice(notice);
+        if (!schedules.isEmpty()) {
+            Schedule first = schedules.get(0);
+            if (first.getRepeatGroupId() != null) {
+                List<Schedule> group = scheduleRepository.findByRepeatGroupId(first.getRepeatGroupId());
+                scheduleRepository.deleteAll(group);
+            } else {
+                scheduleRepository.deleteAll(schedules);
+            }
+        }
     }
 }

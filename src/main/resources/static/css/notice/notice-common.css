@@ -22,6 +22,8 @@
     --badge-safety-font:   #b8860b;
     --badge-normal:        #e6f4f5;
     --badge-normal-font:   #2a9da4;
+    --badge-default:       #c9c9c9;
+    --badge-default-font:  #5b5b5b;
 }
 
 * {
@@ -33,7 +35,7 @@
 body {
     font-family: 'Segoe UI', Arial, sans-serif;
     background-color: white;
-    color: white;
+    color: var(--color-text);
     line-height: 1.6;
     min-height: 100vh;
     font-size: 14px;

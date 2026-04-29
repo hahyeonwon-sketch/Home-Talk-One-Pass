@@ -181,9 +181,7 @@ public class NoticeService {
         Notice notice = noticeRepository.findById(id)
                 .orElseThrow(() -> new NoticeNotFoundException(id));
 
-        notice.increaseViewCount();
-
-        // 읽음 처리 추가
+        // 읽음 처리 + 조회수 증가
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
@@ -191,6 +189,7 @@ public class NoticeService {
                 if (account != null) {
                     User user = account.getUser();
                     if (!readLogRepository.existsByUserAndNotice(user, notice)) {
+                        notice.increaseViewCount();
                         readLogRepository.save(new ReadLog(user, notice));
                     }
                 }
