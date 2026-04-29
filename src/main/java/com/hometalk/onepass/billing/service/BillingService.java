@@ -3,6 +3,7 @@ package com.hometalk.onepass.billing.service;
 import com.hometalk.onepass.billing.dto.BillingDetailResponse;
 import com.hometalk.onepass.billing.dto.BillingSummaryResponse;
 import com.hometalk.onepass.billing.dto.ResidentBillingResponse;
+import com.hometalk.onepass.billing.dto.ResidentDashboardResponse;
 import com.hometalk.onepass.billing.entity.Billing;
 import com.hometalk.onepass.billing.entity.BillingActionType;
 import com.hometalk.onepass.billing.entity.BillingDetail;
@@ -60,6 +61,42 @@ public class BillingService {
                 "totalUnpaidAmount", totalUnpaidAmount
         );
     }
+
+
+    // ─────────────────────────────────────────────
+    // 대시보드 - 입주민용 관리비 요약 (미납 우선 노출 로직)
+    // ─────────────────────────────────────────────
+    public ResidentDashboardResponse getResidentDashboardSummary(Long householdId) {
+        // 1. 미납(UNPAID) 데이터가 있으면 가장 오래된 것부터, 없으면 완납(PAID) 데이터 조회
+        List<Billing> billings = billingRepository.findAllByHouseholdIdOrderByStatusDescBillingMonthAsc(householdId);
+
+        if (billings == null || billings.isEmpty()) {
+            return null;
+        }
+
+        // 2. 정렬 결과의 첫 번째 데이터를 타겟으로 잡음
+        Billing target = billings.get(0);
+
+        // 3. 만약 모든 항목이 PAID(납부완료)라면, 그중 가장 최근 월의 데이터를 보여줌
+        if (target.getStatus() == BillingStatus.PAID) {
+            target = billings.get(billings.size() - 1);
+        }
+
+        // 4. 화면 설계서 규격에 맞춘 가공 (2026-02 -> 2월)
+        String displayMonth = Integer.parseInt(target.getBillingMonth().substring(5, 7)) + "월";
+        String formattedDueDate = target.getDueDate().format(DateTimeFormatter.ofPattern("yyyy년 M월 d일"));
+
+        return ResidentDashboardResponse.builder()
+                .billingMonth(displayMonth)
+                .status(target.getStatus().name())
+                .totalAmount(target.getTotalAmount())
+                .dueDate(formattedDueDate)
+                .build();
+    }
+
+
+
+
 
     // ─────────────────────────────────────────────
     // AdminBillingStats

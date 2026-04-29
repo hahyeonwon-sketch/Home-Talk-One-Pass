@@ -181,5 +181,7 @@ public interface BillingRepository extends JpaRepository<Billing, Long> {
             @Param("month")    String month
     );
 
-
+    // BillingRepository.java
+    List<Billing> findAllByHouseholdIdOrderByStatusDescBillingMonthAsc(Long householdId);
+    
 }
