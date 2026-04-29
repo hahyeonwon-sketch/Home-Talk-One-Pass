@@ -367,7 +367,15 @@
 
         document.getElementById('formRepeatType').addEventListener('change', function() {
             var row = document.getElementById('formRepeatEndRow');
-            row.style.display = this.value === 'NONE' ? 'none' : '';
+            var endDateInput = document.getElementById('formEndDate');
+            if (this.value === 'NONE') {
+                row.style.display = 'none';
+                endDateInput.disabled = false;
+            } else {
+                row.style.display = '';
+                endDateInput.disabled = true;
+                endDateInput.value = '';
+            }
         });
 
         document.getElementById('detailModalOverlay').addEventListener('click', function(e) {
@@ -738,6 +746,9 @@
                 .then(function(s) {
                     document.getElementById('formName').value = s.title;
                     var start = new Date(s.startAt);
+                    if (s.repeatGroupId && s.repeatGroupStartAt) {
+                        start = new Date(s.repeatGroupStartAt);
+                    }
                     document.getElementById('formStartDate').value = formatDate(start);
                     document.getElementById('formStartHour').value = pad(start.getHours());
                     document.getElementById('formStartMinute').value = pad(start.getMinutes());
@@ -759,12 +770,14 @@
                         repeatRow.style.display = '';
                         document.getElementById('formRepeatType').value = s.repeatType;
                         repeatEndRow.style.display = '';
+                        document.getElementById('formEndDate').disabled = true;
                         if (s.repeatEndAt) {
                             document.getElementById('formRepeatEndDate').value = s.repeatEndAt.substring(0, 10);
                         }
                     } else {
-                        repeatRow.style.display = 'none';
+                        repeatRow.style.display = '';
                         repeatEndRow.style.display = 'none';
+                        document.getElementById('formEndDate').disabled = false;
                     }
 
                     if (s.noticeId) {
@@ -788,6 +801,7 @@
             badgeRow.style.display = '';
             repeatRow.style.display = '';
             repeatEndRow.style.display = 'none';
+            document.getElementById('formEndDate').disabled = false;
 
             if (day) {
                 var dateStr = currentYear + '-' + pad(currentMonth) + '-' + pad(day);
@@ -853,12 +867,12 @@
             ? contextPath + 'schedule/api/' + editingScheduleId + '/edit'
             : (repeatType && repeatType !== 'NONE' ? contextPath + 'schedule/write/repeat' : contextPath + 'schedule/write');
 
-        fetch(url, { method: 'POST', headers: headers, body: JSON.stringify(dto) })
-            .then(function(res) {
-                if (res.ok) { closeFormModal(); loadSchedules(); }
-                else { alert('저장에 실패했습니다.'); }
-            });
-    }
+                fetch(url, { method: 'POST', headers: headers, body: JSON.stringify(dto) })
+                    .then(function(res) {
+                        if (res.ok) { closeFormModal(); loadSchedules(); }
+                        else { alert('저장에 실패했습니다.'); }
+                    });
+            }
 
     function deleteSchedule(id) {
         var schedule = scheduleData.find(function(s) { return s.id === id; });

@@ -22,4 +22,5 @@ public class ScheduleDetailResponseDto {
     private String repeatType;
     private LocalDateTime repeatEndAt;
     private Long repeatGroupId;
+    private LocalDateTime repeatGroupStartAt;
 }

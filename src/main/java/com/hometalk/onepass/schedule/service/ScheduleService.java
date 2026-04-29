@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -65,6 +66,16 @@ public class ScheduleService {
         Schedule schedule = scheduleRepository.findById(id)
                 .orElseThrow(() -> new ScheduleNotFoundException(id));
 
+        LocalDateTime repeatGroupStartAt = null;
+        if (schedule.getRepeatGroupId() != null) {
+            repeatGroupStartAt = scheduleRepository
+                    .findByRepeatGroupId(schedule.getRepeatGroupId())
+                    .stream()
+                    .map(Schedule::getStartAt)
+                    .min(LocalDateTime::compareTo)
+                    .orElse(schedule.getStartAt());
+        }
+
         return new ScheduleDetailResponseDto(
                 schedule.getId(),
                 schedule.getNotice() != null ? schedule.getNotice().getId() : null,
@@ -77,7 +88,8 @@ public class ScheduleService {
                 schedule.getEffectiveBadge() != null ? schedule.getEffectiveBadge().name() : null,
                 schedule.getRepeatType() != null ? schedule.getRepeatType().name() : null,
                 schedule.getRepeatEndAt(),
-                schedule.getRepeatGroupId()
+                schedule.getRepeatGroupId(),
+                repeatGroupStartAt  // ← 추가
         );
     }
 
@@ -98,7 +110,8 @@ public class ScheduleService {
                         schedule.getEffectiveBadge() != null ? schedule.getEffectiveBadge().name() : null,
                         (String) null,
                         (LocalDateTime) null,
-                        (Long) null
+                        (Long) null,
+                        (LocalDateTime) null  // ← repeatGroupStartAt 추가
                 ))
                 .orElse(null);
     }
@@ -173,12 +186,30 @@ public class ScheduleService {
         if (schedule.getRepeatGroupId() != null) {
             // 기존 그룹 전체 삭제
             List<Schedule> group = scheduleRepository.findByRepeatGroupId(schedule.getRepeatGroupId());
+            group.sort(Comparator.comparing(Schedule::getStartAt));
             scheduleRepository.deleteAll(group);
 
-            // 새로운 반복 일정 생성
+            // 그룹의 첫 번째 일정 날짜로 시작일 교체
+            LocalDateTime originalStart = group.get(0).getStartAt();
+            LocalDateTime newStart = originalStart.toLocalDate()
+                    .atTime(dto.getStartAt().toLocalTime());
+            dto.setStartAt(newStart);
+
+            if (dto.getEndAt() != null) {
+                long durationMinutes = java.time.Duration.between(dto.getStartAt(), dto.getEndAt()).toMinutes();
+                dto.setEndAt(newStart.plusMinutes(durationMinutes));
+            }
+
             dto.setRepeatGroupId(schedule.getRepeatGroupId());
             createRepeatSchedule(dto);
+        } else if (dto.getRepeatType() != null && dto.getRepeatType() != RepeatType.NONE) {
+            // 단일 → 반복으로 변경
+            scheduleRepository.delete(schedule);
+            dto.setRepeatGroupId(System.currentTimeMillis());
+            createRepeatSchedule(dto);
+
         } else {
+            // 단일 → 단일 수정
             schedule.update(
                     dto.getTitle(),
                     dto.getInfo(),
@@ -187,8 +218,8 @@ public class ScheduleService {
                     dto.getStartAt(),
                     dto.getEndAt(),
                     dto.getBadge(),
-                    dto.getRepeatType() != null ? dto.getRepeatType() : RepeatType.NONE,
-                    dto.getRepeatEndAt()
+                    RepeatType.NONE,
+                    null
             );
         }
         return schedule.getId();
