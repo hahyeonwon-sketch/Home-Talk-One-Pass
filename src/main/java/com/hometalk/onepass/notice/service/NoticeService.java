@@ -345,5 +345,19 @@ public class NoticeService {
         }
     }
 
+    public List<NoticeListResponseDto> getRecentNotices(int limit) {
+        return noticeRepository.findTop5ByStatusOrderByCreatedAtDesc(NoticeStatus.PUBLISHED)
+                .stream()
+                .map(notice -> new NoticeListResponseDto(
+                        notice.getId(),
+                        notice.getTitle(),
+                        notice.getBadge(),
+                        notice.getIsPinned(),
+                        notice.getViewCount(),
+                        notice.getCreatedAt(),
+                        notice.getUpdatedAt()
+                ))
+                .collect(Collectors.toList());
+    }
 
 }

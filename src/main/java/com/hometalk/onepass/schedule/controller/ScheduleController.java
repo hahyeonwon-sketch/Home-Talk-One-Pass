@@ -90,4 +90,11 @@ public class ScheduleController {
         scheduleService.deleteRepeatSchedule(id, deleteType);
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/api/dashboard")
+    @ResponseBody
+    public ResponseEntity<List<ScheduleCalResponseDto>> getDashboardSchedules() {
+        List<ScheduleCalResponseDto> schedules = scheduleService.getTodaySchedules();
+        return ResponseEntity.ok(schedules);
+    }
 }

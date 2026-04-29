@@ -175,10 +175,10 @@
 .cal-nav-selects { display: flex; gap: 6px; margin-top: 10px;}
 
 .cal-select {
-    padding: 5px 8px;
+    padding: 7px 10x;
     border-radius: 4px;
     border: none;
-    font-size: 13px;
+    font-size: 14px;
     background: rgba(255,255,255,0.2);
     color: #fff;
     cursor: pointer;
@@ -367,16 +367,23 @@
 .modal-table input[type="date"],
 .modal-table select,
 .modal-table textarea {
-    width: 100%;
-    padding: 6px 10px;
+    width: 100% ;
+    padding: 7px 10px !important;
     border: 1px solid var(--border-color);
-    border-radius: 4px;
-    font-size: 14px;
-    background: #f8fafc;
-    color: var(--color-text);
+    border-radius: 4px !important;
+    font-size: 14px !important;
+    font-weight: 400 !important;
+    font-family: 'Segoe UI', Arial, sans-serif !important;
     box-sizing: border-box;
-    transition: border 0.15s;
-    font-family: 'Segoe UI', Arial, sans-serif;
+    outline: none;
+    background: white;
+    color: var(--color-text);
+}
+
+.modal-table select {
+    appearance: none;
+    -webkit-appearance: none;
+    padding-right: 10px !important;
 }
 
 .modal-table input:focus,

@@ -369,4 +369,23 @@ public class ScheduleService {
             }
         }
     }
+
+    @Transactional(readOnly = true)
+    public List<ScheduleCalResponseDto> getTodaySchedules() {
+        LocalDateTime startOfDay = LocalDateTime.now().toLocalDate().atStartOfDay();
+        LocalDateTime endOfDay = startOfDay.plusDays(1).minusSeconds(1);
+
+        return scheduleRepository.findByStartAtBetween(startOfDay, endOfDay)
+                .stream()
+                .map(schedule -> new ScheduleCalResponseDto(
+                        schedule.getId(),
+                        schedule.getTitle(),
+                        schedule.getStartAt(),
+                        schedule.getEndAt(),
+                        schedule.getNotice() != null ? schedule.getNotice().getId() : null,
+                        schedule.getEffectiveBadge() != null ? schedule.getEffectiveBadge().name() : null,
+                        schedule.getRepeatGroupId()
+                ))
+                .collect(Collectors.toList());
+    }
 }
