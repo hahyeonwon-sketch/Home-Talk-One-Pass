@@ -57,11 +57,13 @@
 
             <!-- 이전글 / 다음글 -->
             <table class="notice-nav-table">
-                <tr th:if="${preNotice != null}"
-                    style="cursor:pointer;"
-                    th:onclick="|location.href='@{/notice/{id}(id=${preNotice.id})}'|">
+                <tr th:if="${preNotice != null}">
                     <td>이전글</td>
-                    <td th:text="${preNotice.title}"></td>
+                    <td>
+                        <a th:href="@{/notice/{id}(id=${preNotice.id})}"
+                           th:text="${preNotice.title}"
+                           class="nav-title"></a>
+                    </td>
                     <td th:text="${#temporals.format(preNotice.createdAt, 'yyyy-MM-dd')}"></td>
                     <td th:text="${preNotice.updatedAt != null ? #temporals.format(preNotice.updatedAt, 'yyyy-MM-dd') : '-'}"></td>
                     <td th:text="${preNotice.viewCount}"></td>
@@ -70,11 +72,13 @@
                     <td>이전글</td>
                     <td colspan="4"></td>
                 </tr>
-                <tr th:if="${nextNotice != null}"
-                    style="cursor:pointer;"
-                    th:onclick="|location.href='@{/notice/{id}(id=${nextNotice.id})}'|">
+                <tr th:if="${nextNotice != null}">
                     <td>다음글</td>
-                    <td th:text="${nextNotice.title}"></td>
+                    <td>
+                        <a th:href="@{/notice/{id}(id=${nextNotice.id})}"
+                           th:text="${nextNotice.title}"
+                           class="nav-title"></a>
+                    </td>
                     <td th:text="${#temporals.format(nextNotice.createdAt, 'yyyy-MM-dd')}"></td>
                     <td th:text="${nextNotice.updatedAt != null ? #temporals.format(nextNotice.updatedAt, 'yyyy-MM-dd') : '-'}"></td>
                     <td th:text="${nextNotice.viewCount}"></td>

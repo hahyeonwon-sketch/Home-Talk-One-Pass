@@ -84,8 +84,7 @@
                 <tbody>
                 <tr th:each="notice : ${notices.content}"
                     th:classappend="${notice.isPinned} ? ' pinned-row'"
-                    th:onclick="|location.href='@{/notice/{id}(id=${notice.id})}'|"
-                    style="cursor:pointer;">
+                     >
 
                     <td class="pin-cell">
                         <svg th:if="${notice.isPinned}"

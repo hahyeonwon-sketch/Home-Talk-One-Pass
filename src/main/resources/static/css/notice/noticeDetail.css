@@ -95,9 +95,6 @@
     border-bottom: none;
 }
 
-.notice-nav-table tr:hover {
-    background: #f5f8ff;
-}
 
 .notice-nav-table td {
     padding: 13px 16px;
@@ -139,8 +136,9 @@
     color: var(--color-text);
 }
 
-.notice-nav-table a:hover {
-    color: var(--color-sub);
+.nav-title:hover {
+    text-decoration: underline;
+    color: var(--color-btn-point);
 }
 
 /* ── 하단 버튼 ─────────────────────────────────────────────────────────────── */

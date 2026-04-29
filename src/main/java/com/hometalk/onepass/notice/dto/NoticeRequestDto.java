@@ -2,6 +2,7 @@ package com.hometalk.onepass.notice.dto;
 
 import com.hometalk.onepass.notice.entity.Badge;
 import com.hometalk.onepass.notice.entity.NoticeStatus;
+import com.hometalk.onepass.schedule.entity.RepeatType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -36,4 +37,8 @@ public class NoticeRequestDto {
     private String scheduleInfo;
     private String scheduleLocation;
     private String scheduleReferenceUrl;
+
+    // 반복 일정 추가
+    private RepeatType scheduleRepeatType;
+    private LocalDateTime scheduleRepeatEndAt;
 }

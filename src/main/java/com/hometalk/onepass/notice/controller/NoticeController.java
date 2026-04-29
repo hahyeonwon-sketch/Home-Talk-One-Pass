@@ -8,6 +8,7 @@ import com.hometalk.onepass.notice.entity.Notice;
 import com.hometalk.onepass.notice.entity.NoticeStatus;
 import com.hometalk.onepass.notice.service.NoticeService;
 import com.hometalk.onepass.schedule.dto.ScheduleDetailResponseDto;
+import com.hometalk.onepass.schedule.entity.RepeatType;
 import com.hometalk.onepass.schedule.service.ScheduleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -100,23 +101,37 @@ public class NoticeController {
             return "redirect:/notice/write?saved=true";
         }
 
-
-
         Notice notice = noticeService.getNoticeEntity(noticeId);
         String noticeUrl = request.getScheme() + "://" +
                 request.getServerName() + ":" +
                 request.getServerPort() +
                 request.getContextPath() + "/notice/" + noticeId;
 
-        scheduleService.createScheduleWithNotice(
-                notice,
-                noticeRequestDto.getScheduleName(),
-                noticeRequestDto.getScheduleStartAt(),
-                noticeRequestDto.getScheduleEndAt(),
-                noticeRequestDto.getScheduleInfo(),
-                noticeRequestDto.getScheduleLocation(),
-                noticeUrl
-        );
+        // 반복일정 여부 분기
+        if (noticeRequestDto.getScheduleRepeatType() != null
+                && noticeRequestDto.getScheduleRepeatType() != RepeatType.NONE) {
+            scheduleService.createRepeatScheduleWithNotice(
+                    notice,
+                    noticeRequestDto.getScheduleName(),
+                    noticeRequestDto.getScheduleStartAt(),
+                    noticeRequestDto.getScheduleEndAt(),
+                    noticeRequestDto.getScheduleInfo(),
+                    noticeRequestDto.getScheduleLocation(),
+                    noticeUrl,
+                    noticeRequestDto.getScheduleRepeatType(),
+                    noticeRequestDto.getScheduleRepeatEndAt()
+            );
+        } else {
+            scheduleService.createScheduleWithNotice(
+                    notice,
+                    noticeRequestDto.getScheduleName(),
+                    noticeRequestDto.getScheduleStartAt(),
+                    noticeRequestDto.getScheduleEndAt(),
+                    noticeRequestDto.getScheduleInfo(),
+                    noticeRequestDto.getScheduleLocation(),
+                    noticeUrl
+            );
+        }
 
         return "redirect:/notice/" + noticeId;
     }
@@ -158,26 +173,45 @@ public class NoticeController {
                 request.getContextPath() + "/notice/" + id;
 
         ScheduleDetailResponseDto existing = scheduleService.getScheduleByNotice(notice);
-        if (existing != null) {
-            scheduleService.updateScheduleWithNotice(
+
+        if (noticeRequestDto.getScheduleRepeatType() != null
+                && noticeRequestDto.getScheduleRepeatType() != RepeatType.NONE) {
+            if (existing != null) {
+                scheduleService.deleteScheduleByNotice(notice);
+            }
+            scheduleService.createRepeatScheduleWithNotice(
                     notice,
                     noticeRequestDto.getScheduleName(),
                     noticeRequestDto.getScheduleStartAt(),
                     noticeRequestDto.getScheduleEndAt(),
                     noticeRequestDto.getScheduleInfo(),
                     noticeRequestDto.getScheduleLocation(),
-                    noticeUrl
+                    noticeUrl,
+                    noticeRequestDto.getScheduleRepeatType(),
+                    noticeRequestDto.getScheduleRepeatEndAt()
             );
         } else {
-            scheduleService.createScheduleWithNotice(
-                    notice,
-                    noticeRequestDto.getScheduleName(),
-                    noticeRequestDto.getScheduleStartAt(),
-                    noticeRequestDto.getScheduleEndAt(),
-                    noticeRequestDto.getScheduleInfo(),
-                    noticeRequestDto.getScheduleLocation(),
-                    noticeUrl
-            );
+            if (existing != null) {
+                scheduleService.updateScheduleWithNotice(
+                        notice,
+                        noticeRequestDto.getScheduleName(),
+                        noticeRequestDto.getScheduleStartAt(),
+                        noticeRequestDto.getScheduleEndAt(),
+                        noticeRequestDto.getScheduleInfo(),
+                        noticeRequestDto.getScheduleLocation(),
+                        noticeUrl
+                );
+            } else {
+                scheduleService.createScheduleWithNotice(
+                        notice,
+                        noticeRequestDto.getScheduleName(),
+                        noticeRequestDto.getScheduleStartAt(),
+                        noticeRequestDto.getScheduleEndAt(),
+                        noticeRequestDto.getScheduleInfo(),
+                        noticeRequestDto.getScheduleLocation(),
+                        noticeUrl
+                );
+            }
         }
 
         return "redirect:/notice/" + id;

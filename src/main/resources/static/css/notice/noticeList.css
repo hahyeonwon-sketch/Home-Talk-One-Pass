@@ -104,10 +104,6 @@
     color: var(--color-btn-point);
 }
 
-.notice-list tbody tr:hover td {
-    background: #fafbff;
-    cursor: pointer;
-}
 
 /* ── 페이지네이션 ──────────────────────────────────────────────────────────── */
 .page-footer {

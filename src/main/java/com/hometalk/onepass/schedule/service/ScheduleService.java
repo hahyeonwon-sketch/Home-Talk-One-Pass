@@ -276,4 +276,65 @@ public class ScheduleService {
             }
         }
     }
+
+    // 공지 작성 시 반복일정 생성
+    public void createRepeatScheduleWithNotice(Notice notice, String title,
+                                               LocalDateTime startAt, LocalDateTime endAt,
+                                               String info, String location, String referenceUrl,
+                                               RepeatType repeatType, LocalDateTime repeatEndAt) {
+        if (title == null || title.isBlank()) return;
+        if (startAt == null) return;
+
+        User user = getCurrentUser();
+
+        if (repeatEndAt == null) {
+            repeatEndAt = startAt.plusYears(1);
+        }
+
+        Long groupId = System.currentTimeMillis();
+        LocalDateTime current = startAt;
+
+        while (!current.isAfter(repeatEndAt)) {
+            LocalDateTime currentEnd = endAt != null
+                    ? current.plus(java.time.Duration.between(startAt, endAt))
+                    : null;
+
+            Schedule schedule = Schedule.builder()
+                    .user(user)
+                    .notice(notice)
+                    .title(title)
+                    .info(info)
+                    .location(location)
+                    .referenceUrl(referenceUrl)
+                    .startAt(current)
+                    .endAt(currentEnd)
+                    .badge(null)
+                    .repeatType(repeatType)
+                    .repeatEndAt(repeatEndAt)
+                    .repeatGroupId(groupId)
+                    .build();
+
+            scheduleRepository.save(schedule);
+
+            switch (repeatType) {
+                case DAILY   -> current = current.plusDays(1);
+                case WEEKLY  -> current = current.plusWeeks(1);
+                case MONTHLY -> current = current.plusMonths(1);
+                default -> { return; }
+            }
+        }
+    }
+
+    // 공지 연동 일정 삭제
+    public void deleteScheduleByNotice(Notice notice) {
+        scheduleRepository.findFirstByNotice(notice)
+                .ifPresent(schedule -> {
+                    if (schedule.getRepeatGroupId() != null) {
+                        List<Schedule> group = scheduleRepository.findByRepeatGroupId(schedule.getRepeatGroupId());
+                        scheduleRepository.deleteAll(group);
+                    } else {
+                        scheduleRepository.delete(schedule);
+                    }
+                });
+    }
 }

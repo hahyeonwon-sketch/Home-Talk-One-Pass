@@ -73,6 +73,21 @@
                                     <td><input type="text" id="scheduleName" placeholder="일정명을 입력하세요."></td>
                                 </tr>
                                 <tr>
+                                    <td>반복</td>
+                                    <td>
+                                        <select id="scheduleRepeatType" name="scheduleRepeatType" onchange="toggleRepeatEndDate()">
+                                            <option value="NONE">반복 없음</option>
+                                            <option value="DAILY">매일</option>
+                                            <option value="WEEKLY">매주</option>
+                                            <option value="MONTHLY">매월</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr id="repeatEndDateRow" style="display:none;">
+                                    <td>반복 종료일</td>
+                                    <td><input type="date" id="scheduleRepeatEndDate"></td>
+                                </tr>
+                                <tr>
                                     <td>시작</td>
                                     <td>
                                         <div class="modal-time-row">
@@ -128,6 +143,7 @@
 
                 <input type="hidden" id="scheduleStartAt" name="scheduleStartAt">
                 <input type="hidden" id="scheduleEndAt" name="scheduleEndAt">
+                <input type="hidden" id="scheduleRepeatEndAt" name="scheduleRepeatEndAt">
                 <input type="hidden" id="scheduleNameHidden" name="scheduleName">
                 <input type="hidden" id="scheduleInfoHidden" name="scheduleInfo">
                 <input type="hidden" id="scheduleLocationHidden" name="scheduleLocation">
@@ -259,6 +275,12 @@
         }
     });
 
+    function toggleRepeatEndDate() {
+        var repeatType = document.getElementById('scheduleRepeatType').value;
+        var row = document.getElementById('repeatEndDateRow');
+        row.style.display = repeatType === 'NONE' ? 'none' : '';
+    }
+
     setTimeout(function() {
         if (savedContent) quill.root.innerHTML = savedContent;
     }, 100);
@@ -276,6 +298,13 @@
             document.getElementById('scheduleEndDate').value = extractDate(linkedSchedule.endAt);
             document.getElementById('scheduleEndHour').value = extractHour(linkedSchedule.endAt);
             document.getElementById('scheduleEndMinute').value = extractMinute(linkedSchedule.endAt);
+        }
+        if (linkedSchedule.repeatType && linkedSchedule.repeatType !== 'NONE') {
+            document.getElementById('scheduleRepeatType').value = linkedSchedule.repeatType;
+            document.getElementById('repeatEndDateRow').style.display = '';
+            if (linkedSchedule.repeatEndAt) {
+                document.getElementById('scheduleRepeatEndDate').value = extractDate(linkedSchedule.repeatEndAt);
+            }
         }
     } else {
         document.getElementById('scheduleStartMinute').value = '00';
@@ -297,10 +326,7 @@
         });
     });
 
-    function saveDraft() {
-        document.getElementById('content').value = quill.root.innerHTML;
-        document.getElementById('statusInput').value = 'DRAFT';
-
+    function collectScheduleData() {
         var scheduleName = document.getElementById('scheduleName').value.trim();
         var startDate    = document.getElementById('scheduleStartDate').value;
         var startHour    = document.getElementById('scheduleStartHour').value;
@@ -308,6 +334,7 @@
         var endDate      = document.getElementById('scheduleEndDate').value;
         var endHour      = document.getElementById('scheduleEndHour').value;
         var endMinute    = document.getElementById('scheduleEndMinute').value || '00';
+        var repeatEndDate = document.getElementById('scheduleRepeatEndDate').value;
 
         document.getElementById('scheduleNameHidden').value = scheduleName;
         document.getElementById('scheduleInfoHidden').value = document.getElementById('scheduleInfo').value;
@@ -319,6 +346,15 @@
         if (endDate) {
             document.getElementById('scheduleEndAt').value = endDate + 'T' + endHour + ':' + endMinute + ':00';
         }
+        if (repeatEndDate) {
+            document.getElementById('scheduleRepeatEndAt').value = repeatEndDate + 'T23:59:59';
+        }
+    }
+
+    function saveDraft() {
+        document.getElementById('content').value = quill.root.innerHTML;
+        document.getElementById('statusInput').value = 'DRAFT';
+        collectScheduleData();
         document.getElementById('editForm').submit();
     }
 
@@ -350,7 +386,7 @@
                         '<div class="draft-item-title" style="cursor:pointer;">' + title + '</div>' +
                         '<div style="display:flex; align-items:center; gap:8px;">' +
                         '<div class="draft-item-date">' + date + '</div>' +
-                        '<button class="draft-delete-btn" data-id="' + draft.id + '" style="background:none; border:1px solid #EB6E57; color:#EB6E57; border-radius:4px; padding:2px 8px; font-size:11px; cursor:pointer;">삭제</button>' +
+                        '<button class="draft-delete-btn" data-id="' + draft.id + '" style="background:none; border:none; color:#888; padding:2px 8px; font-size:11px; cursor:pointer;">삭제</button>' +
                         '</div>';
 
                     div.querySelector('.draft-item-title').addEventListener('click', function() {
@@ -423,31 +459,13 @@
             }
         }
 
-        var scheduleName = document.getElementById('scheduleName').value.trim();
-        var startDate    = document.getElementById('scheduleStartDate').value;
-        var startHour    = document.getElementById('scheduleStartHour').value;
-        var startMinute  = document.getElementById('scheduleStartMinute').value || '00';
-        var endDate      = document.getElementById('scheduleEndDate').value;
-        var endHour      = document.getElementById('scheduleEndHour').value;
-        var endMinute    = document.getElementById('scheduleEndMinute').value || '00';
-
-        document.getElementById('scheduleNameHidden').value = scheduleName;
-        document.getElementById('scheduleInfoHidden').value = document.getElementById('scheduleInfo').value;
-        document.getElementById('scheduleLocationHidden').value = document.getElementById('scheduleLocation').value;
-
-        if (startDate) {
-            document.getElementById('scheduleStartAt').value = startDate + 'T' + startHour + ':' + startMinute + ':00';
-        }
-        if (endDate) {
-            document.getElementById('scheduleEndAt').value = endDate + 'T' + endHour + ':' + endMinute + ':00';
-        }
+        collectScheduleData();
     });
 
     function confirmCancel() {
         return confirm("수정 중인 내용을 취소하고 돌아가시겠습니까?");
     }
 
-    // 임시저장 개수 표시
     function updateDraftCount() {
         fetch(contextPath + 'notice/api/drafts')
             .then(res => res.json())
@@ -461,7 +479,7 @@
             });
     }
 
-updateDraftCount();
+    updateDraftCount();
 </script>
 
 </body>

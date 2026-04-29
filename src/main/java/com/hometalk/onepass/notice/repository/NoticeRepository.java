@@ -38,4 +38,6 @@ public interface NoticeRepository extends JpaRepository<Notice, Long> {
     // 내 임시저장 목록
     List<Notice> findByUserAndStatusOrderByCreatedAtDesc(User user, NoticeStatus status);
 
+
+
 }

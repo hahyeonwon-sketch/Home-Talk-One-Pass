@@ -71,6 +71,21 @@
                                     <td><input type="text" name="scheduleName" placeholder="일정명을 입력하세요."></td>
                                 </tr>
                                 <tr>
+                                    <td>반복</td>
+                                    <td>
+                                        <select name="scheduleRepeatType" id="scheduleRepeatType" onchange="toggleRepeatEndDate()">
+                                            <option value="NONE">반복 없음</option>
+                                            <option value="DAILY">매일</option>
+                                            <option value="WEEKLY">매주</option>
+                                            <option value="MONTHLY">매월</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr id="repeatEndDateRow" style="display:none;">
+                                    <td>반복 종료일</td>
+                                    <td><input type="date" name="scheduleRepeatEndDate" id="scheduleRepeatEndDate"></td>
+                                </tr>
+                                <tr>
                                     <td>시작</td>
                                     <td>
                                         <div class="modal-time-row">
@@ -126,6 +141,7 @@
 
                 <input type="hidden" id="scheduleStartAt" name="scheduleStartAt">
                 <input type="hidden" id="scheduleEndAt" name="scheduleEndAt">
+                <input type="hidden" id="scheduleRepeatEndAt" name="scheduleRepeatEndAt">
                 <input type="hidden" id="statusInput" name="status" value="PUBLISHED">
 
                 <div class="file-section">
@@ -222,6 +238,12 @@
         }
     });
 
+    function toggleRepeatEndDate() {
+        var repeatType = document.getElementById('scheduleRepeatType').value;
+        var row = document.getElementById('repeatEndDateRow');
+        row.style.display = repeatType === 'NONE' ? 'none' : '';
+    }
+
     document.getElementById('title').addEventListener('input', function() {
         document.getElementById('charCount').innerText = this.value.length;
     });
@@ -237,16 +259,14 @@
         });
     });
 
-    function saveDraft() {
-        document.getElementById('content').value = quill.root.innerHTML;
-        document.getElementById('statusInput').value = 'DRAFT';
-
-        var startDate = document.querySelector('[name="startDate"]').value;
-        var startHour = document.querySelector('[name="startHour"]').value;
+    function collectScheduleData() {
+        var startDate   = document.querySelector('[name="startDate"]').value;
+        var startHour   = document.querySelector('[name="startHour"]').value;
         var startMinute = document.querySelector('[name="startMinute"]').value;
-        var endDate = document.querySelector('[name="endDate"]').value;
-        var endHour = document.querySelector('[name="endHour"]').value;
-        var endMinute = document.querySelector('[name="endMinute"]').value;
+        var endDate     = document.querySelector('[name="endDate"]').value;
+        var endHour     = document.querySelector('[name="endHour"]').value;
+        var endMinute   = document.querySelector('[name="endMinute"]').value;
+        var repeatEndDate = document.getElementById('scheduleRepeatEndDate').value;
 
         if (startDate) {
             document.getElementById('scheduleStartAt').value = startDate + 'T' + startHour + ':' + startMinute + ':00';
@@ -254,6 +274,15 @@
         if (endDate) {
             document.getElementById('scheduleEndAt').value = endDate + 'T' + endHour + ':' + endMinute + ':00';
         }
+        if (repeatEndDate) {
+            document.getElementById('scheduleRepeatEndAt').value = repeatEndDate + 'T23:59:59';
+        }
+    }
+
+    function saveDraft() {
+        document.getElementById('content').value = quill.root.innerHTML;
+        document.getElementById('statusInput').value = 'DRAFT';
+        collectScheduleData();
         document.getElementById('noticeForm').submit();
     }
 
@@ -364,27 +393,13 @@
         }
 
         document.getElementById('content').value = content;
-
-        var startDate   = document.querySelector('[name="startDate"]').value;
-        var startHour   = document.querySelector('[name="startHour"]').value;
-        var startMinute = document.querySelector('[name="startMinute"]').value;
-        var endDate     = document.querySelector('[name="endDate"]').value;
-        var endHour     = document.querySelector('[name="endHour"]').value;
-        var endMinute   = document.querySelector('[name="endMinute"]').value;
-
-        if (startDate) {
-            document.getElementById('scheduleStartAt').value = startDate + 'T' + startHour + ':' + startMinute + ':00';
-        }
-        if (endDate) {
-            document.getElementById('scheduleEndAt').value = endDate + 'T' + endHour + ':' + endMinute + ':00';
-        }
+        collectScheduleData();
     });
 
     function confirmCancel() {
         return confirm("작성 중인 내용을 중단하고 목록으로 돌아가시겠습니까?");
     }
 
-    // 임시저장 개수 표시
     function updateDraftCount() {
         fetch(contextPath + 'notice/api/drafts')
             .then(res => res.json())
@@ -398,7 +413,7 @@
             });
     }
 
-updateDraftCount();
+    updateDraftCount();
 </script>
 
 </body>

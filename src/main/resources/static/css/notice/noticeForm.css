@@ -7,8 +7,6 @@ h2 {
     font-weight: 600;
 }
 
-
-
 .form-group {
     margin-bottom: 15px;
 }
@@ -29,6 +27,7 @@ h2 {
     border-radius: 4px;
     font-size: 14px;
     outline: none;
+    font-family: 'Segoe UI', Arial, sans-serif;
 }
 
 .form-group input[type="text"] {
@@ -38,6 +37,7 @@ h2 {
     border-radius: 4px;
     font-size: 14px;
     outline: none;
+    font-family: 'Segoe UI', Arial, sans-serif;
 }
 
 .form-group select:focus,
@@ -58,16 +58,18 @@ h2 {
     font-size: 14px;
     outline: none;
     box-sizing: border-box;
+    font-family: 'Segoe UI', Arial, sans-serif;
 }
 
 .form-group textarea:focus {
     border-color: var(--color-main);
 }
 
+/* ── 임시저장 버튼 ─────────────────────────────────────────────────────────── */
 .btn-draft {
     background: white;
     color: #666;
-    border:1px solid var(--border-color);
+    border: 1px solid var(--border-color);
     border-radius: 4px;
     padding: 8px 16px;
     font-size: 13px;
@@ -77,14 +79,14 @@ h2 {
 }
 
 .btn-draft:hover {
-    background: #f5f5f5;;
+    background: #f5f5f5;
     color: #888;
 }
 
 .btn-draft-list {
     background: #D1E8E4;
     color: #032154;
-    border:none;
+    border: none;
     border-radius: 4px;
     padding: 8px 16px;
     font-size: 13px;
@@ -95,9 +97,10 @@ h2 {
 }
 
 .btn-draft-list:hover {
-    opacity:0.8;
+    opacity: 0.8;
 }
 
+/* ── 임시저장 모달 ─────────────────────────────────────────────────────────── */
 .draft-modal-overlay {
     display: none;
     position: fixed;
@@ -150,6 +153,7 @@ h2 {
     color: #aaa;
 }
 
+/* ── 첨부파일 ─────────────────────────────────────────────────────────────── */
 .file-section {
     border: 1px solid var(--border-color);
     border-radius: 4px;
@@ -211,7 +215,7 @@ h2 {
 }
 
 .btn-file:hover {
-    background-color: var(--color-sub);
+    opacity: 0.88;
 }
 
 input[type="file"] {
@@ -230,15 +234,15 @@ input[type="file"] {
     border-radius: 4px;
     padding: 10px 20px;
     font-size: 13px;
-    font-weight: bold;
+    font-weight: 600;
     cursor: pointer;
-    box-shadow: 0 4px 10px rgba(235, 110, 87, 0.3);
 }
 
 .btn-submit:hover {
-    background-color: #d65a45;
+    background-color: var(--color-btn-point-hover);
 }
 
+/* ── 상단 고정 체크박스 ────────────────────────────────────────────────────── */
 .checkbox-group {
     display: flex;
     align-items: center;
@@ -250,6 +254,34 @@ input[type="file"] {
     color: #333 !important;
 }
 
+/* ── Quill 에디터 ──────────────────────────────────────────────────────────── */
 .ql-editor {
     color: #000000 !important;
+    font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+/* ── 일정 모달 내 입력 요소 통일 ──────────────────────────────────────────── */
+.modal-table input[type="text"],
+.modal-table input[type="date"],
+.modal-table select,
+.modal-table textarea {
+    width: 100%;
+    padding: 5px 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 400;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    box-sizing: border-box;
+    outline: none;
+    background: white;
+    color: #333;
+}
+
+.modal-table input[type="text"]:focus,
+.modal-table input[type="date"]:focus,
+.modal-table select:focus,
+.modal-table textarea:focus {
+    border-color: var(--color-main);
+    background: white;
 }
