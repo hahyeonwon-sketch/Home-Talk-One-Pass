@@ -557,5 +557,8 @@ function resetUpload() {
 ================================================================ */
 function lastDay(bm) {
     const [y, m] = bm.split('-').map(Number);
-    return `${bm}-${String(new Date(y, m, 0).getDate()).padStart(2,'0')}`;
+    // 다음 달 10일 (2026-03 관리비 → 2026-04-10 납부기한)
+    const nextMonth = m === 12 ? 1 : m + 1;
+    const nextYear  = m === 12 ? y + 1 : y;
+    return `${nextYear}-${String(nextMonth).padStart(2,'0')}-10`;
 }
