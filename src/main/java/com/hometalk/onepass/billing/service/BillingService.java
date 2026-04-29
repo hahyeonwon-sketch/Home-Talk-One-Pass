@@ -1,9 +1,6 @@
 package com.hometalk.onepass.billing.service;
 
-import com.hometalk.onepass.billing.dto.BillingDetailResponse;
-import com.hometalk.onepass.billing.dto.BillingSummaryResponse;
-import com.hometalk.onepass.billing.dto.ResidentBillingResponse;
-import com.hometalk.onepass.billing.dto.ResidentDashboardResponse;
+import com.hometalk.onepass.billing.dto.*;
 import com.hometalk.onepass.billing.entity.Billing;
 import com.hometalk.onepass.billing.entity.BillingActionType;
 import com.hometalk.onepass.billing.entity.BillingDetail;
@@ -41,7 +38,7 @@ public class BillingService {
     // ─────────────────────────────────────────────
     // 대시보드 - 관리자 특정 월의 '미납 총액' 합계
     // ─────────────────────────────────────────────
-    public Map<String, Object> getAdminDashboardSummary() {
+    public AdminDashboardResponse getAdminDashboardSummary() {
         // 1. 현재 날짜 기준 부과월 계산 (예: 2026-02)
         String currentMonth = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM"));
 
@@ -50,16 +47,14 @@ public class BillingService {
 
         // 3. 미납 총액 조회 (신규 메서드 활용)
         Long unpaidSum = billingRepository.sumTotalAmountByBillingMonthAndStatus(currentMonth, BillingStatus.UNPAID);
+        long totalAmount = (unpaidSum != null) ? unpaidSum : 0L; // null 체크 후 변수 선언
 
-        // null 방지 처리
-        long totalUnpaidAmount = (unpaidSum != null) ? unpaidSum : 0L;
-
-        // 4. 결과 맵핑 (DTO 생성이 귀찮다면 Map으로 우선 전달 가능)
-        return Map.of(
-                "billingMonth", currentMonth.substring(5, 7) + "월", // "02월"
-                "unpaidHouseholds", unpaidCount,
-                "totalUnpaidAmount", totalUnpaidAmount
-        );
+        // 4. DTO 빌더로 반환
+        return AdminDashboardResponse.builder()
+                .billingMonth(Integer.parseInt(currentMonth.substring(5, 7)) + "월")
+                .unpaidHouseholds(unpaidCount)
+                .totalUnpaidAmount(totalAmount)
+                .build();
     }
 
 

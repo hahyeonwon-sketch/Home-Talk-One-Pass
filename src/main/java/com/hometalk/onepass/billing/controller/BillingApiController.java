@@ -1,5 +1,6 @@
 package com.hometalk.onepass.billing.controller;
 
+import com.hometalk.onepass.billing.dto.AdminDashboardResponse;
 import com.hometalk.onepass.billing.dto.BillingDetailResponse;
 import com.hometalk.onepass.billing.dto.BillingSummaryResponse;
 import com.hometalk.onepass.billing.dto.ResidentDashboardResponse;
@@ -52,7 +53,8 @@ public class BillingApiController {
     // ─────────────────────────────────────────────
     @GetMapping("/admin/summary")
     @PreAuthorize("hasRole('ADMIN')") // 관리자 권한 체크
-    public ResponseEntity<Map<String, Object>> getAdminSummary() {
+    public ResponseEntity<AdminDashboardResponse> getAdminSummary() {
+        // 1번의 리턴 타입을 DTO로 지정한 방식을 사용하세요.
         return ResponseEntity.ok(billingService.getAdminDashboardSummary());
     }
 
