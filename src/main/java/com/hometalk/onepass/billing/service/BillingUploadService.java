@@ -173,14 +173,14 @@ public class BillingUploadService {
     // 내부 유틸
     // ─────────────────────────────────────────────
 
-    private Optional<Household> findHousehold(String householdId) {
+    private Optional<Household> findHousehold(
+            String householdId, String postNum) {
         String[] parts = householdId.split("-");
         if (parts.length < 2) return Optional.empty();
         String dong = parts[0] + "동";
         String ho   = parts[1] + "호";
-        // TODO: Security 연동 후 로그인한 관리자의 building_name으로 교체
-        //return householdRepository.findByBuildingNameAndDongAndHo("Bill아파트", dong, ho);
-        return householdRepository.findByDongAndHo(dong, ho);
+        return householdRepository
+                .findByPostNumAndDongAndHo(postNum, dong, ho);
     }
 
     // ─────────────────────────────────────────────
