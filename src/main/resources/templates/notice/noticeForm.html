@@ -27,15 +27,18 @@
         <div class="container">
             <h2>공지 작성</h2>
 
+            <!-- ── 임시저장 알림 ──────────────────────────────────────────── -->
             <div th:if="${param.saved}" style="background:#D1E8E4; color:#155724; padding:10px 16px; border-radius:8px; margin-bottom:16px; font-size:13px;">
                 임시저장 되었습니다!
             </div>
 
+            <!-- ── 임시저장 버튼 ──────────────────────────────────────────── -->
             <div style="display:flex; justify-content:flex-end; gap:8px; margin-bottom:16px;">
                 <button type="button" class="btn-draft-list" onclick="openDraftModal()">임시저장 목록</button>
                 <button type="button" class="btn-draft" onclick="saveDraft()">임시저장</button>
             </div>
 
+            <!-- ── 공지 작성 폼 ───────────────────────────────────────────── -->
             <form th:action="@{/notice/write}" method="post" enctype="multipart/form-data" id="noticeForm">
 
                 <div class="form-group">
@@ -54,6 +57,7 @@
                     <small><span id="charCount">0</span>/100</small>
                 </div>
 
+                <!-- ── Quill 에디터 + 일정 등록 모달 ────────────────────── -->
                 <div class="form-group notice-content-wrap">
                     <label>내용</label>
                     <input type="hidden" name="content" id="content">
@@ -75,7 +79,6 @@
                                     <td>
                                         <select name="scheduleRepeatType" id="scheduleRepeatType" onchange="toggleRepeatEndDate()">
                                             <option value="NONE">반복 없음</option>
-                                            <option value="DAILY">매일</option>
                                             <option value="WEEKLY">매주</option>
                                             <option value="MONTHLY">매월</option>
                                         </select>
@@ -139,16 +142,19 @@
                     </div>
                 </div>
 
+                <!-- ── hidden 필드 ────────────────────────────────────────── -->
                 <input type="hidden" id="scheduleStartAt" name="scheduleStartAt">
                 <input type="hidden" id="scheduleEndAt" name="scheduleEndAt">
                 <input type="hidden" id="scheduleRepeatEndAt" name="scheduleRepeatEndAt">
                 <input type="hidden" id="statusInput" name="status" value="PUBLISHED">
 
+                <!-- ── 첨부파일 ───────────────────────────────────────────── -->
                 <div class="file-section">
                     <div class="file-section-title">📎 첨부파일</div>
                     <div id="fileNames" class="file-list"></div>
                 </div>
 
+                <!-- ── 하단 버튼 그룹 ─────────────────────────────────────── -->
                 <div class="button-group">
                     <div class="button-group-left">
                         <input type="file" id="file" name="files" multiple>
@@ -169,7 +175,7 @@
 
             </form>
 
-            <!-- 임시저장 목록 모달 -->
+            <!-- ── 임시저장 목록 모달 ─────────────────────────────────────── -->
             <div class="draft-modal-overlay" id="draftModalOverlay">
                 <div class="draft-modal-box">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
@@ -196,6 +202,7 @@
 </script>
 
 <script>
+    // ── Quill 에디터 초기화 ───────────────────────────────────────────────────
     var quill = new Quill('#editor', {
         theme: 'snow',
         modules: {
@@ -226,10 +233,17 @@
                                 headers: headers,
                                 body: formData
                             })
-                            .then(res => res.json())
+                            .then(res => {
+                                if (!res.ok) throw new Error('업로드 실패');
+                                return res.json();
+                            })
                             .then(data => {
                                 var range = quill.getSelection();
-                                quill.insertEmbed(range.index, 'image', data.url);
+                                var index = range ? range.index : quill.getLength();
+                                quill.insertEmbed(index, 'image', data.url);
+                            })
+                            .catch(err => {
+                                alert('이미지 업로드에 실패했습니다.');
                             });
                         };
                     }
@@ -238,16 +252,19 @@
         }
     });
 
+    // ── 반복 종료일 표시/숨김 ────────────────────────────────────────────────
     function toggleRepeatEndDate() {
         var repeatType = document.getElementById('scheduleRepeatType').value;
         var row = document.getElementById('repeatEndDateRow');
         row.style.display = repeatType === 'NONE' ? 'none' : '';
     }
 
+    // ── 제목 글자수 카운트 ───────────────────────────────────────────────────
     document.getElementById('title').addEventListener('input', function() {
         document.getElementById('charCount').innerText = this.value.length;
     });
 
+    // ── 첨부파일 목록 표시 ───────────────────────────────────────────────────
     document.getElementById('file').addEventListener('change', function() {
         var container = document.getElementById('fileNames');
         container.innerHTML = '';
@@ -259,7 +276,12 @@
         });
     });
 
+    // ── hidden 입력값 수집 ───────────────────────────────────────────────────
     function collectScheduleData() {
+        document.getElementById('scheduleStartAt').value = '';
+        document.getElementById('scheduleEndAt').value = '';
+        document.getElementById('scheduleRepeatEndAt').value = '';
+
         var startDate   = document.querySelector('[name="startDate"]').value;
         var startHour   = document.querySelector('[name="startHour"]').value;
         var startMinute = document.querySelector('[name="startMinute"]').value;
@@ -279,6 +301,7 @@
         }
     }
 
+    // ── 임시저장 ─────────────────────────────────────────────────────────────
     function saveDraft() {
         document.getElementById('content').value = quill.root.innerHTML;
         document.getElementById('statusInput').value = 'DRAFT';
@@ -286,6 +309,7 @@
         document.getElementById('noticeForm').submit();
     }
 
+    // ── 임시저장 모달 열기/닫기 ──────────────────────────────────────────────
     function openDraftModal() {
         document.getElementById('draftModalOverlay').classList.add('open');
         loadDrafts();
@@ -295,6 +319,7 @@
         document.getElementById('draftModalOverlay').classList.remove('open');
     }
 
+    // ── 임시저장 목록 불러오기 ───────────────────────────────────────────────
     function loadDrafts() {
         fetch(contextPath + 'notice/api/drafts')
             .then(res => res.json())
@@ -334,7 +359,7 @@
                         }).then(function(res) {
                             if (res.ok) loadDrafts();
                             else alert('삭제에 실패했습니다.');
-                        });
+                        }).catch(() => alert('삭제 중 오류가 발생했습니다.'));
                     });
 
                     container.appendChild(div);
@@ -347,6 +372,7 @@
         if (e.target === this) closeDraftModal();
     });
 
+    // ── 일정 등록 유효성 검사 ────────────────────────────────────────────────
     function registerSchedule() {
         var startDate    = document.querySelector('[name="startDate"]').value;
         var endDate      = document.querySelector('[name="endDate"]').value;
@@ -370,6 +396,7 @@
         document.getElementById('scheduleModal').classList.remove('open');
     }
 
+    // ── 폼 제출 유효성 검사 ──────────────────────────────────────────────────
     document.getElementById('noticeForm').addEventListener('submit', function(e) {
         var statusVal = document.getElementById('statusInput').value;
         var content = quill.root.innerHTML;
@@ -400,6 +427,7 @@
         return confirm("작성 중인 내용을 중단하고 목록으로 돌아가시겠습니까?");
     }
 
+    // ── 임시저장 개수 표시 ───────────────────────────────────────────────────
     function updateDraftCount() {
         fetch(contextPath + 'notice/api/drafts')
             .then(res => res.json())

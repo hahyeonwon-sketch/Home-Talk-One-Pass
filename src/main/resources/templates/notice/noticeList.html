@@ -26,16 +26,13 @@
 
         <div class="container">
 
-            <!-- 헤더 -->
+            <!-- ── 헤더 ───────────────────────────────────────────────────── -->
             <div class="notice-header">
                 <div class="notice-header-title">공지사항</div>
                 <div class="notice-header-sub">단지 내 중요한 공지를 확인하세요</div>
             </div>
 
-
-
-
-            <!-- 검색 + 결과건수 -->
+            <!-- ── 검색 + 결과건수 ────────────────────────────────────────── -->
             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:16px;">
                 <div th:if="${keyword != null and !#strings.isEmpty(keyword)}" style="font-size:16px; color:#000000;">
                     '<span th:text="${keyword}" style="font-weight:600;"></span>' 검색 결과 <span th:text="${notices.totalElements}"></span>건
@@ -69,7 +66,7 @@
                 </form>
             </div>
 
-            <!-- 목록 테이블 -->
+            <!-- ── 목록 테이블 ────────────────────────────────────────────── -->
             <table class="notice-list">
                 <thead>
                 <tr>
@@ -83,8 +80,7 @@
                 </thead>
                 <tbody>
                 <tr th:each="notice : ${notices.content}"
-                    th:classappend="${notice.isPinned} ? ' pinned-row'"
-                     >
+                    th:classappend="${notice.isPinned} ? ' pinned-row'">
 
                     <td class="pin-cell">
                         <svg th:if="${notice.isPinned}"
@@ -96,7 +92,6 @@
                             <path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/>
                         </svg>
                     </td>
-
                     <td th:class="'badge-' + ${notice.badge.name().toLowerCase()}">
                         <span th:text="${notice.badge.label}">분류</span>
                     </td>
@@ -110,8 +105,7 @@
                 </tbody>
             </table>
 
-
-
+            <!-- ── 검색 결과 없음 ─────────────────────────────────────────── -->
             <div th:if="${notices.content.isEmpty()}" style="text-align:center; padding:80px 0; color:#94a3b8; font-size:1rem; line-height:1.6;">
                 <p th:if="${keyword != null and !keyword.isEmpty()}">
                     '<span th:text="${keyword}" style="font-weight:600;"></span>' 검색 결과와 일치하는 공지가 없습니다.
@@ -121,7 +115,7 @@
                 </p>
             </div>
 
-            <!-- 페이지네이션 (하단 중앙) -->
+            <!-- ── 페이지네이션 + 글작성 ──────────────────────────────────── -->
             <div class="page-footer">
                 <div class="pagination">
                     <a th:if="${currentPage > 0}"
@@ -145,8 +139,6 @@
                    style="position:absolute; right:0; margin:0;">글 작성
                 </a>
             </div>
-
-
 
         </div>
 

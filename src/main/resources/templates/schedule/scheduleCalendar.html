@@ -25,6 +25,7 @@
 
         <div class="container">
 
+            <!-- ── 상단 카드 영역 ─────────────────────────────────────────── -->
             <div class="cal-top-wrap">
 
                 <div class="cal-today-card">
@@ -76,6 +77,7 @@
 
             </div>
 
+            <!-- ── 달력 그리드 ────────────────────────────────────────────── -->
             <div class="cal-grid-wrap">
                 <div class="cal-day-header sun">SUN</div>
                 <div class="cal-day-header">MON</div>
@@ -89,7 +91,7 @@
 
         </div>
 
-        <!-- 일정 상세 모달 -->
+        <!-- ── 일정 상세 모달 ─────────────────────────────────────────────── -->
         <div class="modal-overlay" id="detailModalOverlay">
             <div class="modal-box">
                 <div class="modal-header">
@@ -137,7 +139,7 @@
             </div>
         </div>
 
-        <!-- 일정 등록/수정 모달 -->
+        <!-- ── 일정 등록/수정 모달 ───────────────────────────────────────── -->
         <div class="modal-overlay" id="formModalOverlay">
             <div class="modal-box">
                 <div class="modal-header">
@@ -166,7 +168,6 @@
                             <td>
                                 <select id="formRepeatType">
                                     <option value="NONE">반복 없음</option>
-                                    <option value="DAILY">매일</option>
                                     <option value="WEEKLY">매주</option>
                                     <option value="MONTHLY">매월</option>
                                 </select>
@@ -215,7 +216,7 @@
             </div>
         </div>
 
-        <!-- 반복 일정 삭제 옵션 모달 -->
+        <!-- ── 반복 일정 삭제 옵션 모달 ──────────────────────────────────── -->
         <div class="modal-overlay" id="repeatDeleteModalOverlay">
             <div class="modal-box" style="max-width:360px;">
                 <div class="modal-header">
@@ -225,7 +226,7 @@
                 <div class="modal-body">
                     <div class="modal-bottom" style="flex-direction:column; gap:8px;">
                         <button class="repeat-delete-btn this" onclick="confirmRepeatDelete('this')">이 일정만 삭제</button>
-                        <button class="repeat-delete-btn danger" onclick="confirmRepeatDelete('after')">이 일정 이후 전체 삭제</button>
+                        <button class="repeat-delete-btn danger" onclick="confirmRepeatDelete('all')">이 일정 전체 삭제</button>
                         <button class="repeat-delete-btn" onclick="closeRepeatDeleteModal()">취소</button>
                     </div>
                 </div>
@@ -250,13 +251,9 @@
     var editingNoticeId = null;
     var deletingScheduleId = null;
     var WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
+    var BADGE_LABEL = { 'FACILITY': '시설', 'SAFETY': '안전', 'NORMAL': '일반' };
 
-    var BADGE_LABEL = {
-        'FACILITY': '시설',
-        'SAFETY': '안전',
-        'NORMAL': '일반'
-    };
-
+    // ── 초기화 ───────────────────────────────────────────────────────────────
     function init() {
         initYearSelect();
         initTimeSelects();
@@ -282,8 +279,7 @@
             var sel = document.getElementById(id);
             for (var h = 0; h < 24; h++) {
                 var opt = document.createElement('option');
-                opt.value = pad(h);
-                opt.text = pad(h);
+                opt.value = pad(h); opt.text = pad(h);
                 sel.appendChild(opt);
             }
         });
@@ -291,13 +287,13 @@
             var sel = document.getElementById(id);
             for (var m = 0; m < 60; m++) {
                 var opt = document.createElement('option');
-                opt.value = pad(m);
-                opt.text = pad(m);
+                opt.value = pad(m); opt.text = pad(m);
                 sel.appendChild(opt);
             }
         });
     }
 
+    // ── 네비게이션 표시 업데이트 ─────────────────────────────────────────────
     function updateNavDisplay() {
         document.getElementById('navYear').textContent = currentYear + '년';
         document.getElementById('navMonthNum').textContent = currentMonth + '월';
@@ -311,38 +307,34 @@
             (today.getMonth() + 1) + '월 · ' + WEEKDAYS[today.getDay()] + '요일';
     }
 
+    // ── 이벤트 바인딩 ────────────────────────────────────────────────────────
     function bindEvents() {
         document.getElementById('prevMonth').addEventListener('click', function() {
             currentMonth--;
             if (currentMonth < 1) { currentMonth = 12; currentYear--; }
-            updateNavDisplay();
-            loadSchedules();
+            updateNavDisplay(); loadSchedules();
         });
 
         document.getElementById('nextMonth').addEventListener('click', function() {
             currentMonth++;
             if (currentMonth > 12) { currentMonth = 1; currentYear++; }
-            updateNavDisplay();
-            loadSchedules();
+            updateNavDisplay(); loadSchedules();
         });
 
         document.getElementById('yearSelect').addEventListener('change', function() {
             currentYear = parseInt(this.value);
-            updateNavDisplay();
-            loadSchedules();
+            updateNavDisplay(); loadSchedules();
         });
 
         document.getElementById('monthSelect').addEventListener('change', function() {
             currentMonth = parseInt(this.value);
-            updateNavDisplay();
-            loadSchedules();
+            updateNavDisplay(); loadSchedules();
         });
 
         document.getElementById('goToday').addEventListener('click', function() {
             currentYear = today.getFullYear();
             currentMonth = today.getMonth() + 1;
-            updateNavDisplay();
-            loadSchedules();
+            updateNavDisplay(); loadSchedules();
         });
 
         var btnAdd = document.getElementById('btnAddSchedule');
@@ -365,6 +357,7 @@
 
         document.getElementById('btnSubmitSchedule').addEventListener('click', submitSchedule);
 
+        // 반복 설정 시 종료일 비활성화
         document.getElementById('formRepeatType').addEventListener('change', function() {
             var row = document.getElementById('formRepeatEndRow');
             var endDateInput = document.getElementById('formEndDate');
@@ -389,6 +382,7 @@
         });
     }
 
+    // ── 일정 목록 로드 ───────────────────────────────────────────────────────
     function loadSchedules() {
         fetch(contextPath + 'schedule/api/list?year=' + currentYear + '&month=' + currentMonth)
             .then(function(res) { return res.json(); })
@@ -399,6 +393,7 @@
             });
     }
 
+    // ── 멀티데이 여부 판단 ───────────────────────────────────────────────────
     function isMultiDay(s) {
         if (s.repeatGroupId) return true;
         var sd = new Date(s.startAt);
@@ -408,7 +403,7 @@
         return ed > sd;
     }
 
-    // ── 멀티데이 슬롯 배정 ────────────────────────────────────────────────────
+    // ── 멀티데이 슬롯 배정 ───────────────────────────────────────────────────
     function assignMultiDaySlots(multiDaySchedules, cells) {
         var dateSlotMap = {};
         var scheduleSlotMap = {};
@@ -420,31 +415,30 @@
             }
         });
 
-        // repeatGroupId 기준으로 그룹핑
         var groups = {};
         multiDaySchedules.forEach(function(s) {
             if (s.repeatGroupId) {
-                if (!groups[s.repeatGroupId]) groups[s.repeatGroupId] = [];
-                groups[s.repeatGroupId].push(s);
+                // 주 단위로 그룹 키 생성
+                var date = new Date(s.startAt);
+                var weekKey = s.repeatGroupId + '_week_' + Math.floor(date.getDate() / 7);
+                if (!groups[weekKey]) groups[weekKey] = [];
+                groups[weekKey].push(s);
             } else {
                 groups['single_' + s.id] = [s];
             }
         });
 
-        // 그룹을 시작날짜 기준으로 정렬 (오래된 것부터 → 슬롯 0 먼저 차지)
+        // 시작날짜 기준 오래된 순으로 정렬 (슬롯 0 먼저 차지)
         var sortedGroupKeys = Object.keys(groups).sort(function(a, b) {
-            var aSchedules = groups[a].sort(function(x, y) { return new Date(x.startAt) - new Date(y.startAt); });
-            var bSchedules = groups[b].sort(function(x, y) { return new Date(x.startAt) - new Date(y.startAt); });
-            var aStart = new Date(aSchedules[0].startAt);
-            var bStart = new Date(bSchedules[0].startAt);
-            return aStart - bStart; // 오래된 순 (먼저 슬롯 차지)
+            var aStart = new Date(groups[a].sort(function(x, y) { return new Date(x.startAt) - new Date(y.startAt); })[0].startAt);
+            var bStart = new Date(groups[b].sort(function(x, y) { return new Date(x.startAt) - new Date(y.startAt); })[0].startAt);
+            return aStart - bStart;
         });
 
         sortedGroupKeys.forEach(function(groupKey) {
             var groupSchedules = groups[groupKey];
-
-            // 이 그룹이 차지하는 모든 날짜 수집
             var occupiedDates = [];
+
             groupSchedules.forEach(function(s) {
                 var sd = new Date(s.startAt);
                 var ed = s.endAt ? new Date(s.endAt) : sd;
@@ -464,30 +458,21 @@
 
             if (occupiedDates.length === 0) return;
 
-            // 공통으로 비어있는 슬롯 찾기
             var slot = 0;
             while (true) {
-                var available = occupiedDates.every(function(dateKey) {
-                    return !dateSlotMap[dateKey][slot];
-                });
+                var available = occupiedDates.every(function(dateKey) { return !dateSlotMap[dateKey][slot]; });
                 if (available) break;
                 slot++;
             }
 
-            // 슬롯 배정
-            occupiedDates.forEach(function(dateKey) {
-                dateSlotMap[dateKey][slot] = true;
-            });
-
-            // 각 일정에 슬롯 번호 배정
-            groupSchedules.forEach(function(s) {
-                scheduleSlotMap[s.id] = slot;
-            });
+            occupiedDates.forEach(function(dateKey) { dateSlotMap[dateKey][slot] = true; });
+            groupSchedules.forEach(function(s) { scheduleSlotMap[s.id] = slot; });
         });
 
         return { dateSlotMap: dateSlotMap, scheduleSlotMap: scheduleSlotMap };
     }
 
+    // ── 달력 렌더링 ──────────────────────────────────────────────────────────
     function renderCalendar() {
         var body = document.getElementById('calendarBody');
         body.innerHTML = '';
@@ -495,7 +480,6 @@
         var firstDay = new Date(currentYear, currentMonth - 1, 1).getDay();
         var lastDate = new Date(currentYear, currentMonth, 0).getDate();
         var prevLastDate = new Date(currentYear, currentMonth - 1, 0).getDate();
-
         var cells = [];
 
         for (var i = 0; i < firstDay; i++) {
@@ -504,15 +488,13 @@
         for (var d = 1; d <= lastDate; d++) {
             cells.push({ day: d, otherMonth: false });
         }
-        var total = cells.length;
-        var remain = total % 7 === 0 ? 0 : 7 - (total % 7);
+        var remain = cells.length % 7 === 0 ? 0 : 7 - (cells.length % 7);
         for (var k = 1; k <= remain; k++) {
             cells.push({ day: k, otherMonth: true });
         }
 
         var multiDaySchedules = scheduleData.filter(isMultiDay);
         var singleDaySchedules = scheduleData.filter(function(s) { return !isMultiDay(s); });
-
         var slotResult = assignMultiDaySlots(multiDaySchedules, cells);
         var scheduleSlotMap = slotResult.scheduleSlotMap;
 
@@ -528,6 +510,7 @@
                                currentYear === today.getFullYear());
                 if (isToday) div.classList.add('is-today');
 
+                // 날짜 클릭 시 일정 등록 모달 (ADMIN만)
                 div.addEventListener('click', function(e) {
                     if (e.target.classList.contains('cal-badge') ||
                         e.target.classList.contains('cal-badge-multi')) return;
@@ -557,7 +540,7 @@
             body.appendChild(div);
         });
 
-        // ── 멀티데이 배지 렌더링 ──────────────────────────────────────────────
+        // 멀티데이 배지 렌더링
         multiDaySchedules.forEach(function(s) {
             var sd = new Date(s.startAt);
             var ed = s.endAt ? new Date(s.endAt) : sd;
@@ -570,7 +553,6 @@
                 if (item.cell.otherMonth) return;
                 var cellDate = new Date(currentYear, currentMonth - 1, item.cell.day);
                 cellDate.setHours(0, 0, 0, 0);
-
                 if (cellDate >= sd && cellDate <= ed) {
                     var badge = createMultiDayBadge(s, cellDate, sd, ed, slot);
                     ensureSlot(item.slotContainer, slot, badge);
@@ -578,7 +560,7 @@
             });
         });
 
-        // ── 단일 일정 배지 렌더링 ─────────────────────────────────────────────
+        // 단일 일정 배지 렌더링
         cellDivs.forEach(function(item) {
             if (item.cell.otherMonth) return;
             var daySingles = singleDaySchedules.filter(function(s) {
@@ -588,14 +570,19 @@
                        sd.getDate() === item.cell.day;
             });
 
+            // 단일 일정 배지 렌더링
             daySingles.forEach(function(s) {
                 var slot = 0;
-                while (item.slotContainer.children[slot] &&
+                while (slot < item.slotContainer.children.length &&
                        !item.slotContainer.children[slot].classList.contains('cal-badge-placeholder')) {
                     slot++;
                 }
                 var badge = createBadge(s);
-                ensureSlot(item.slotContainer, slot, badge);
+                if (slot < item.slotContainer.children.length) {
+                    ensureSlot(item.slotContainer, slot, badge);
+                } else {
+                    item.slotContainer.appendChild(badge);
+                }
             });
         });
     }
@@ -609,49 +596,23 @@
         container.replaceChild(badge, container.children[slotIndex]);
     }
 
+    // ── 배지 생성 ────────────────────────────────────────────────────────────
     function createMultiDayBadge(s, cellDate, startDate, endDate, slot) {
         var badge = document.createElement('div');
         badge.className = 'cal-badge cal-badge-multi';
-
         if (s.badge) badge.classList.add('badge-' + s.badge.toLowerCase());
         else badge.classList.add('badge-default');
 
         if (s.repeatGroupId) {
-            var groupSchedules = scheduleData.filter(function(x) {
-                return x.repeatGroupId === s.repeatGroupId;
-            }).sort(function(a, b) { return new Date(a.startAt) - new Date(b.startAt); });
-
-            var isFirst = groupSchedules[0].id === s.id;
-            var isLast = groupSchedules[groupSchedules.length - 1].id === s.id;
-
-            if (isFirst && isLast) {
-                badge.textContent = s.title;
-            } else if (isFirst) {
-                badge.textContent = s.title;
-                badge.classList.add('multi-start');
-            } else if (isLast) {
-                badge.innerHTML = '&nbsp;';
-                badge.classList.add('multi-end');
-            } else {
-                badge.innerHTML = '&nbsp;';
-                badge.classList.add('multi-mid');
-            }
+            badge.textContent = s.title;
         } else {
             var isFirst = cellDate.getTime() === startDate.getTime();
-            var isLast = cellDate.getTime() === endDate.getTime();
+            var isLast  = cellDate.getTime() === endDate.getTime();
 
-            if (isFirst && isLast) {
-                badge.textContent = s.title;
-            } else if (isFirst) {
-                badge.textContent = s.title;
-                badge.classList.add('multi-start');
-            } else if (isLast) {
-                badge.innerHTML = '&nbsp;';
-                badge.classList.add('multi-end');
-            } else {
-                badge.innerHTML = '&nbsp;';
-                badge.classList.add('multi-mid');
-            }
+            if (isFirst && isLast)      { badge.textContent = s.title; }
+            else if (isFirst)           { badge.textContent = s.title; badge.classList.add('multi-start'); }
+            else if (isLast)            { badge.innerHTML = '&nbsp;'; badge.classList.add('multi-end'); }
+            else                        { badge.innerHTML = '&nbsp;'; badge.classList.add('multi-mid'); }
         }
 
         badge.addEventListener('click', function() { openDetailModal(s.id); });
@@ -668,6 +629,7 @@
         return badge;
     }
 
+    // ── 오늘 일정 건수 표시 ──────────────────────────────────────────────────
     function renderTodaySchedules() {
         var count = document.getElementById('todayCount');
         var todayList = scheduleData.filter(function(s) {
@@ -681,6 +643,7 @@
         count.textContent = '오늘의 일정 · ' + todayList.length + '건';
     }
 
+    // ── 일정 상세 모달 ───────────────────────────────────────────────────────
     function openDetailModal(id) {
         editingScheduleId = id;
         fetch(contextPath + 'schedule/api/' + id)
@@ -688,8 +651,7 @@
             .then(function(s) {
                 editingNoticeId = s.noticeId;
                 document.getElementById('detailName').textContent = s.title;
-                var badgeEl = document.getElementById('detailBadge');
-                badgeEl.textContent = s.badge ? (BADGE_LABEL[s.badge] || s.badge) : '-';
+                document.getElementById('detailBadge').textContent = s.badge ? (BADGE_LABEL[s.badge] || s.badge) : '-';
                 document.getElementById('detailStart').textContent = formatDateTime(s.startAt);
 
                 var endRow = document.getElementById('detailEndRow');
@@ -732,6 +694,7 @@
         document.getElementById('detailModalOverlay').style.display = 'none';
     }
 
+    // ── 일정 등록/수정 모달 ──────────────────────────────────────────────────
     function openFormModal(id, day) {
         var badgeRow = document.getElementById('formBadgeRow');
         var repeatRow = document.getElementById('formRepeatRow');
@@ -820,6 +783,7 @@
         editingNoticeId = null;
     }
 
+    // ── 일정 저장 ────────────────────────────────────────────────────────────
     function submitSchedule() {
         var name = document.getElementById('formName').value.trim();
         if (!name) { alert('일정명을 입력해주세요.'); return; }
@@ -828,7 +792,6 @@
         if (!startDate) { alert('시작 날짜를 입력해주세요.'); return; }
 
         var endDate = document.getElementById('formEndDate').value;
-
         var repeatRow = document.getElementById('formRepeatRow');
         var repeatType = (repeatRow.style.display !== 'none' || editingScheduleId)
             ? document.getElementById('formRepeatType').value || 'NONE'
@@ -845,7 +808,6 @@
             if (endAt <= startAt) { alert('종료 시간이 시작 시간보다 이후여야 합니다.'); return; }
         }
 
-        var badgeVal = document.getElementById('formBadge').value;
         var dto = {
             title: name,
             startAt: startDate + 'T' + document.getElementById('formStartHour').value + ':' + document.getElementById('formStartMinute').value + ':00',
@@ -853,7 +815,7 @@
             info: document.getElementById('formInfo').value,
             location: document.getElementById('formLocation').value,
             referenceUrl: document.getElementById('formUrl').value,
-            badge: badgeVal || null,
+            badge: document.getElementById('formBadge').value || null,
             repeatType: repeatType,
             repeatEndAt: repeatEndDate ? repeatEndDate + 'T23:59:59' : null
         };
@@ -867,13 +829,14 @@
             ? contextPath + 'schedule/api/' + editingScheduleId + '/edit'
             : (repeatType && repeatType !== 'NONE' ? contextPath + 'schedule/write/repeat' : contextPath + 'schedule/write');
 
-                fetch(url, { method: 'POST', headers: headers, body: JSON.stringify(dto) })
-                    .then(function(res) {
-                        if (res.ok) { closeFormModal(); loadSchedules(); }
-                        else { alert('저장에 실패했습니다.'); }
-                    });
-            }
+        fetch(url, { method: 'POST', headers: headers, body: JSON.stringify(dto) })
+            .then(function(res) {
+                if (res.ok) { closeFormModal(); loadSchedules(); }
+                else { alert('저장에 실패했습니다.'); }
+            });
+    }
 
+    // ── 일정 삭제 ────────────────────────────────────────────────────────────
     function deleteSchedule(id) {
         var schedule = scheduleData.find(function(s) { return s.id === id; });
         var hasRepeat = schedule && schedule.repeatGroupId;
@@ -896,6 +859,7 @@
         }
     }
 
+    // ── 반복 일정 삭제 모달 ──────────────────────────────────────────────────
     function closeRepeatDeleteModal() {
         document.getElementById('repeatDeleteModalOverlay').style.display = 'none';
         deletingScheduleId = null;
@@ -913,13 +877,13 @@
 
         fetch(contextPath + 'schedule/api/' + idToDelete + '/repeat?deleteType=' + deleteType, {
             method: 'DELETE', headers: headers
-        })
-        .then(function(res) {
+        }).then(function(res) {
             if (res.ok) { loadSchedules(); }
             else { alert('삭제에 실패했습니다.'); }
         });
     }
 
+    // ── 유틸 함수 ────────────────────────────────────────────────────────────
     function formatDateTime(str) {
         if (!str) return '-';
         var d = new Date(str);

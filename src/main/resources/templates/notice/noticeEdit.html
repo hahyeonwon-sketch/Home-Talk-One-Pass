@@ -27,15 +27,18 @@
         <div class="container">
             <h2>공지 수정</h2>
 
+            <!-- ── 임시저장 알림 ──────────────────────────────────────────── -->
             <div th:if="${param.saved}" style="background:#D1E8E4; color:#155724; padding:10px 16px; border-radius:8px; margin-bottom:16px; font-size:13px;">
                 임시저장 되었습니다!
             </div>
 
+            <!-- ── 임시저장 버튼 ──────────────────────────────────────────── -->
             <div style="display:flex; justify-content:flex-end; gap:8px; margin-bottom:16px;">
                 <button type="button" class="btn-draft-list" onclick="openDraftModal()">임시저장 목록</button>
                 <button type="button" class="btn-draft" onclick="saveDraft()">임시저장</button>
             </div>
 
+            <!-- ── 공지 수정 폼 ───────────────────────────────────────────── -->
             <form th:action="@{/notice/{id}/edit(id=${notice.id})}" method="post" enctype="multipart/form-data" id="editForm">
 
                 <div class="form-group">
@@ -56,6 +59,7 @@
                     <small><span id="charCount" th:text="${notice.title != null ? notice.title.length() : 0}">0</span>/100</small>
                 </div>
 
+                <!-- ── Quill 에디터 + 일정 등록 모달 ────────────────────── -->
                 <div class="form-group notice-content-wrap">
                     <label>내용</label>
                     <input type="hidden" name="content" id="content">
@@ -77,7 +81,6 @@
                                     <td>
                                         <select id="scheduleRepeatType" name="scheduleRepeatType" onchange="toggleRepeatEndDate()">
                                             <option value="NONE">반복 없음</option>
-                                            <option value="DAILY">매일</option>
                                             <option value="WEEKLY">매주</option>
                                             <option value="MONTHLY">매월</option>
                                         </select>
@@ -141,6 +144,7 @@
                     </div>
                 </div>
 
+                <!-- ── hidden 필드 ────────────────────────────────────────── -->
                 <input type="hidden" id="scheduleStartAt" name="scheduleStartAt">
                 <input type="hidden" id="scheduleEndAt" name="scheduleEndAt">
                 <input type="hidden" id="scheduleRepeatEndAt" name="scheduleRepeatEndAt">
@@ -149,6 +153,7 @@
                 <input type="hidden" id="scheduleLocationHidden" name="scheduleLocation">
                 <input type="hidden" id="statusInput" name="status" value="PUBLISHED">
 
+                <!-- ── 첨부파일 ───────────────────────────────────────────── -->
                 <div class="file-section">
                     <div class="file-section-title">📎 첨부파일</div>
                     <div class="file-list" th:if="${attachments != null && !attachments.isEmpty()}">
@@ -159,6 +164,7 @@
                     <div id="fileNames" class="file-list"></div>
                 </div>
 
+                <!-- ── 하단 버튼 그룹 ─────────────────────────────────────── -->
                 <div class="button-group">
                     <div class="button-group-left">
                         <input type="file" id="file" name="files" multiple>
@@ -182,7 +188,7 @@
 
             </form>
 
-            <!-- 임시저장 목록 모달 -->
+            <!-- ── 임시저장 목록 모달 ─────────────────────────────────────── -->
             <div class="draft-modal-overlay" id="draftModalOverlay">
                 <div class="draft-modal-box">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
@@ -213,6 +219,7 @@
 <script>
     function pad(n) { return n < 10 ? '0' + n : '' + n; }
 
+    // ── 날짜/시간 파싱 유틸 ──────────────────────────────────────────────────
     function extractDate(dt) {
         if (!dt) return '';
         if (typeof dt === 'object' && dt.year) {
@@ -233,6 +240,7 @@
         return dt.substring(14, 16);
     }
 
+    // ── Quill 에디터 초기화 ───────────────────────────────────────────────────
     var quill = new Quill('#editor', {
         theme: 'snow',
         modules: {
@@ -263,10 +271,17 @@
                                 headers: headers,
                                 body: formData
                             })
-                            .then(res => res.json())
+                            .then(res => {
+                                if (!res.ok) throw new Error('업로드 실패');
+                                return res.json();
+                            })
                             .then(data => {
                                 var range = quill.getSelection();
-                                quill.insertEmbed(range.index, 'image', data.url);
+                                var index = range ? range.index : quill.getLength();
+                                quill.insertEmbed(index, 'image', data.url);
+                            })
+                            .catch(err => {
+                                alert('이미지 업로드에 실패했습니다.');
                             });
                         };
                     }
@@ -275,16 +290,19 @@
         }
     });
 
+    // ── 반복 종료일 표시/숨김 ────────────────────────────────────────────────
     function toggleRepeatEndDate() {
         var repeatType = document.getElementById('scheduleRepeatType').value;
         var row = document.getElementById('repeatEndDateRow');
         row.style.display = repeatType === 'NONE' ? 'none' : '';
     }
 
+    // ── 기존 공지 내용 로드 ──────────────────────────────────────────────────
     setTimeout(function() {
         if (savedContent) quill.root.innerHTML = savedContent;
     }, 100);
 
+    // ── 기존 연동 일정 로드 ──────────────────────────────────────────────────
     if (linkedSchedule) {
         document.getElementById('scheduleName').value = linkedSchedule.title || '';
         document.getElementById('scheduleInfo').value = linkedSchedule.info || '';
@@ -311,10 +329,12 @@
         document.getElementById('scheduleEndMinute').value = '00';
     }
 
+    // ── 제목 글자수 카운트 ───────────────────────────────────────────────────
     document.getElementById('title').addEventListener('input', function() {
         document.getElementById('charCount').innerText = this.value.length;
     });
 
+    // ── 첨부파일 목록 표시 ───────────────────────────────────────────────────
     document.getElementById('file').addEventListener('change', function() {
         var container = document.getElementById('fileNames');
         container.innerHTML = '';
@@ -326,14 +346,19 @@
         });
     });
 
+    // ── hidden 입력값 수집 ───────────────────────────────────────────────────
     function collectScheduleData() {
-        var scheduleName = document.getElementById('scheduleName').value.trim();
-        var startDate    = document.getElementById('scheduleStartDate').value;
-        var startHour    = document.getElementById('scheduleStartHour').value;
-        var startMinute  = document.getElementById('scheduleStartMinute').value || '00';
-        var endDate      = document.getElementById('scheduleEndDate').value;
-        var endHour      = document.getElementById('scheduleEndHour').value;
-        var endMinute    = document.getElementById('scheduleEndMinute').value || '00';
+        document.getElementById('scheduleStartAt').value = '';
+        document.getElementById('scheduleEndAt').value = '';
+        document.getElementById('scheduleRepeatEndAt').value = '';
+
+        var scheduleName  = document.getElementById('scheduleName').value.trim();
+        var startDate     = document.getElementById('scheduleStartDate').value;
+        var startHour     = document.getElementById('scheduleStartHour').value;
+        var startMinute   = document.getElementById('scheduleStartMinute').value || '00';
+        var endDate       = document.getElementById('scheduleEndDate').value;
+        var endHour       = document.getElementById('scheduleEndHour').value;
+        var endMinute     = document.getElementById('scheduleEndMinute').value || '00';
         var repeatEndDate = document.getElementById('scheduleRepeatEndDate').value;
 
         document.getElementById('scheduleNameHidden').value = scheduleName;
@@ -351,6 +376,7 @@
         }
     }
 
+    // ── 임시저장 ─────────────────────────────────────────────────────────────
     function saveDraft() {
         document.getElementById('content').value = quill.root.innerHTML;
         document.getElementById('statusInput').value = 'DRAFT';
@@ -358,6 +384,7 @@
         document.getElementById('editForm').submit();
     }
 
+    // ── 임시저장 모달 열기/닫기 ──────────────────────────────────────────────
     function openDraftModal() {
         document.getElementById('draftModalOverlay').classList.add('open');
         loadDrafts();
@@ -367,6 +394,7 @@
         document.getElementById('draftModalOverlay').classList.remove('open');
     }
 
+    // ── 임시저장 목록 불러오기 ───────────────────────────────────────────────
     function loadDrafts() {
         fetch(contextPath + 'notice/api/drafts')
             .then(res => res.json())
@@ -406,7 +434,7 @@
                         }).then(function(res) {
                             if (res.ok) loadDrafts();
                             else alert('삭제에 실패했습니다.');
-                        });
+                        }).catch(() => alert('삭제 중 오류가 발생했습니다.'));
                     });
 
                     container.appendChild(div);
@@ -419,6 +447,7 @@
         if (e.target === this) closeDraftModal();
     });
 
+    // ── 일정 등록 유효성 검사 ────────────────────────────────────────────────
     function registerSchedule() {
         var startDate    = document.getElementById('scheduleStartDate').value;
         var endDate      = document.getElementById('scheduleEndDate').value;
@@ -442,6 +471,7 @@
         document.getElementById('scheduleModal').classList.remove('open');
     }
 
+    // ── 폼 제출 유효성 검사 ──────────────────────────────────────────────────
     document.getElementById('editForm').addEventListener('submit', function(e) {
         var statusVal = document.getElementById('statusInput').value;
         document.getElementById('content').value = quill.root.innerHTML;
@@ -466,6 +496,7 @@
         return confirm("수정 중인 내용을 취소하고 돌아가시겠습니까?");
     }
 
+    // ── 임시저장 개수 표시 ───────────────────────────────────────────────────
     function updateDraftCount() {
         fetch(contextPath + 'notice/api/drafts')
             .then(res => res.json())

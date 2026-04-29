@@ -16,17 +16,15 @@
 
 <div class="main-layout" style="display:flex; min-height:100vh;">
 
-    <!-- 사이드바 -->
     <div th:replace="~{fragments/sidebar :: sidebar(currentPage='notice')}"></div>
 
     <div class="main-wrapper" style="flex:1; display:flex; flex-direction:column;">
 
-        <!-- 헤더 -->
         <div th:replace="~{fragments/headerCurrentMenuView :: path(paths=#{'notice'})}"></div>
 
         <div class="container">
 
-            <!-- 공지 정보 -->
+            <!-- ── 공지 메타 정보 ──────────────────────────────────────────── -->
             <table class="notice-table">
                 <tr>
                     <td th:class="${notice.badge != null ? 'badge-' + notice.badge.name().toLowerCase() : ''}">
@@ -39,12 +37,12 @@
                 </tr>
             </table>
 
-            <!-- 본문 -->
+            <!-- ── 본문 ───────────────────────────────────────────────────── -->
             <div class="notice-box">
                 <div th:utext="${notice.content}"></div>
             </div>
 
-            <!-- 첨부파일 다운로드 -->
+            <!-- ── 첨부파일 ───────────────────────────────────────────────── -->
             <div class="attachment-box" th:if="${attachments != null && !attachments.isEmpty()}">
                 <div class="attachment-title">📎 첨부파일</div>
                 <div th:each="attachment : ${attachments}">
@@ -55,7 +53,7 @@
                 </div>
             </div>
 
-            <!-- 이전글 / 다음글 -->
+            <!-- ── 이전글 / 다음글 ────────────────────────────────────────── -->
             <table class="notice-nav-table">
                 <tr th:if="${preNotice != null}">
                     <td>이전글</td>
@@ -89,7 +87,7 @@
                 </tr>
             </table>
 
-            <!-- 하단 버튼 -->
+            <!-- ── 하단 버튼 ──────────────────────────────────────────────── -->
             <div class="admin-buttons">
                 <a th:href="@{/notice}" class="btn-back">← 뒤로가기</a>
                 <div sec:authorize="hasRole('ADMIN')" style="display:flex; gap:8px;">
@@ -103,28 +101,29 @@
 
         </div>
 
+        <!-- ── 이미지 확대 모달 ───────────────────────────────────────────── -->
         <div class="img-modal-overlay" id="imgModalOverlay">
             <img id="imgModalTarget" src="" alt="">
         </div>
 
-        <!-- 푸터 -->
         <footer th:replace="~{fragments/footer :: footer}"></footer>
 
     </div>
 </div>
 
 <script>
+    // ── 이미지 클릭 확대 ──────────────────────────────────────────────────────
     document.querySelectorAll('.notice-box img').forEach(function(img) {
-    img.style.cursor = 'pointer';
-    img.addEventListener('click', function() {
-        document.getElementById('imgModalTarget').src = this.src;
-        document.getElementById('imgModalOverlay').classList.add('open');
+        img.style.cursor = 'pointer';
+        img.addEventListener('click', function() {
+            document.getElementById('imgModalTarget').src = this.src;
+            document.getElementById('imgModalOverlay').classList.add('open');
+        });
     });
-});
 
-document.getElementById('imgModalOverlay').addEventListener('click', function() {
-    this.classList.remove('open');
-});
+    document.getElementById('imgModalOverlay').addEventListener('click', function() {
+        this.classList.remove('open');
+    });
 </script>
 
 </body>
