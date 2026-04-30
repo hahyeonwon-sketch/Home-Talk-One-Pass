@@ -57,7 +57,7 @@
 
                                     <!--이전버튼-->
                                     <a th:href="@{/notification(
-                                        page=${isNotReadAlarmList.number - 1},
+                                        first_page=${isNotReadAlarmList.number - 1},
                                         sortBy=${sortBy},
                                         direction=${direction})}"
                                        th:classappend="${isNotReadAlarmList.first} ? 'btn-disabled' : 'btn'"
@@ -65,7 +65,7 @@
 
                                     <!--다음버튼-->
                                     <a th:href="@{/notification(
-                                        page=${isNotReadAlarmList.number + 1},
+                                        first_page=${isNotReadAlarmList.number + 1},
                                         sortBy=${sortBy},
                                         direction=${direction})}"
                                        th:classappend="${isNotReadAlarmList.last} ? 'btn-disabled' : 'btn'"
@@ -123,9 +123,9 @@
                                 </td>
 
                                 <td style="padding-left: 400px">
-                                    <a th:classappend="${i < isReadAlarmList.numberOfElements} ? 'btn' : ''"
-                                       th:href="${i < isReadAlarmList.numberOfElements} ? '@{/index}' : '#'"
-                                       th:text="${i < isReadAlarmList.numberOfElements} ? 'View Details' : ''">View Details</a>
+                                    <a th:classappend="${i < isNotReadAlarmList.numberOfElements} ? 'btn' : ''"
+                                       th:href="${i < isNotReadAlarmList.numberOfElements} ? '@{/index}' : '#'"
+                                       th:text="${i < isNotReadAlarmList.numberOfElements} ? 'View Details' : ''">View Details</a>
                                 </td>
                             </tr>
                         </tbody>
@@ -171,7 +171,7 @@
 
                                 <!--이전버튼-->
                                 <a th:href="@{/notification(
-                                        page=${isReadAlarmList.number - 1},
+                                        second_page=${isReadAlarmList.number - 1},
                                         sortBy=${sortBy},
                                         direction=${direction})}"
                                    th:classappend="${isReadAlarmList.first} ? 'btn-disabled' : 'btn'"
@@ -179,7 +179,7 @@
 
                                 <!--다음버튼-->
                                 <a th:href="@{/notification(
-                                        page=${isReadAlarmList.number + 1},
+                                        second_page=${isReadAlarmList.number + 1},
                                         sortBy=${sortBy},
                                         direction=${direction})}"
                                    th:classappend="${isReadAlarmList.last} ? 'btn-disabled' : 'btn'"

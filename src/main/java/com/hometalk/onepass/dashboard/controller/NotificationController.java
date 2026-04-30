@@ -3,6 +3,7 @@ package com.hometalk.onepass.dashboard.controller;
 import com.hometalk.onepass.dashboard.dto.notification.response.NotificationCommonResponseDto;
 import com.hometalk.onepass.dashboard.service.notification.NotificationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -25,7 +26,8 @@ public class NotificationController {
     public String notification(Model model,
                                @RequestParam(required = false, defaultValue = "id") String sortBy,
                                @RequestParam(required = false, defaultValue = "desc") String direction,
-                               @PageableDefault(size = 3) Pageable pageable) {
+                               @Qualifier("first") @PageableDefault(size = 3) Pageable firstPageable,
+                               @Qualifier("second") @PageableDefault(size = 3) Pageable secondPageable) {
 
 
         Page<NotificationCommonResponseDto> isNotReadPage = null;  // 최종적으로 뷰에 전달할 회원 목록
@@ -42,13 +44,18 @@ public class NotificationController {
                         ? sortBy : "id";
 
         // @PageableDefault의 page/size + 위에서 결정한 정렬 기준을 합쳐 새 Pageable 생성
-        Pageable sortedPageable =
-                PageRequest.of(pageable.getPageNumber(), // @PageableDefault가 만들어준 page 번호
-                        pageable.getPageSize(),  // @PageableDefault가 만들어준 size (기본10)
+        Pageable first_sortedPageable =
+                PageRequest.of(firstPageable.getPageNumber(), // @PageableDefault가 만들어준 page 번호
+                        firstPageable.getPageSize(),  // @PageableDefault가 만들어준 size (기본10)
                         Sort.by(dir, validSort));  // 정렬은 새로 적용
 
-        isNotReadPage = notificationService.findByIsNotReadNotification(sortedPageable);
-        isReadPage = notificationService.findByIsReadNotification(sortedPageable);
+        Pageable second_sortedPageable =
+                PageRequest.of(secondPageable.getPageNumber(), // @PageableDefault가 만들어준 page 번호
+                        secondPageable.getPageSize(),  // @PageableDefault가 만들어준 size (기본10)
+                        Sort.by(dir, validSort));  // 정렬은 새로 적용
+
+        isNotReadPage = notificationService.findByIsNotReadNotification(first_sortedPageable);
+        isReadPage = notificationService.findByIsReadNotification(second_sortedPageable);
 
         model.addAttribute("isNotReadAlarmList", isNotReadPage);    // 안 읽은 보여주는 알림
         model.addAttribute("isReadAlarmList", isReadPage);          // 읽은 보여주는 알림
