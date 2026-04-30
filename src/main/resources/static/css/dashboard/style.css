@@ -261,6 +261,13 @@ body {
     font-size: 14px;
 }
 
+.empty-msg-notification {
+    text-align: center;
+    padding: 40px 0;
+    color: #aaa;
+    font-size: 20px;
+}
+
 /* 데이터 테이블 */
 .book-table {
     width: 100%;
@@ -319,6 +326,54 @@ body {
 }
 /* 현재 정렬 기준 버튼 강조 - 파란 채움 */
 .sort-btn:active {
+    background: #4361ee;
+    color: #fff;
+    border-color: #4361ee;
+}
+
+/* 검색 폼 전체 컨테이너 - 흰색 카드 형태 */
+.search-section {
+    background-color: #fff;
+    border-radius: 10px;
+    margin-bottom: 25px;
+    padding-top: 50px;
+    margin-top: 25px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+}
+.search-section-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #888;
+    margin-bottom: 10px;
+    letter-spacing: 10px;
+    text-transform: uppercase;
+}
+
+.category-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 30px;
+    margin-bottom: 12px;
+}
+
+/* 정렬 버튼 기본 스타일 */
+.category-sort-btn {
+    padding: 4px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 20px;
+    color: #475569;
+    text-decoration: none;
+    background: #fff;
+    transition: all 0.15s;
+}
+.category-sort-btn:hover {
+    background: #f1f5f9;
+    border-color: #94a3b8;
+}
+/* 현재 정렬 기준 버튼 강조 - 파란 채움 */
+.category-sort-btn:active {
     background: #4361ee;
     color: #fff;
     border-color: #4361ee;
