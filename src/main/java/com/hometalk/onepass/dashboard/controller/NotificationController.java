@@ -14,7 +14,10 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequiredArgsConstructor
@@ -54,11 +57,16 @@ public class NotificationController {
                         secondPageable.getPageSize(),  // @PageableDefault가 만들어준 size (기본10)
                         Sort.by(dir, validSort));  // 정렬은 새로 적용
 
-        isNotReadPage = notificationService.findByIsNotReadNotification(first_sortedPageable);
-        isReadPage = notificationService.findByIsReadNotification(second_sortedPageable);
+        isNotReadPage = notificationService.findByIsNotReadNotification(first_sortedPageable);  // 안 읽은 보여주는 알림
+        isReadPage = notificationService.findByIsReadNotification(second_sortedPageable);   // 읽은 보여주는 알림
 
-        model.addAttribute("isNotReadAlarmList", isNotReadPage);    // 안 읽은 보여주는 알림
-        model.addAttribute("isReadAlarmList", isReadPage);          // 읽은 보여주는 알림
+        Map<String, Page<NotificationCommonResponseDto>> alarmMap = new HashMap<>();
+        alarmMap.put("Y", isNotReadPage);
+        alarmMap.put("N", isReadPage);
+
+        //        List<Page<NotificationCommonResponseDto>> alarmList = Arrays.asList(isNotReadPage, isReadPage);
+
+        model.addAttribute("alarmMap", alarmMap);
         model.addAttribute("sortBy", validSort);
         model.addAttribute("direction", direction);
 
