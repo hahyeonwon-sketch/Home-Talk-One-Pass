@@ -25,6 +25,7 @@
                     <div th:each="entry : ${alarmMap}">
 
                         <div th:switch="${entry.key}">
+
                             <!-- 새로운 알림 실행 -->
                             <div th:case="'Y'">
                                 <!--정렬 버튼 영역-->
@@ -155,10 +156,10 @@
                                     </div>
                                 </td>
 
-                                <td style="padding-left: 400px">
+                                <td style="padding-left: 455px">
                                     <a th:classappend="${i < entry.getValue().numberOfElements} ? 'btn' : ''"
                                        th:href="${i < entry.getValue().numberOfElements} ? '@{/index}' : '#'"
-                                       th:text="${i < entry.getValue().numberOfElements} ? 'View Details' : ''">View Details</a>
+                                       th:text="${i < entry.getValue().numberOfElements} ? '보기' : ''">View Details</a>
                                 </td>
                             </tr>
                             </tbody>

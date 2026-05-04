@@ -1,8 +1,12 @@
 package com.hometalk.onepass.dashboard.controller;
 
 import com.hometalk.onepass.dashboard.dto.notification.response.NotificationCommonResponseDto;
+import com.hometalk.onepass.dashboard.entity.notification.NotificationToBilling;
+import com.hometalk.onepass.dashboard.enums.AlarmCategory;
+import com.hometalk.onepass.dashboard.repository.notification.NotificationToBillingRepository;
 import com.hometalk.onepass.dashboard.service.notification.NotificationService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -12,6 +16,8 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.Arrays;
@@ -19,13 +25,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Controller
+@RequestMapping("/notification")
 @RequiredArgsConstructor
 public class NotificationController {
 
     private final NotificationService notificationService;
 
-    @GetMapping({"/notification"})
+    @GetMapping
     public String notification(Model model,
                                @RequestParam(required = false, defaultValue = "id") String sortBy,
                                @RequestParam(required = false, defaultValue = "desc") String direction,
@@ -72,6 +80,25 @@ public class NotificationController {
 
         // 시드 데이터 (관련 데이터 모델에 공유 - 추후)
         return "/notification/main";
+    }
+
+    /*
+     *   알림 상세 페이지
+     *   GET /notification/{id}
+     * */
+    @GetMapping("/{id}")
+    public String detail(@PathVariable Long id, Model model) {
+        NotificationCommonResponseDto notification = notificationService.findNotificationCommonById(id);
+        log.info("== 알림 상세 조회 == id={}, AlarmCategory={}",notification.getId(), notification.getAlarmCategory());
+        
+        if (notification.getAlarmCategory() == AlarmCategory.BILLING) {
+
+        }
+
+
+
+
+        return "/notification/detail";   // templates/notification/detail.html
     }
 }
 

@@ -1,6 +1,7 @@
 package com.hometalk.onepass.dashboard.service.notification;
 
 import com.hometalk.onepass.dashboard.dto.notification.response.NotificationCommonResponseDto;
+import com.hometalk.onepass.dashboard.entity.notification.NotificationToBilling;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -16,4 +17,6 @@ public interface NotificationService {
     // 읽은(True) 데이터 + 최신순 (추가)
     List<NotificationCommonResponseDto> findByIsReadNotification();
     Page<NotificationCommonResponseDto> findByIsReadNotification(Pageable pageable);
+
+    NotificationCommonResponseDto  findNotificationCommonById(long id);
 }

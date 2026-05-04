@@ -19,7 +19,4 @@ public enum AlarmCategory {
         this.title = title;
     }
 
-    public String getTitle() {
-        return title;
-    }
 }

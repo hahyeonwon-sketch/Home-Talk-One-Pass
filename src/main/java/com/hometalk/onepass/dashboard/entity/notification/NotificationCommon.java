@@ -8,6 +8,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Setter
 @Getter
@@ -36,8 +37,8 @@ public class NotificationCommon extends BaseTimeEntity {
     @Column(nullable = false, length = 500)
     private String message;             // 알림 내용 메시지
 
-//    @Column(name = "reference_id")
-//    private Long referenceId;
+    @Column(name = "reference_id")
+    private Long referenceId;
 
     @Column(name = "is_read")
     private Boolean isRead;            // 읽음 여부 상태

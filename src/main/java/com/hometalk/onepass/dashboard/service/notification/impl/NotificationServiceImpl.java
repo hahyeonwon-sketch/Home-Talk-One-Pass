@@ -3,7 +3,9 @@ package com.hometalk.onepass.dashboard.service.notification.impl;
 
 import com.hometalk.onepass.dashboard.dto.notification.response.NotificationCommonResponseDto;
 import com.hometalk.onepass.dashboard.entity.notification.NotificationCommon;
+import com.hometalk.onepass.dashboard.entity.notification.NotificationToBilling;
 import com.hometalk.onepass.dashboard.repository.notification.NotificationRepository;
+import com.hometalk.onepass.dashboard.repository.notification.NotificationToBillingRepository;
 import com.hometalk.onepass.dashboard.service.notification.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -14,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 @Service
@@ -22,6 +25,7 @@ public class NotificationServiceImpl implements NotificationService{
 
     // 알림 관련 DB 접근을 담당하는 Repository
     private final NotificationRepository notificationRepository;
+//    private final NotificationToBillingRepository notificationToBillingRepository;
 
     @Override
     @Transactional(readOnly = true)   // 읽기 전용 트랜잭션 -> Hibernate 더티 체킹(변경 감지) 생략으로 성능 향상
@@ -55,6 +59,15 @@ public class NotificationServiceImpl implements NotificationService{
 
         return notificationRepository.findByIsRead(true, pageable)  // deleted_at IS NULL + LIMIT/OFFSET/ORDER BY 자동 생성
                 .map(NotificationCommonResponseDto::from);        // Page<NotificationCommon -> Page<NotificationCommonResponseDto> 변환 (메타정보 유지)
+    }
+
+    @Override
+    public NotificationCommonResponseDto findNotificationCommonById(long id) {
+
+        NotificationCommon NotificationCommon = notificationRepository.findById(id)
+                .orElseThrow(() ->
+                        new NoSuchElementException("해당 알림을 찾을 수 없습니다. id= " + id));
+        return  NotificationCommonResponseDto.from(NotificationCommon);
     }
 
 //    @Override

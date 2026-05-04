@@ -4,13 +4,12 @@ import com.hometalk.onepass.dashboard.entity.notification.NotificationCommon;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 /*
- *   도서관련 DB 접근을 담당하는 Repository
- *   Book 엔티티, PK 타입 Long
+ *   공통 알림 DB 접근을 담당하는 Repository
+ *   알림 엔티티, PK 타입 Long
  *   - 기본 제공 메서드 : save() -> INSERT / UPDATE, findeAll() -> SELECT, findByid() -> SELECT by PK, delete() 등
  *   - 커스텀 쿼리가 필요하면 @Query 추가, 명명 규칙 등
  * */
