@@ -11,6 +11,7 @@ import com.hometalk.onepass.dashboard.enums.AlarmCategory;
 import com.hometalk.onepass.dashboard.enums.AlarmType;
 import com.hometalk.onepass.dashboard.repository.notification.NotificationRepository;
 import com.hometalk.onepass.dashboard.repository.notification.NotificationToBillingRepository;
+import com.hometalk.onepass.dashboard.service.notification.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -33,13 +34,15 @@ public class AlarmDataInitializer implements CommandLineRunner {
     private final NotificationRepository notificationRepository;
     private final NotificationToBillingRepository notificationToBillingRepository;
 
+    private final NotificationService notificationService;
+
     @Override
     public void run(String... args) throws Exception {
         log.info("initAlarm started");
         initAlarm();
     }
 
-    private void initBilling() {
+    private void initAlarm() {
 
         // 이미 데이터가 있으면 중복 삽입하지 않음
         if (notificationToBillingRepository.count() > 0) {
@@ -63,6 +66,7 @@ public class AlarmDataInitializer implements CommandLineRunner {
 
         List<NotificationToBilling> sampleBilling = List.of(
                 NotificationToBilling.builder()
+                        .alarmCategory(AlarmCategory.BILLING)
                         .alarmType(AlarmType.NEW)
                         .message("고지서 지금 확인하세요")
                         .user(defaultUser)
@@ -86,10 +90,11 @@ public class AlarmDataInitializer implements CommandLineRunner {
                         ))
                         .build(),
                 NotificationToBilling.builder()
+                        .alarmCategory(AlarmCategory.BILLING)
                         .alarmType(AlarmType.DUE_7D)
                         .message("고지서 지금 확인하세요")
                         .user(defaultUser)
-                        .billingMonth("2026-03")
+                        .billingMonth("2026-04")
                         .totalAmount(BigDecimal.valueOf(155000))
                         .status(BillingStatus.UNPAID)
                         .dueDate(LocalDate.of(2026, 3, 31))
@@ -109,10 +114,11 @@ public class AlarmDataInitializer implements CommandLineRunner {
                         ))
                         .build(),
                 NotificationToBilling.builder()
+                        .alarmCategory(AlarmCategory.BILLING)
                         .alarmType(AlarmType.WARN_LONG)
                         .message("고지서 지금 확인하세요")
                         .user(defaultUser)
-                        .billingMonth("2026-03")
+                        .billingMonth("2026-05")
                         .totalAmount(BigDecimal.valueOf(155000))
                         .status(BillingStatus.UNPAID)
                         .dueDate(LocalDate.of(2026, 3, 31))
@@ -135,9 +141,6 @@ public class AlarmDataInitializer implements CommandLineRunner {
 
         notificationToBillingRepository.saveAll(sampleBilling);
         log.info("샘플 관리비 알람 {}건 삽입 완료.", sampleBilling.size());
-    }
-
-    private void initAlarm() {
 
         // 이미 데이터가 있으면 중복 삽입하지 않음
         if (notificationRepository.count() > 0) {
@@ -145,60 +148,6 @@ public class AlarmDataInitializer implements CommandLineRunner {
             return;
         }
 
-        // 1. 이메일로 유저를 먼저 찾습니다.
-        User defaultUser = userRepository.findByEmail("gildong@test.com")
-                .orElseGet(() -> {
-                    // 2. 만약 없다면, 필수 필드를 모두 채워서 저장합니다.
-                    return userRepository.save(User.builder()
-                            .name("테스트유저")
-                            .email("gildong@test.com")
-                            .nickname("테스트닉네임")
-                            .phoneNumber("010-0000-0000") // 필수값들
-                            .role(User.UserRole.MEMBER)      // Enum 값들
-                            .status(User.UserStatus.APPROVED)
-                            .build());
-                });
-
-        List<NotificationCommon> sampleAlarm = List.of(
-                NotificationCommon.builder()
-                        .alarmCategory(AlarmCategory.BILLING)
-                        .alarmType(AlarmType.NEW)
-                        .message("고지서 지금 확인하세요")
-                        .user(defaultUser)
-                        .isRead(false)
-                        .build(),
-                NotificationCommon.builder()
-                        .alarmCategory(AlarmCategory.BILLING)
-                        .alarmType(AlarmType.DUE_7D)
-                        .message("고지서 지금 확인하세요")
-                        .user(defaultUser)
-                        .isRead(false)
-                        .build(),
-                NotificationCommon.builder()
-                        .alarmCategory(AlarmCategory.BILLING)
-                        .alarmType(AlarmType.WARN_LONG)
-                        .message("고지서 지금 확인하세요")
-                        .user(defaultUser)
-                        .isRead(false)
-                        .build(),
-                NotificationCommon.builder()
-                        .alarmCategory(AlarmCategory.BILLING)
-                        .alarmType(AlarmType.NEW)
-                        .message("고지서 지금 확인하세요")
-                        .user(defaultUser)
-                        .isRead(false)
-                        .build(),
-                NotificationCommon.builder()
-                        .alarmCategory(AlarmCategory.BILLING)
-                        .alarmType(AlarmType.NEW)
-                        .message("고지서 지금 확인하세요")
-                        .user(defaultUser)
-                        .isRead(false)
-                        .build()
-
-        );
-
-        notificationRepository.saveAll(sampleAlarm);
-        log.info("샘플 알람 {}건 삽입 완료.", sampleAlarm.size());
+        notificationService.findNotificationToBillingByEmail(defaultUser.getEmail());
     }
 }

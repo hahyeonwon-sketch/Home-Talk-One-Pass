@@ -41,6 +41,7 @@ public class NotificationToBillingDto {
     public static NotificationToBillingDto from(NotificationToBilling notification) {
         return NotificationToBillingDto.builder()
                 .id(notification.getId())
+                .alarmCategory(notification.getAlarmCategory())
                 .alarmType(notification.getAlarmType())
                 .billingItems(notification.getBillingItems().stream()
                         .map(d -> BillingDetailResponse.ItemDetail.builder()

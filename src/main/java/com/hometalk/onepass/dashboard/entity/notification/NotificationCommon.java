@@ -32,17 +32,17 @@ public class NotificationCommon extends BaseTimeEntity {
     private AlarmCategory alarmCategory;    // 알람 카테고리
 
     @Enumerated(EnumType.STRING)
-    private AlarmType alarmType;      // 알람 타입
+    private AlarmType alarmType;            // 알람 타입
 
     @Column(nullable = false, length = 500)
-    private String message;             // 알림 내용 메시지
+    private String message;                 // 알림 내용 메시지
 
     @Column(name = "reference_id")
-    private Long referenceId;
+    private Long referenceId;               // 자식 테이블(Billing 등)의 PK 저장
 
     @Column(name = "is_read")
-    private Boolean isRead;            // 읽음 여부 상태
+    private Boolean isRead;                 // 읽음 여부 상태
 
     @Column(nullable = true)
-    private LocalDateTime deletedAt;            // 삭제 시각
+    private LocalDateTime deletedAt;        // 삭제 시각
 }

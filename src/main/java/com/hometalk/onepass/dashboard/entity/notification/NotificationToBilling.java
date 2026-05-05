@@ -32,6 +32,9 @@ public class NotificationToBilling extends BaseTimeEntity{
     private Long id;
 
     @Enumerated(EnumType.STRING)
+    private AlarmCategory alarmCategory;    // BILLING, PARKING, SCHEDULE 등
+
+    @Enumerated(EnumType.STRING)
     private AlarmType alarmType;            // 알람 타입
 
     @ManyToOne
@@ -59,26 +62,10 @@ public class NotificationToBilling extends BaseTimeEntity{
     @Column(name = "due_date", nullable = false)
     private LocalDate dueDate;              // 납기일
 
+    @Builder.Default
     @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "billing_items")
     private List<BillingDetailResponse.ItemDetail> billingItems =  new ArrayList<>();      // 전기료, 수도료, 청소비 등 항목명, 개별 항목 금액
-
-    public void NotificationToBilling(List<BillingDetail> details) {
-
-        this.billingItems.clear();
-
-        BillingDetailResponse.ItemDetail itemDetail;
-        for (BillingDetail detail : details) {
-
-            itemDetail = BillingDetailResponse.ItemDetail.builder()
-                    .itemName(detail.getItemName())
-                    .itemAmount(detail.getItemAmount())
-                    .build();
-
-
-            this.billingItems.add(itemDetail);
-        }
-    }
-
 
 //    private String billing_month;       // 청구월 (예: 2026-03)
 //    private int total_amount;           // 합계 금액

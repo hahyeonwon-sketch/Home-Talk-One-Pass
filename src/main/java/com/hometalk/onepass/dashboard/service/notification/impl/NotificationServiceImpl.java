@@ -1,13 +1,19 @@
 package com.hometalk.onepass.dashboard.service.notification.impl;
 
 
+import com.hometalk.onepass.auth.entity.User;
+import com.hometalk.onepass.billing.entity.BillingStatus;
 import com.hometalk.onepass.dashboard.dto.notification.response.NotificationCommonResponseDto;
+import com.hometalk.onepass.dashboard.dto.notification.response.NotificationToBillingDto;
 import com.hometalk.onepass.dashboard.entity.notification.NotificationCommon;
 import com.hometalk.onepass.dashboard.entity.notification.NotificationToBilling;
+import com.hometalk.onepass.dashboard.enums.AlarmCategory;
+import com.hometalk.onepass.dashboard.enums.AlarmType;
 import com.hometalk.onepass.dashboard.repository.notification.NotificationRepository;
 import com.hometalk.onepass.dashboard.repository.notification.NotificationToBillingRepository;
 import com.hometalk.onepass.dashboard.service.notification.NotificationService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -19,13 +25,14 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class NotificationServiceImpl implements NotificationService{
 
     // 알림 관련 DB 접근을 담당하는 Repository
     private final NotificationRepository notificationRepository;
-//    private final NotificationToBillingRepository notificationToBillingRepository;
+    private final NotificationToBillingRepository notificationToBillingRepository;
 
     @Override
     @Transactional(readOnly = true)   // 읽기 전용 트랜잭션 -> Hibernate 더티 체킹(변경 감지) 생략으로 성능 향상
@@ -68,6 +75,46 @@ public class NotificationServiceImpl implements NotificationService{
                 .orElseThrow(() ->
                         new NoSuchElementException("해당 알림을 찾을 수 없습니다. id= " + id));
         return  NotificationCommonResponseDto.from(NotificationCommon);
+    }
+
+    @Override
+    public NotificationToBillingDto findNotificationToBillingById(long id) {
+
+        NotificationCommon notificationCommon = notificationRepository.findById(id)
+                .orElseThrow(() ->
+                        new NoSuchElementException("해당 알림을 찾을 수 없습니다. id= " + id));
+
+        NotificationToBilling notificationToBilling = notificationToBillingRepository.findById(notificationCommon.getReferenceId())
+                .orElseThrow(() ->
+                        new NoSuchElementException("해당 관리비를 찾을 수 없습니다. referenceId " + notificationCommon.getReferenceId()));
+
+        return  NotificationToBillingDto.from(notificationToBilling);
+    }
+
+    @Override
+    public void findNotificationToBillingByEmail(String email) {
+
+        // 예: "test@example.com" 유저의 "미납(UNPAID)" 내역만 가져오기
+        List<NotificationToBilling> unpaidList =
+                notificationToBillingRepository.findByUserEmailAndStatus(email, BillingStatus.UNPAID);
+
+        List<NotificationCommon> sampleAlarmList = new ArrayList<>();
+        for (NotificationToBilling notificationToBilling : unpaidList) {
+
+            sampleAlarmList.add(
+                    NotificationCommon.builder()
+                            .alarmCategory(AlarmCategory.BILLING)
+                            .alarmType(notificationToBilling.getAlarmType())
+                            .referenceId(notificationToBilling.getId())
+                            .message(notificationToBilling.getMessage())
+                            .user(notificationToBilling.getUser())
+                            .isRead(false)
+                            .build()
+            );
+        }
+
+        notificationRepository.saveAll(sampleAlarmList);
+        log.info("샘플 알람 {}건 삽입 완료.", sampleAlarmList.size());
     }
 
 //    @Override

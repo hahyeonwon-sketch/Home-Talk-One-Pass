@@ -1,10 +1,41 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
+
+<head th:replace="~{fragments/head :: head(pageTitle='알람 내용 보기')}"></head>
 <body>
+<div class="main-layout" style="display: flex;">
+
+    <!-- 1. 왼쪽 사이드바 -->
+    <div th:replace="~{fragments/sidebar :: sidebar(currentPage='notification')}"></div>
+
+    <!-- 2. 오른쪽 영역 (헤더 + 본문) -->
+    <div class="main-wrapper" style="flex: 1; display: flex; flex-direction: column;">
+
+        <!-- 상단 헤더 현재 선택한 왼쪽 사이드 메뉴 + 오른쪽 선택한 메뉴 -->
+        <div th:replace="~{fragments/headerCurrentMenuView :: path(paths=${ {'notification'} })}"></div>
+
+        <!-- 상단 메뉴 -->
+        <div th:replace="~{fragments/headerCategoryMenu :: notification}"></div>
+
+        <!-- 메인 콘텐츠 -->
+        <main class="content">
+
+            <div class="container" style="min-width: 80vh">
+                <h1 class="page-title" style="margin: 0;">알림 보기 화면</h1>
+                <table class="book-table">
+                    <tr th:each="item, stat : ${detail.getBillingItems()}">
+                        <td th:text="${stat.count}">1</td> <!-- 1부터 시작하는 번호 (index는 0부터) -->
+                        <td th:text="${item.getItemName()}">관리비 개별 이름</td>
+                        <td th:text="${#numbers.formatInteger(item.getItemAmount(), 3, 'COMMA')} + ' 원'">관리비 개별 금액</td>
+                    </tr>
+                </table>
+<!--                <span th:text="${detail.getMessage()}"> '알림 내용' </span>-->
+            </div>
+        </main>
+
+        <!-- 하단 푸터 삽입 -->
+        <footer th:replace="~{fragments/footer :: footer}"></footer>
+
+    </div>
+</div>
 
 </body>
-</html>

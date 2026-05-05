@@ -1,6 +1,9 @@
 package com.hometalk.onepass.dashboard.service.notification;
 
+import com.hometalk.onepass.auth.entity.User;
 import com.hometalk.onepass.dashboard.dto.notification.response.NotificationCommonResponseDto;
+import com.hometalk.onepass.dashboard.dto.notification.response.NotificationToBillingDto;
+import com.hometalk.onepass.dashboard.entity.notification.NotificationCommon;
 import com.hometalk.onepass.dashboard.entity.notification.NotificationToBilling;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,4 +22,7 @@ public interface NotificationService {
     Page<NotificationCommonResponseDto> findByIsReadNotification(Pageable pageable);
 
     NotificationCommonResponseDto  findNotificationCommonById(long id);
+    NotificationToBillingDto  findNotificationToBillingById(long id);
+
+    void findNotificationToBillingByEmail(String email);
 }

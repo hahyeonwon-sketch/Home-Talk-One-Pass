@@ -1,6 +1,7 @@
 package com.hometalk.onepass.dashboard.controller;
 
 import com.hometalk.onepass.dashboard.dto.notification.response.NotificationCommonResponseDto;
+import com.hometalk.onepass.dashboard.dto.notification.response.NotificationToBillingDto;
 import com.hometalk.onepass.dashboard.entity.notification.NotificationToBilling;
 import com.hometalk.onepass.dashboard.enums.AlarmCategory;
 import com.hometalk.onepass.dashboard.repository.notification.NotificationToBillingRepository;
@@ -20,10 +21,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 @Controller
@@ -32,6 +30,7 @@ import java.util.Map;
 public class NotificationController {
 
     private final NotificationService notificationService;
+    private final NotificationToBillingRepository notificationToBillingRepository;
 
     @GetMapping
     public String notification(Model model,
@@ -88,14 +87,13 @@ public class NotificationController {
      * */
     @GetMapping("/{id}")
     public String detail(@PathVariable Long id, Model model) {
-        NotificationCommonResponseDto notification = notificationService.findNotificationCommonById(id);
-        log.info("== 알림 상세 조회 == id={}, AlarmCategory={}",notification.getId(), notification.getAlarmCategory());
-        
-        if (notification.getAlarmCategory() == AlarmCategory.BILLING) {
 
+        NotificationToBillingDto detail = notificationService.findNotificationToBillingById(id);
+        log.info("== 알림 상세 조회 == id={}, AlarmCategory={}",detail.getId(), detail.getAlarmCategory());
+        if (detail.getAlarmCategory() == AlarmCategory.BILLING)
+        {
+          model.addAttribute("detail",  detail);
         }
-
-
 
 
         return "/notification/detail";   // templates/notification/detail.html

@@ -17,6 +17,7 @@ public class NotificationCommonResponseDto {
     private AlarmType alarmType;                // 알림 타입 분류
     private Boolean isRead;                     // 읽음 여부 상태
     private String message;                     // 메세지 내용
+    private Long referenceId;                   // 해당 카테고리 자식 PK
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private LocalDateTime deletedAt;            // 삭제 시각
@@ -29,6 +30,7 @@ public class NotificationCommonResponseDto {
                 .alarmType(notification.getAlarmType())
                 .isRead(notification.getIsRead())
                 .message(notification.getMessage())
+                .referenceId(notification.getReferenceId())
                 .createdAt(notification.getCreatedAt())
                 .updatedAt(notification.getUpdatedAt())
                 .deletedAt(notification.getDeletedAt())
