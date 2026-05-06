@@ -38,7 +38,7 @@
 
                                         <!-- 2. 중앙 제목: flex: 2로 중앙 배치 보장 -->
                                         <div style="flex: 2; text-align: center; font-weight: bold;">
-                                            관리비 고지서
+                                           <span th:text="${detail.getAlarmCategory().title} + ' 고지서'">카테고리 이름 + 고지서 </span>
                                         </div>
 
                                         <!-- 3. 오른쪽 버튼: flex: 1로 왼쪽과 균형 맞춤 -->
@@ -47,9 +47,6 @@
                                         </div>
 
                                     </div>
-<!--                                    <a th:href="@{/notification}" class="btn" style="text-align: left; margin-left: 10px; padding: 5px 10px; font-size: 0.8rem">BACK</a>-->
-<!--                                    <div style="text-align: center;"> 관리비 고지서 </div>-->
-<!--                                    <a href="#" class="btn" style="text-align: right; margin-right: 10px; padding: 5px 10px; font-size: 0.8rem">페이지 이동</a>-->
                                 </th>
 
                             </tr>
@@ -64,12 +61,18 @@
 <!--                                </div>-->
 
                                     <div style="text-align: center; margin-top: 50px">
-                                        * 이번달 부과 금액 *<br>
-                                        - 2026-03 년도 관리비-<br>
-                                        - 수도세: 30,000<br>
-                                        - 전기세: 20,000<br><br>
-                                        <strong>합계: 50,000</strong><br>
-                                        납기일 : 2026-03-31까지
+                                        <div>* 이번달 부과 금액 *</div>
+
+                                        <div th:text="|- ${detail.getBillingMonth()} 년도 ${detail.getAlarmCategory().title} -|">- 2026-03 년도 관리비-</div>
+                                        <div th:each="item : ${detail.getBillingItems()}">
+                                            <span th:text="|${item.getItemName()} : ${#numbers.formatInteger(item.getItemAmount(), 3, 'COMMA')} 원|">수도세: 30,000원</span>
+                                        </div>
+
+                                        <div th:with="total=${#aggregates.sum(detail.getBillingItems().![itemAmount])}">
+                                            <strong>총 금액: <span th:text="${#numbers.formatInteger(total, 0, 'COMMA')} + ' 원'">0 원</span></strong>
+                                        </div>
+                                        <div th:text="|납기일 : ${#temporals.format(detail.dueDate, 'yyyy-MM-dd')}까지|">납기일 : 2026-03-31까지</div>
+
 
 <!--                                        <br><br><br><br>-->
 <!--                                        &lt;!&ndash; 3. 오른쪽 버튼: flex: 1로 왼쪽과 균형 맞춤 &ndash;&gt;-->
