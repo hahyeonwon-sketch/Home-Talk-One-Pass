@@ -30,10 +30,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AlarmDataInitializer implements CommandLineRunner {
 
-    private final UserRepository userRepository;
-    private final NotificationRepository notificationRepository;
-    private final NotificationToBillingRepository notificationToBillingRepository;
 
+    private final NotificationToBillingRepository notificationToBillingRepository;
     private final NotificationService notificationService;
 
     @Override
@@ -50,19 +48,7 @@ public class AlarmDataInitializer implements CommandLineRunner {
             return;
         }
 
-        // 1. 이메일로 유저를 먼저 찾습니다.
-        User defaultUser = userRepository.findByEmail("gildong@test.com")
-                .orElseGet(() -> {
-                    // 2. 만약 없다면, 필수 필드를 모두 채워서 저장합니다.
-                    return userRepository.save(User.builder()
-                            .name("테스트유저")
-                            .email("gildong@test.com")
-                            .nickname("테스트닉네임")
-                            .phoneNumber("010-0000-0000") // 필수값들
-                            .role(User.UserRole.MEMBER)      // Enum 값들
-                            .status(User.UserStatus.APPROVED)
-                            .build());
-                });
+        User defaultUser = notificationService.findUserByEmail();
 
         List<NotificationToBilling> sampleBilling = List.of(
                 NotificationToBilling.builder()
@@ -77,15 +63,11 @@ public class AlarmDataInitializer implements CommandLineRunner {
                         .billingItems(List.of(
                                 BillingDetailResponse.ItemDetail.builder()
                                         .itemName("전기료")
-                                        .itemAmount(BigDecimal.valueOf(50000))
-                                        .build(),
-                                BillingDetailResponse.ItemDetail.builder()
-                                        .itemName("수도료")
-                                        .itemAmount(BigDecimal.valueOf(30000))
+                                        .itemAmount(BigDecimal.valueOf(20000))
                                         .build(),
                                 BillingDetailResponse.ItemDetail.builder()
                                         .itemName("난방비")
-                                        .itemAmount(BigDecimal.valueOf(40000))
+                                        .itemAmount(BigDecimal.valueOf(30000))
                                         .build()
                         ))
                         .build(),
@@ -101,15 +83,11 @@ public class AlarmDataInitializer implements CommandLineRunner {
                         .billingItems(List.of(
                                 BillingDetailResponse.ItemDetail.builder()
                                         .itemName("전기료")
-                                        .itemAmount(BigDecimal.valueOf(50000))
+                                        .itemAmount(BigDecimal.valueOf(10000))
                                         .build(),
                                 BillingDetailResponse.ItemDetail.builder()
                                         .itemName("수도료")
-                                        .itemAmount(BigDecimal.valueOf(30000))
-                                        .build(),
-                                BillingDetailResponse.ItemDetail.builder()
-                                        .itemName("난방비")
-                                        .itemAmount(BigDecimal.valueOf(40000))
+                                        .itemAmount(BigDecimal.valueOf(20000))
                                         .build()
                         ))
                         .build(),
@@ -141,13 +119,5 @@ public class AlarmDataInitializer implements CommandLineRunner {
 
         notificationToBillingRepository.saveAll(sampleBilling);
         log.info("샘플 관리비 알람 {}건 삽입 완료.", sampleBilling.size());
-
-        // 이미 데이터가 있으면 중복 삽입하지 않음
-        if (notificationRepository.count() > 0) {
-            log.info("[DataInitializer]이미 알람 데이터가 존재합니다. 시드 데이터 삽입을 건너뜁니다.");
-            return;
-        }
-
-        notificationService.findNotificationToBillingByEmail(defaultUser.getEmail());
     }
 }

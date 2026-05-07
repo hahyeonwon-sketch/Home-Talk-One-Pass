@@ -2,6 +2,10 @@
 
 <head th:replace="~{fragments/head :: head(pageTitle='알림 자세히')}"></head>
 
+<style>
+    /* 공통 스타일을 별도의 클래스로 생성 */
+</style>
+
 <body>
 <div class="main-layout" style="display: flex;">
 
@@ -42,10 +46,19 @@
                                         </div>
 
                                         <!-- 3. 오른쪽 버튼: flex: 1로 왼쪽과 균형 맞춤 -->
-                                        <div style="flex: 1; text-align: right; padding-right: 10px;">
-                                            <a href="#" class="btn" style="padding: 5px 10px; font-size: 0.8rem">페이지 이동</a>
-                                        </div>
+                                        <div style="flex: 1; text-align: right; padding-right: 10px;"
+                                             th:switch="${detail.getAlarmCategory().name()}">
 
+                                            <div class="btn btn-small">
+                                                <!-- 각 케이스마다 <a> 태그를 통째로 생성 -->
+                                                <a th:case="'BILLING'" th:href="@{/billing}">관리비 페이지</a>
+                                                <a th:case="'PARKING'" th:href="@{/parking/vehicle}">주차 페이지</a>
+
+                                                <!-- 그 외 기본값 -->
+                                                <a th:case="*" th:remove="tag">페이지 이동</a>
+                                            </div>
+
+                                        </div>
                                     </div>
                                 </th>
 
@@ -69,8 +82,12 @@
                                         </div>
 
                                         <div th:with="total=${#aggregates.sum(detail.getBillingItems().![itemAmount])}">
-                                            <strong>총 금액: <span th:text="${#numbers.formatInteger(total, 0, 'COMMA')} + ' 원'">0 원</span></strong>
+                                            <strong>
+                                                총 금액:
+                                                <span th:text="${#numbers.formatInteger(total, 0, 'COMMA')} + ' 원'">0 원</span>
+                                            </strong>
                                         </div>
+                                        <br> <!-- 여기서 줄바꿈 -->
                                         <div th:text="|납기일 : ${#temporals.format(detail.dueDate, 'yyyy-MM-dd')}까지|">납기일 : 2026-03-31까지</div>
 
 

@@ -13,13 +13,13 @@ import java.util.Optional;
 
 public interface NotificationToBillingRepository extends JpaRepository<NotificationToBilling, Long> {
 
-    // 유저 이메일과 납부 상태로 리스트 검색
-    List<NotificationToBilling> findByUserEmailAndStatus(String email, BillingStatus status);
+    @Query("SELECT b FROM NotificationToBilling b " +
+            "WHERE b.user.email = :email AND b.status = :status")
+    List<NotificationToBilling> findByUserEmailAndStatus(
+            @Param("email") String email,
+            @Param("status") BillingStatus status
+    );
 
-//    @Query("SELECT b FROM NotificationToBilling b " +
-//            "WHERE b.user.email = :email AND b.status = :status")
-//    List<NotificationToBilling> findByEmailAndStatus(
-//            @Param("email") String email,
-//            @Param("status") BillingStatus status
-//    );
+    // 유저 이메일과 납부 상태로 리스트 검색
+//    List<NotificationToBilling> findByUserEmailAndStatus(String email, BillingStatus status);
 }

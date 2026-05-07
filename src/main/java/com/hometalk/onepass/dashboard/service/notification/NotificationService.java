@@ -24,5 +24,7 @@ public interface NotificationService {
     NotificationCommonResponseDto  findNotificationCommonById(long id);
     NotificationToBillingDto  findNotificationToBillingById(long id);
 
+    User findUserByEmail();
+    void saveNotification(Long id, boolean isRead);
     void findNotificationToBillingByEmail(String email);
 }

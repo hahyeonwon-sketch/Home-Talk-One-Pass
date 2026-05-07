@@ -1,9 +1,13 @@
 package com.hometalk.onepass.dashboard.controller;
 
+import com.hometalk.onepass.auth.dto.MyPageResponseDTO;
+import com.hometalk.onepass.auth.entity.User;
+import com.hometalk.onepass.auth.service.MyPageService;
 import com.hometalk.onepass.dashboard.dto.notification.response.NotificationCommonResponseDto;
 import com.hometalk.onepass.dashboard.dto.notification.response.NotificationToBillingDto;
 import com.hometalk.onepass.dashboard.entity.notification.NotificationToBilling;
 import com.hometalk.onepass.dashboard.enums.AlarmCategory;
+import com.hometalk.onepass.dashboard.repository.notification.NotificationRepository;
 import com.hometalk.onepass.dashboard.repository.notification.NotificationToBillingRepository;
 import com.hometalk.onepass.dashboard.service.notification.NotificationService;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +18,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,15 +36,24 @@ import java.util.*;
 @RequiredArgsConstructor
 public class NotificationController {
 
+    private final MyPageService myPageService;
     private final NotificationService notificationService;
+
+    private final NotificationRepository notificationRepository;
     private final NotificationToBillingRepository notificationToBillingRepository;
 
     @GetMapping
-    public String notification(Model model,
-                               @RequestParam(required = false, defaultValue = "id") String sortBy,
-                               @RequestParam(required = false, defaultValue = "desc") String direction,
-                               @Qualifier("first") @PageableDefault(size = 3) Pageable firstPageable,
-                               @Qualifier("second") @PageableDefault(size = 3) Pageable secondPageable) {
+    public String notification(
+            Authentication authentication,
+            Model model,
+            @RequestParam(required = false, defaultValue = "id") String sortBy,
+            @RequestParam(required = false, defaultValue = "desc") String direction,
+            @Qualifier("first") @PageableDefault(size = 3) Pageable firstPageable,
+            @Qualifier("second") @PageableDefault(size = 3) Pageable secondPageable) {
+
+        MyPageResponseDTO myPage = myPageService.getMyPage(authentication);
+        log.info("email == {}", myPage.getEmail());
+        notificationService.findNotificationToBillingByEmail(myPage.getEmail());
 
 
         Page<NotificationCommonResponseDto> isNotReadPage = null;  // 최종적으로 뷰에 전달할 회원 목록
@@ -86,10 +102,15 @@ public class NotificationController {
      *   GET /notification/{id}
      * */
     @GetMapping("/{id}")
-    public String detail(@PathVariable Long id, Model model) {
+    public String detail(
+            Model model,
+            @PathVariable Long id,
+            @RequestParam(required = false, defaultValue = "true") boolean isRead) {
 
+        notificationService.saveNotification(id, isRead);
         NotificationToBillingDto detail = notificationService.findNotificationToBillingById(id);
         log.info("== 알림 상세 조회 == id={}, AlarmCategory={}",detail.getId(), detail.getAlarmCategory());
+
         if (detail.getAlarmCategory() == AlarmCategory.BILLING)
         {
           model.addAttribute("detail",  detail);

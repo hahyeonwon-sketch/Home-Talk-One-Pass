@@ -2,6 +2,7 @@ package com.hometalk.onepass.dashboard.entity.notification;
 
 import com.hometalk.onepass.auth.entity.User;
 import com.hometalk.onepass.common.entity.BaseTimeEntity;
+import com.hometalk.onepass.dashboard.dto.notification.response.NotificationCommonResponseDto;
 import com.hometalk.onepass.dashboard.enums.AlarmCategory;
 import com.hometalk.onepass.dashboard.enums.AlarmType;
 import jakarta.persistence.*;
@@ -45,4 +46,8 @@ public class NotificationCommon extends BaseTimeEntity {
 
     @Column(nullable = true)
     private LocalDateTime deletedAt;        // 삭제 시각
+
+    public void updateFromDto(NotificationCommonResponseDto dto) {
+       this.isRead = dto.getIsRead();
+    }
 }
