@@ -3,8 +3,10 @@ package com.hometalk.onepass.billing.dto;
 import com.hometalk.onepass.billing.entity.Billing;
 import com.hometalk.onepass.billing.entity.BillingDetail;
 import com.hometalk.onepass.billing.entity.BillingStatus;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -51,6 +53,8 @@ public class BillingDetailResponse {
 
     @Getter
     @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor(force = true) // JSON 역직렬화를 위해 반드시 필요!
     public static class ItemDetail {
         private final String     itemName;
         private final BigDecimal itemAmount;

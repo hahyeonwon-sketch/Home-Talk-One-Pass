@@ -5,6 +5,8 @@ import com.hometalk.onepass.billing.dto.BillingDetailResponse;
 import com.hometalk.onepass.billing.entity.BillingDetail;
 import com.hometalk.onepass.billing.entity.BillingStatus;
 import com.hometalk.onepass.common.entity.BaseTimeEntity;
+import com.hometalk.onepass.dashboard.enums.AlarmCategory;
+import com.hometalk.onepass.dashboard.enums.AlarmType;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -29,64 +31,42 @@ public class NotificationToBilling extends BaseTimeEntity{
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "module_name", nullable = false, length = 50)
-    private String moduleName;         // 알림 발생 모듈
+    @Enumerated(EnumType.STRING)
+    private AlarmCategory alarmCategory;    // BILLING, PARKING, SCHEDULE 등
+
+    @Enumerated(EnumType.STRING)
+    private AlarmType alarmType;            // 알람 타입
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    private User user;          // 등록한 회원 ID FK
-
-    @Column(name = "category_alarm", nullable = false, length = 50)
-    private String categoryAlarm;      // 모듈별 세부 분류
+    private User user;                      // 등록한 회원 ID FK
 
     @Column(nullable = false, length = 500)
-    private String message;             // 알림 내용 메시지
-
-//    @Column(name = "reference_id")
-//    private Long referenceId;
-
-    @Column(name = "is_read")
-    private Boolean isRead;            // 읽음 여부 상태
+    private String message;                 // 알림 내용 메시지
 
     @Column(nullable = true)
-    private LocalDateTime deletedAt;            // 삭제 시각
+    private LocalDateTime deletedAt;        // 삭제 시각
 
     // 관리비
     @Column(name = "billing_month", nullable = false, unique = true, length = 50)
-    private String billingMonth;       // 청구월 (예: 2026-03)
+    private String billingMonth;            // 청구월 (예: 2026-03)
 
     @Column(name = "total_amount",nullable = false, precision = 12, scale = 0)
-    private BigDecimal totalAmount;     // 합계 금액
+    @Builder.Default
+    private BigDecimal totalAmount = BigDecimal.ZERO;        // 합계 금액
 
     @Builder.Default
-    @Enumerated(EnumType.STRING)    // DB에 문자열(UNPAID)로 저장되도록 설정
+    @Enumerated(EnumType.STRING)            // DB에 문자열(UNPAID)로 저장되도록 설정
     private BillingStatus status = BillingStatus.UNPAID;    // UNPAID / PAID (관리비 납부 유무)
 
     @Column(name = "due_date", nullable = false)
-    private LocalDate dueDate;      // 납기일
+    private LocalDate dueDate;              // 납기일
 
+    @Builder.Default
     @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "billing_items")
     private List<BillingDetailResponse.ItemDetail> billingItems =  new ArrayList<>();      // 전기료, 수도료, 청소비 등 항목명, 개별 항목 금액
 
-    public void initBillingItems(List<BillingDetail> details) {
-
-
-        this.billingItems.clear();
-
-        BillingDetailResponse.ItemDetail itemDetail;
-        for (BillingDetail detail : details) {
-
-            itemDetail = BillingDetailResponse.ItemDetail.builder()
-                    .itemName(detail.getItemName())
-                    .itemAmount(detail.getItemAmount())
-                    .build();
-
-
-            this.billingItems.add(itemDetail);
-        }
-    }
-
-    //    // 관리비
 //    private String billing_month;       // 청구월 (예: 2026-03)
 //    private int total_amount;           // 합계 금액
 //    private boolean status;             // UNPAID / PAID (관리비 납부 유무)

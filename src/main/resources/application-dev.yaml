@@ -72,3 +72,15 @@ logging:
 file:
   upload:
     path: ${user.dir}/uploads
+
+# 개발용 시드 데이터
+# false -> 빈 상태 유지 ("등록된 도서가 없습니다." 화면 확인용)
+# true -> 샘플 도서 데이터 삽입 (도서 목록 테이블 화면 확인용)
+# 이미 데이터가 존재하면 true여도 중복 삽입하지 않음
+app:
+  data:
+    init:
+      enabled: true         #false
+
+debug: true
+

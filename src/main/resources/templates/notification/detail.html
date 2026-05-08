@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+
+<head th:replace="~{fragments/head :: head(pageTitle='알림 자세히')}"></head>
+
+<style>
+    /* 공통 스타일을 별도의 클래스로 생성 */
+</style>
+
+<body>
+<div class="main-layout" style="display: flex;">
+
+    <!-- 1. 왼쪽 사이드바 -->
+    <div th:replace="~{fragments/sidebar :: sidebar(currentPage='notification')}"></div>
+
+    <!-- 2. 오른쪽 영역 (헤더 + 본문) -->
+    <div class="main-wrapper" style="flex: 1; display: flex; flex-direction: column; margin: 0">
+
+        <!-- 상단 헤더 현재 선택한 왼쪽 사이드 메뉴 + 오른쪽 선택한 메뉴 -->
+        <div th:replace="~{fragments/headerCurrentMenuView :: path(paths=${ {'notification'} })}"></div>
+
+        <!-- 상단 메뉴 -->
+        <div th:replace="~{fragments/headerCategoryMenu :: notification}"></div>
+
+        <!-- 메인 콘텐츠 -->
+        <main class="content" style="flex: 1;">
+
+            <div class="container" style="min-width: 80vh">
+<!--                <h1 class="page-title" style="margin: 0;">알림 보기 화면</h1>-->
+
+                <div class="main-notification">
+                    <table class="book-table">
+                        <thead>
+                            <tr>
+<!--                                <th class="label-col">제목</th>-->
+                                <th>
+                                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+
+                                        <!-- 1. 왼쪽 버튼: flex: 1을 주어 공간 확보 -->
+                                        <div style="flex: 1; text-align: left; padding-left: 10px;">
+                                            <a th:href="@{/notification}" class="btn" style="padding: 5px 10px; font-size: 0.8rem">BACK</a>
+                                        </div>
+
+                                        <!-- 2. 중앙 제목: flex: 2로 중앙 배치 보장 -->
+                                        <div style="flex: 2; text-align: center; font-weight: bold;">
+                                           <span th:text="${detail.getAlarmCategory().title} + ' 고지서'">카테고리 이름 + 고지서 </span>
+                                        </div>
+
+                                        <!-- 3. 오른쪽 버튼: flex: 1로 왼쪽과 균형 맞춤 -->
+                                        <div style="flex: 1; text-align: right; padding-right: 10px;"
+                                             th:switch="${detail.getAlarmCategory().name()}">
+
+                                            <div class="btn btn-small">
+                                                <!-- 각 케이스마다 <a> 태그를 통째로 생성 -->
+                                                <a th:case="'BILLING'" th:href="@{/billing}">관리비 페이지</a>
+                                                <a th:case="'PARKING'" th:href="@{/parking/vehicle}">주차 페이지</a>
+
+                                                <!-- 그 외 기본값 -->
+                                                <a th:case="*" th:remove="tag">페이지 이동</a>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </th>
+
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            <tr>
+<!--                            <th class="label-col">내용</th>-->
+                                <td class="content-area">
+<!--                                <div style="text-align: center">-->
+<!--                                    안녕하세요.<br><br>-->
+<!--                                </div>-->
+
+                                    <div style="text-align: center; margin-top: 50px">
+                                        <div>* 이번달 부과 금액 *</div>
+
+                                        <div th:text="|- ${detail.getBillingMonth()} 년도 ${detail.getAlarmCategory().title} -|">- 2026-03 년도 관리비-</div>
+                                        <div th:each="item : ${detail.getBillingItems()}">
+                                            <span th:text="|${item.getItemName()} : ${#numbers.formatInteger(item.getItemAmount(), 3, 'COMMA')} 원|">수도세: 30,000원</span>
+                                        </div>
+
+                                        <div th:with="total=${#aggregates.sum(detail.getBillingItems().![itemAmount])}">
+                                            <strong>
+                                                총 금액:
+                                                <span th:text="${#numbers.formatInteger(total, 0, 'COMMA')} + ' 원'">0 원</span>
+                                            </strong>
+                                        </div>
+                                        <br> <!-- 여기서 줄바꿈 -->
+                                        <div th:text="|납기일 : ${#temporals.format(detail.dueDate, 'yyyy-MM-dd')}까지|">납기일 : 2026-03-31까지</div>
+
+
+<!--                                        <br><br><br><br>-->
+<!--                                        &lt;!&ndash; 3. 오른쪽 버튼: flex: 1로 왼쪽과 균형 맞춤 &ndash;&gt;-->
+<!--                                        <div style="text-align: center">-->
+<!--                                            <a href="#" class="btn" style="padding: 5px 10px; font-size: 0.8rem">페이지 이동</a>-->
+<!--                                        </div>-->
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+
+        <!-- 하단 푸터 삽입 -->
+        <footer th:replace="~{fragments/footer :: footer}"></footer>
+
+    </div>
+</div>
+
+</body>

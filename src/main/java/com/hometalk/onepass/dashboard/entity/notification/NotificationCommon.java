@@ -2,10 +2,14 @@ package com.hometalk.onepass.dashboard.entity.notification;
 
 import com.hometalk.onepass.auth.entity.User;
 import com.hometalk.onepass.common.entity.BaseTimeEntity;
+import com.hometalk.onepass.dashboard.dto.notification.response.NotificationCommonResponseDto;
+import com.hometalk.onepass.dashboard.enums.AlarmCategory;
+import com.hometalk.onepass.dashboard.enums.AlarmType;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Setter
 @Getter
@@ -20,25 +24,30 @@ public class NotificationCommon extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "module_name", nullable = false, length = 50)
-    private String moduleName;         // 알림 발생 모듈
-
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;          // 등록한 회원 ID FK
 
-    @Column(name = "category_alarm", nullable = false, length = 50)
-    private String categoryAlarm;      // 모듈별 세부 분류
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private AlarmCategory alarmCategory;    // 알람 카테고리
+
+    @Enumerated(EnumType.STRING)
+    private AlarmType alarmType;            // 알람 타입
 
     @Column(nullable = false, length = 500)
-    private String message;             // 알림 내용 메시지
+    private String message;                 // 알림 내용 메시지
 
-//    @Column(name = "reference_id")
-//    private Long referenceId;
+    @Column(name = "reference_id")
+    private Long referenceId;               // 자식 테이블(Billing 등)의 PK 저장
 
     @Column(name = "is_read")
-    private Boolean isRead;            // 읽음 여부 상태
+    private Boolean isRead;                 // 읽음 여부 상태
 
     @Column(nullable = true)
-    private LocalDateTime deletedAt;            // 삭제 시각
+    private LocalDateTime deletedAt;        // 삭제 시각
+
+    public void updateFromDto(NotificationCommonResponseDto dto) {
+       this.isRead = dto.getIsRead();
+    }
 }

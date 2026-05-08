@@ -48,6 +48,11 @@ dependencies {
 	implementation 'org.apache.poi:poi:4.1.2'
 	implementation 'org.apache.poi:poi-ooxml:4.1.2'
 
+	// Jackson 라이브러리 (JSON 변환 핵심)
+	implementation 'com.fasterxml.jackson.core:jackson-databind'
+	// Java 8 날짜/시간(LocalDate 등) 처리를 위한 모듈
+	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+
 }
 
 tasks.named('test') {

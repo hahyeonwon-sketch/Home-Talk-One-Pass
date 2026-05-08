@@ -2,30 +2,207 @@
 
 <head th:replace="~{fragments/head :: head(pageTitle='알람')}"></head>
 <body>
-    <div class="main-layout" style="display: flex;">
+<div class="main-layout" style="display: flex;">
 
-        <!-- 1. 왼쪽 사이드바 -->
-        <div th:replace="~{fragments/sidebar :: sidebar(currentPage='notification')}"></div>
+    <!-- 1. 왼쪽 사이드바 -->
+    <div th:replace="~{fragments/sidebar :: sidebar(currentPage='notification')}"></div>
 
-        <!-- 2. 오른쪽 영역 (헤더 + 본문) -->
-        <div class="main-wrapper" style="flex: 1; display: flex; flex-direction: column;">
+    <!-- 2. 오른쪽 영역 (헤더 + 본문) -->
+    <div class="main-wrapper" style="flex: 1; display: flex; flex-direction: column; margin: 0">
 
-            <!-- 상단 헤더 현재 선택한 왼쪽 사이드 메뉴 + 오른쪽 선택한 메뉴 -->
-            <div th:replace="~{fragments/headerCurrentMenuView :: path(paths=${ {'notification'} })}"></div>
+        <!-- 상단 헤더 현재 선택한 왼쪽 사이드 메뉴 + 오른쪽 선택한 메뉴 -->
+        <div th:replace="~{fragments/headerCurrentMenuView :: path(paths=${ {'notification'} })}"></div>
 
-            <!-- 상단 메뉴 -->
-            <div th:replace="~{fragments/headerCategoryMenu :: notification}"></div>
+        <!-- 상단 메뉴 -->
+        <div th:replace="~{fragments/headerCategoryMenu :: notification}"></div>
 
-            <!-- 메인 콘텐츠 -->
-            <main class="content">
-                <h1>알람 홈 화면 입니다.ㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇ</h1>
-            </main>
+        <!-- 메인 콘텐츠 -->
+        <main class="content">
+            <div class="container" style="min-width: 80vh">
 
-            <!-- 하단 푸터 삽입 -->
-            <footer th:replace="~{fragments/footer :: footer}"></footer>
+                <h1 class="page-title" style="margin: 0;">알림</h1>
 
-        </div>
+                <div th:each="entry : ${alarmMap}">
+
+                    <div th:switch="${entry.key}">
+
+                        <!-- 새로운 알림 실행 -->
+                        <div th:case="'Y'">
+                            <!--정렬 버튼 영역-->
+                            <div class="sort-bar">
+
+                                <span style="font-size: 13px;color: #64748b">정렬: </span>
+
+                                <!--최신순 sortBy = `id` / direction=`desc` page=0-->
+                                <a th:href="@{/customer(sortBy='id', direction='desc', page=0, searchType=${searchType}, keyword=${keyword}, rating=${rating})}"
+                                   th:class="${sortBy == 'id'} ? 'sort-btn active' : 'sort-btn'">최신순</a>
+
+                                <!--이름순 sortBy = `customerName` / direction='asc'
+                                    - ORDER BY  customer_name ASC -> 이름 가나다 오름차순
+                                    - searchType-keyword-rating을 그대로 전달 -->
+                                <a th:href="@{/customer(sortBy='customerName', direction='asc', page=0, searchType=${searchType}, keyword=${keyword}, rating=${rating})}"
+                                   th:class="${sortBy == 'customerName'} ? 'sort-btn active' : 'sort-btn'">이름순</a>
+
+                                <!--적립금순 sortBy ='reserves' / direction='desc' -->
+                                <a th:href="@{/customer(sortBy='reserves', direction='desc', page=0, searchType=${searchType}, keyword=${keyword}, rating=${rating})}"
+                                   th:class="${sortBy == 'reserves'} ? 'sort-btn active' : 'sort-btn'">적립금순</a>
+                            </div>
+                        </div>
+
+                        <!-- 기존 알림 실행 -->
+                        <div th:case="'N'">
+                            <!--정렬 버튼 영역-->
+                            <div class="category-bar">
+
+                                <span style="font-size: 13px;color: #64748b">카테고리: </span>
+
+                                <!--최신순 sortBy = `id` / direction=`desc` page=0-->
+                                <a th:href="@{/customer(sortBy='id', direction='desc', page=0, searchType=${searchType}, keyword=${keyword}, rating=${rating})}"
+                                   th:class="${sortBy == 'id'} ? 'sort-btn active' : 'sort-btn'">민원</a>
+
+                                <!--최신순 sortBy = `id` / direction=`desc` page=0-->
+                                <a th:href="@{/customer(sortBy='id', direction='desc', page=0, searchType=${searchType}, keyword=${keyword}, rating=${rating})}"
+                                   th:class="${sortBy == 'id'} ? 'sort-btn active' : 'sort-btn'">주차</a>
+
+                                <!--이름순 sortBy = `customerName` / direction='asc'
+                                    - ORDER BY  customer_name ASC -> 이름 가나다 오름차순
+                                    - searchType-keyword-rating을 그대로 전달 -->
+                                <a th:href="@{/customer(sortBy='customerName', direction='asc', page=0, searchType=${searchType}, keyword=${keyword}, rating=${rating})}"
+                                   th:class="${sortBy == 'customerName'} ? 'sort-btn active' : 'sort-btn'">관리비</a>
+
+                                <!--적립금순 sortBy ='reserves' / direction='desc' -->
+                                <a th:href="@{/customer(sortBy='reserves', direction='desc', page=0, searchType=${searchType}, keyword=${keyword}, rating=${rating})}"
+                                   th:class="${sortBy == 'reserves'} ? 'sort-btn active' : 'sort-btn'">예약</a>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <table class="book-table">
+                        <thead>
+                        <tr>
+
+                            <th style="padding-left: 35px">
+
+                                <!-- 1. 알림 텍스트 -->
+                                <span th:text="(${entry.key == 'Y' ? '안 읽은 알림 ' : '읽은 알림 '}) + ${entry.getValue().totalElements >= 1 ?
+                                                                                entry.getValue().totalElements : 0} + '건'"> '알림' 0건 </span>
+                            </th>
+                            <th th:style="'display: flex; gap: 10px; padding-left: ' + (${entry.getValue().totalElements >= 1} ? '400px' : '520px')">
+
+                                <!-- 2. 버튼 영역 -->
+                                <span th:each="i : ${#numbers.sequence(0, 1)}"> <!-- 2번 반복 -->
+
+                                    <!-- first_page : 안 읽은 알림, second_page : 읽은 알림 -->
+                                    <span th:with="pageParamName=${entry.key == 'Y' ? 'first_page' : 'second_page'},
+                                                      nextPageNum=${i == 0 ? entry.value.number - 1 : entry.value.number + 1}"> <!-- Prev: entry.value.number - 1, Next: entry.value.number + 1 -->
+
+                                        <a th:href="@{'/notification?' + ${pageParamName} + '=' + ${nextPageNum} +
+                                                                            '&sortBy=' + ${sortBy} + '&direction=' + ${direction}}"
+                                           th:classappend="${(i == 0 ? entry.value.first : entry.value.last) ? 'btn-disabled' : 'btn'}"
+                                           th:text=" ${i == 0 ? 'Prev' : 'Next'}"
+                                           style="padding: 5px 10px; font-size: 0.8rem">Btn</a>
+                                    </span>
+                                </span>
+                            </th>
+                        </tr>
+
+                        </thead>
+                        <tbody>
+                        <tr th:each="i : ${#numbers.sequence(0, entry.getValue().size - 1)}">   <!-- 현재 페이지 적용으로 3개씩 출력 -->
+
+                            <!-- 실제 데이터가 있는 경우 -->
+                            <td th:if="${i < entry.getValue().numberOfElements}"
+                                th:with="
+                                   now=${#temporals.createNow()},
+                                   diffMinutes=${T(java.time.temporal.ChronoUnit).MINUTES.between(entry.getValue().content[i].getCreatedAt(), now)},
+                                   diffHours=${T(java.time.temporal.ChronoUnit).HOURS.between(entry.getValue().content[i].getCreatedAt(), now)},
+                                   diffDays=${T(java.time.temporal.ChronoUnit).DAYS.between(entry.getValue().content[i].getCreatedAt(), now)}">
+
+
+                                <div style="display: flex; gap: 15px; padding-left: 20px">
+
+                                    <span th:text="${entry.getValue().content[i].getAlarmCategory().getTitle()}"></span>
+
+                                    <div>
+                                        <span th:if="${diffMinutes < 1}">방금 전</span>
+                                        <span th:if="${diffMinutes >= 1 && diffHours < 1}" th:text="|${diffMinutes} 분 전|"></span>
+                                        <span th:if="${diffHours >= 1 && diffHours < 24}" th:text="|${diffHours} 시간 전|"></span>
+                                        <span th:if="${diffHours >= 24}" th:text="|${diffDays} 일 전|"></span>
+                                    </div>
+                                </div>
+
+                                <div style="padding-left: 20px">
+                                    <span th:text="|'${entry.getValue().content[i].getAlarmCategory().getTitle()}' ${entry.getValue().content[i].getMessage()}|"></span>
+                                </div>
+                            </td>
+
+                            <!-- 데이터가 없어 빈 줄로 채워야 하는 경우 -->
+                            <td th:if="${i >= entry.getValue().numberOfElements}">
+                                <div style="display: flex; gap: 15px; padding-left: 20px">
+
+                                    <span>&nbsp;</span>
+
+                                    <div>
+                                        <span>&nbsp;</span>
+                                        <span>&nbsp;</span>
+                                        <span>&nbsp;</span>
+                                        <span>&nbsp;</span>
+                                    </div>
+                                </div>
+
+                                <div style="padding-left: 20px">
+                                    <span>&nbsp;</span>
+                                </div>
+                            </td>
+
+                            <td th:style="'display: flex; gap: 10px; border-bottom: none; padding-left: ' + (${entry.key == 'Y'} ? '460px' : '400px')">
+
+                                <!-- 2. 버튼 영역 -->
+                                <span th:each="j : ${#numbers.sequence(0, 1)}"> <!-- 2번 반복 -->
+
+                                    <th:block th:if="${i < entry.getValue().numberOfElements}">
+
+                                         <th:block th:if="${j == 0}">
+                                            <a class="btn" style="margin-top: 6px; padding: 5px 10px; font-size: 1rem;"
+                                                th:href="@{/notification/{id}(id=${entry.getValue().content[i].id})}"
+                                                th:text="'보기'">View Details</a>
+                                        </th:block>
+
+                                         <th:block th:if="${j == 1 && entry.key == 'N'}">
+                                            <a class="btn" style="margin-top: 6px; padding: 5px 10px; font-size: 1rem;"
+                                               th:href="@{/notification/{id}(id=${entry.getValue().content[i].id})}"
+                                               th:text="'삭제'">View Details</a>
+                                        </th:block>
+                                    </th:block>
+                                </span>
+
+<!--                                &lt;!&ndash; 보기 버튼 &ndash;&gt;-->
+<!--                                <span th:if="${i < entry.getValue().numberOfElements}">-->
+<!--                                    <a class="btn" style="padding: 5px 10px; font-size: 1rem"-->
+<!--                                       th:href="@{/notification/{id}(id=${entry.getValue().content[i].id})}"-->
+<!--                                       th:text="'보기'">View Details</a>-->
+<!--                                </span>-->
+
+<!--                                &lt;!&ndash; 삭제 버튼 &ndash;&gt;-->
+<!--                                <span th:if="${i < entry.getValue().numberOfElements}" style="padding-left: 10px">-->
+<!--                                    <a class="btn" style="padding: 5px 10px; font-size: 1rem"-->
+<!--                                       th:href="@{/notification/{id}(id=${entry.getValue().content[i].id})}"-->
+<!--                                       th:text="'삭제'"></a>-->
+<!--                                </span>-->
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <!--                <h1>알람 홈 화면 입니다.ㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇ</h1>-->
+        </main>
+
+        <!-- 하단 푸터 삽입 -->
+        <footer th:replace="~{fragments/footer :: footer}"></footer>
+
     </div>
+</div>
 
 </body>
-</html>

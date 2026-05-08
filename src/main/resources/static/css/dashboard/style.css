@@ -25,6 +25,7 @@ body {
     background-color: #ffffff;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* 하단 가벼운 그림자 효과 */
 }
+
 .site-header .brand {
     /*font-size: 1.25rem; font-weight: bold; color: #fff; text-decoration: none;*/
 
@@ -245,3 +246,153 @@ body {
     font-weight: bold; border:none; cursor: pointer;
 }
 .btn:hover { background: #2563eb; }
+
+/* 비활성화된 버튼의 스타일 */
+.btn-disabled {
+    display: inline-block; padding: 0.5rem 1.2rem; background: #cccccc;
+    color: #666666; text-decoration: none; border-radius: 8px; font-size: 0.85rem;
+    font-weight: bold; border:none; cursor: not-allowed; pointer-events: none;
+}
+
+/* 목록 테이블 마지막 컬럼의 상세 보기 이동 버튼 */
+.btn-view {
+    display: inline-block;
+    padding: 4px 14px;
+    background-color: #eef1ff;
+    color: #4361ee;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: background-color 0.15s, color 0.15s;
+}
+.btn-view:hover {
+    background-color: #4361ee;
+    color: #fff;
+}
+
+.empty-msg {
+    text-align: center;
+    padding: 40px 0;
+    color: #aaa;
+    font-size: 14px;
+}
+
+.empty-msg-notification {
+    text-align: center;
+    padding: 40px 0;
+    color: #aaa;
+    font-size: 20px;
+}
+
+/* 데이터 테이블 */
+.book-table {
+    width: 100%;
+    border-collapse: collapse;   /* 셀 사이의 이중 테두리를 하나로 합침 */
+    font-size: 14px;
+    background: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+}
+
+.book-table th,
+.book-table td {
+    padding: 12px 14px;
+    text-align: left;
+    border-bottom: 1px solid #f0f0f0;
+}
+/* 헤더 행 - 열 제목 */
+.book-table thead th {
+    background-color: #f8f9ff;
+    font-weight: 600;
+    color: #555;
+    font-size: 13px;
+}
+/* 짝수 행 배경 - 줄무늬 효과로 가독성 향상 */
+.book-table tbody tr:nth-child(even) {
+    background-color: #fafafa;
+}
+
+.book-table tbody tr:hover {
+    background-color: #eef1ff;
+}
+
+/* 정렬 버튼 스타일 */
+.sort-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+/* 정렬 버튼 기본 스타일 */
+.sort-btn {
+    padding: 4px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 99px;
+    font-size: 13px;
+    color: #475569;
+    text-decoration: none;
+    background: #fff;
+    transition: all 0.15s;
+}
+.sort-btn:hover {
+    background: #f1f5f9;
+    border-color: #94a3b8;
+}
+/* 현재 정렬 기준 버튼 강조 - 파란 채움 */
+.sort-btn:active {
+    background: #4361ee;
+    color: #fff;
+    border-color: #4361ee;
+}
+
+/* 검색 폼 전체 컨테이너 - 흰색 카드 형태 */
+.search-section {
+    background-color: #fff;
+    border-radius: 10px;
+    margin-bottom: 25px;
+    padding-top: 50px;
+    margin-top: 25px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+}
+.search-section-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #888;
+    margin-bottom: 10px;
+    letter-spacing: 10px;
+    text-transform: uppercase;
+}
+
+.category-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 30px;
+    margin-bottom: 12px;
+}
+
+/* 정렬 버튼 기본 스타일 */
+.category-sort-btn {
+    padding: 4px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 20px;
+    color: #475569;
+    text-decoration: none;
+    background: #fff;
+    transition: all 0.15s;
+}
+.category-sort-btn:hover {
+    background: #f1f5f9;
+    border-color: #94a3b8;
+}
+/* 현재 정렬 기준 버튼 강조 - 파란 채움 */
+.category-sort-btn:active {
+    background: #4361ee;
+    color: #fff;
+    border-color: #4361ee;
+}
+

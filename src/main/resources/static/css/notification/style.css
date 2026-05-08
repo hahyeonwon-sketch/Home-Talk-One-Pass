@@ -1,0 +1,24 @@
+
+.btn-small {
+    padding: 5px 10px;
+    font-size: 0.8rem;
+    display: inline-block; /* <a> 태그에 패딩을 적용하기 위해 필요 */
+}
+
+.btn-small a {
+    color: white;         /* 버튼 안에서는 흰색 글자로 */
+    text-decoration: none;
+}
+
+.no-style {
+    color: inherit;            /* 부모의 글자색을 그대로 상속 */
+    text-decoration: none;     /* 밑줄 제거 */
+    cursor: pointer;           /* 마우스 커서는 포인터로 유지 (선택 사항) */
+}
+
+.content-area {
+    height: 350px;
+    vertical-align: top;
+    line-height: 1.6;
+    padding: 20px;
+}
