@@ -5,6 +5,7 @@ import com.hometalk.onepass.auth.entity.User;
 import com.hometalk.onepass.auth.service.MyPageService;
 import com.hometalk.onepass.dashboard.dto.notification.response.NotificationCommonResponseDto;
 import com.hometalk.onepass.dashboard.dto.notification.response.NotificationToBillingDto;
+import com.hometalk.onepass.dashboard.dto.notification.response.NotificationToParkingDto;
 import com.hometalk.onepass.dashboard.entity.notification.NotificationToBilling;
 import com.hometalk.onepass.dashboard.enums.AlarmCategory;
 import com.hometalk.onepass.dashboard.repository.notification.NotificationRepository;
@@ -23,10 +24,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
@@ -39,8 +37,8 @@ public class NotificationController {
     private final MyPageService myPageService;
     private final NotificationService notificationService;
 
-    private final NotificationRepository notificationRepository;
-    private final NotificationToBillingRepository notificationToBillingRepository;
+//    private final NotificationRepository notificationRepository;
+//    private final NotificationToBillingRepository notificationToBillingRepository;
 
     @GetMapping
     public String notification(
@@ -53,7 +51,7 @@ public class NotificationController {
 
         MyPageResponseDTO myPage = myPageService.getMyPage(authentication);
         log.info("email == {}", myPage.getEmail());
-        notificationService.findNotificationToBillingByEmail(myPage.getEmail());
+        notificationService.findNotificationByEmail(myPage.getEmail());
 
 
         Page<NotificationCommonResponseDto> isNotReadPage = null;  // 최종적으로 뷰에 전달할 회원 목록
@@ -101,23 +99,42 @@ public class NotificationController {
      *   알림 상세 페이지
      *   GET /notification/{id}
      * */
-    @GetMapping("/{id}")
+    @GetMapping("/detail/{id}")
     public String detail(
             Model model,
             @PathVariable Long id,
             @RequestParam(required = false, defaultValue = "true") boolean isRead) {
 
-        notificationService.saveNotification(id, isRead);
-        NotificationToBillingDto detail = notificationService.findNotificationToBillingById(id);
-        log.info("== 알림 상세 조회 == id={}, AlarmCategory={}",detail.getId(), detail.getAlarmCategory());
+        NotificationCommonResponseDto notiCommonResponseDto = notificationService.saveNotification(id, isRead);
+        log.info("== 알림 상세 조회 == id={}, AlarmCategory={}", notiCommonResponseDto.getId(), notiCommonResponseDto.getAlarmCategory());
 
-        if (detail.getAlarmCategory() == AlarmCategory.BILLING)
+        Object detailObj = notificationService.findNotificationToDetailById(id);
+
+        if (notiCommonResponseDto.getAlarmCategory() == AlarmCategory.BILLING)
         {
-          model.addAttribute("detail",  detail);
+            NotificationToBillingDto detail = (NotificationToBillingDto) detailObj;
+            model.addAttribute("detail",  detail);
+        }
+        else if (notiCommonResponseDto.getAlarmCategory() == AlarmCategory.PARKING)
+        {
+            NotificationToParkingDto detail = (NotificationToParkingDto) detailObj;
+            model.addAttribute("detail",  detail);
         }
 
 
         return "/notification/detail";   // templates/notification/detail.html
+    }
+
+    //알림 삭제
+    @PostMapping("/{alarmCategory}/{commonId}/{detailId}/delete")
+    public String deleteNotification(
+            @PathVariable AlarmCategory alarmCategory,
+            @PathVariable Long commonId,
+            @PathVariable Long detailId) {
+        log.info("== 공통 알림 삭제 == id={}", commonId);
+        log.info("== 디테일 알림 삭제 == id={}", detailId);
+        notificationService.deleteNotificationById(alarmCategory, commonId, detailId);
+        return "redirect:/notification?deleted=true";
     }
 }
 

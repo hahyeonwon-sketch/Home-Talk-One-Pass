@@ -91,10 +91,10 @@
                             <th th:style="'display: flex; gap: 10px; padding-left: ' + (${entry.getValue().totalElements >= 1} ? '400px' : '520px')">
 
                                 <!-- 2. 버튼 영역 -->
-                                <span th:each="i : ${#numbers.sequence(0, 1)}"> <!-- 2번 반복 -->
+                                <th:block th:each="i : ${#numbers.sequence(0, 1)}"> <!-- 2번 반복 -->
 
                                     <!-- first_page : 안 읽은 알림, second_page : 읽은 알림 -->
-                                    <span th:with="pageParamName=${entry.key == 'Y' ? 'first_page' : 'second_page'},
+                                    <th:block th:with="pageParamName=${entry.key == 'Y' ? 'first_page' : 'second_page'},
                                                       nextPageNum=${i == 0 ? entry.value.number - 1 : entry.value.number + 1}"> <!-- Prev: entry.value.number - 1, Next: entry.value.number + 1 -->
 
                                         <a th:href="@{'/notification?' + ${pageParamName} + '=' + ${nextPageNum} +
@@ -102,8 +102,8 @@
                                            th:classappend="${(i == 0 ? entry.value.first : entry.value.last) ? 'btn-disabled' : 'btn'}"
                                            th:text=" ${i == 0 ? 'Prev' : 'Next'}"
                                            style="padding: 5px 10px; font-size: 0.8rem">Btn</a>
-                                    </span>
-                                </span>
+                                    </th:block>
+                                </th:block>
                             </th>
                         </tr>
 
@@ -159,37 +159,33 @@
                             <td th:style="'display: flex; gap: 10px; border-bottom: none; padding-left: ' + (${entry.key == 'Y'} ? '460px' : '400px')">
 
                                 <!-- 2. 버튼 영역 -->
-                                <span th:each="j : ${#numbers.sequence(0, 1)}"> <!-- 2번 반복 -->
+                                <th:block th:each="j : ${#numbers.sequence(0, 1)}"> <!-- 2번 반복 -->
 
-                                    <th:block th:if="${i < entry.getValue().numberOfElements}">
+                                    <th:block th:if="${i < entry.getValue().numberOfElements}"> <!-- alarmMap의 반복문 i -->
 
                                          <th:block th:if="${j == 0}">
+
                                             <a class="btn" style="margin-top: 6px; padding: 5px 10px; font-size: 1rem;"
-                                                th:href="@{/notification/{id}(id=${entry.getValue().content[i].id})}"
+                                                th:href="@{/notification/detail/{id}(id=${entry.value.content[i].id})}"
                                                 th:text="'보기'">View Details</a>
                                         </th:block>
 
-                                         <th:block th:if="${j == 1 && entry.key == 'N'}">
-                                            <a class="btn" style="margin-top: 6px; padding: 5px 10px; font-size: 1rem;"
-                                               th:href="@{/notification/{id}(id=${entry.getValue().content[i].id})}"
-                                               th:text="'삭제'">View Details</a>
+                                        <th:block th:if="${j == 1 && entry.key == 'N'}" th:with="content=${entry.value.content[i]}">
+
+                                            <form th:action="@{/notification/{alarm}/{cId}/{dId}/delete(alarm=${content.alarmCategory}, cId=${content.id}, dId=${content.referenceId})}"
+                                                  method="post"
+                                                  onsubmit="return confirm('정말 이 리뷰를 삭제하시겠습니까?');">
+                                                <button type="submit" class="btn content-btn">삭제</button>
+                                            </form>
                                         </th:block>
+
+<!--                                         <th:block th:if="${j == 1 && entry.key == 'N'}">-->
+<!--                                            <a class="btn" style="margin-top: 6px; padding: 5px 10px; font-size: 1rem;"-->
+<!--                                               th:href="@{/notification/{id}(id=${entry.getValue().content[i].id})}"-->
+<!--                                               th:text="'삭제'">View Details</a>-->
+<!--                                        </th:block>-->
                                     </th:block>
-                                </span>
-
-<!--                                &lt;!&ndash; 보기 버튼 &ndash;&gt;-->
-<!--                                <span th:if="${i < entry.getValue().numberOfElements}">-->
-<!--                                    <a class="btn" style="padding: 5px 10px; font-size: 1rem"-->
-<!--                                       th:href="@{/notification/{id}(id=${entry.getValue().content[i].id})}"-->
-<!--                                       th:text="'보기'">View Details</a>-->
-<!--                                </span>-->
-
-<!--                                &lt;!&ndash; 삭제 버튼 &ndash;&gt;-->
-<!--                                <span th:if="${i < entry.getValue().numberOfElements}" style="padding-left: 10px">-->
-<!--                                    <a class="btn" style="padding: 5px 10px; font-size: 1rem"-->
-<!--                                       th:href="@{/notification/{id}(id=${entry.getValue().content[i].id})}"-->
-<!--                                       th:text="'삭제'"></a>-->
-<!--                                </span>-->
+                                </th:block>
                             </td>
                         </tr>
                         </tbody>
@@ -205,4 +201,15 @@
     </div>
 </div>
 
+<script th:inline="javascript">
+
+    // URL의 쿼리스트링(?key=value)을 파싱해서 각 파라미터를 꺼낼수 있는 객체 생성
+    const params = new URLSearchParams(window.location.search);   // 파라미터 파싱
+    console.log("전체 파라미터:", Object.fromEntries(params));
+    if (params.get('deleted') === 'true') {              // 값 읽기
+        alert('알림이 삭제되었습니다.');                   //  alert
+        // /books/1?deleted=true -> /books/1
+        window.history.replaceState(null, '', window.location.pathname);   // URL 정리
+    }
+</script>
 </body>

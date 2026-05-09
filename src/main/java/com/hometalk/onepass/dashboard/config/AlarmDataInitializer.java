@@ -7,10 +7,12 @@ import com.hometalk.onepass.billing.entity.BillingDetail;
 import com.hometalk.onepass.billing.entity.BillingStatus;
 import com.hometalk.onepass.dashboard.entity.notification.NotificationCommon;
 import com.hometalk.onepass.dashboard.entity.notification.NotificationToBilling;
+import com.hometalk.onepass.dashboard.entity.notification.NotificationToParking;
 import com.hometalk.onepass.dashboard.enums.AlarmCategory;
 import com.hometalk.onepass.dashboard.enums.AlarmType;
 import com.hometalk.onepass.dashboard.repository.notification.NotificationRepository;
 import com.hometalk.onepass.dashboard.repository.notification.NotificationToBillingRepository;
+import com.hometalk.onepass.dashboard.repository.notification.NotificationToParkingRepository;
 import com.hometalk.onepass.dashboard.service.notification.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,8 +33,9 @@ import java.util.List;
 public class AlarmDataInitializer implements CommandLineRunner {
 
 
-    private final NotificationToBillingRepository notificationToBillingRepository;
     private final NotificationService notificationService;
+    private final NotificationToBillingRepository notificationToBillingRepository;
+    private final NotificationToParkingRepository notificationToParkingRepository;
 
     @Override
     public void run(String... args) throws Exception {
@@ -119,5 +122,32 @@ public class AlarmDataInitializer implements CommandLineRunner {
 
         notificationToBillingRepository.saveAll(sampleBilling);
         log.info("샘플 관리비 알람 {}건 삽입 완료.", sampleBilling.size());
+
+        List<NotificationToParking> sampleParking = List.of(
+                NotificationToParking.builder()
+                        .alarmCategory(AlarmCategory.PARKING)
+                        .alarmType(AlarmType.REG_APPROVE)
+                        .message("등록 승인이 되었습니다.")
+                        .user(defaultUser)
+                        .vehicleNumber("123-1000")
+                        .build(),
+                NotificationToParking.builder()
+                        .alarmCategory(AlarmCategory.PARKING)
+                        .alarmType(AlarmType.REG_REJECT)
+                        .message("등록 거부가 되었습니다.")
+                        .user(defaultUser)
+                        .vehicleNumber("123-1001")
+                        .build(),
+                NotificationToParking.builder()
+                        .alarmCategory(AlarmCategory.PARKING)
+                        .alarmType(AlarmType.ENTRY_RES)
+                        .message("입장 예약이 되었습니다.")
+                        .user(defaultUser)
+                        .vehicleNumber("123-1002")
+                        .build()
+        );
+
+        notificationToParkingRepository.saveAll(sampleParking);
+        log.info("샘플 주차 알람 {}건 삽입 완료.", sampleParking.size());
     }
 }

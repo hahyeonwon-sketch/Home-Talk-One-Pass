@@ -4,6 +4,9 @@ import com.hometalk.onepass.dashboard.entity.notification.NotificationCommon;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
@@ -19,4 +22,8 @@ public interface NotificationRepository extends JpaRepository<NotificationCommon
     // boolean 값(status)을 인자로 받아 검색
     List<NotificationCommon> findByIsRead(Boolean status);
     Page<NotificationCommon> findByIsRead(Boolean status, Pageable pageable);
+
+    @Modifying
+    @Query("DELETE FROM NotificationCommon n WHERE n.id = :id")
+    void deleteNotificationCommonByDirectly(@Param("id") Long id);
 }

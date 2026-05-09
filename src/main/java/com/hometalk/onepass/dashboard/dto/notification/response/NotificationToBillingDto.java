@@ -25,7 +25,6 @@ public class NotificationToBillingDto {
     private Long id;
     private AlarmCategory alarmCategory;    // 알림 발생 모듈
     private AlarmType alarmType;            // 모듈별 세부 분류
-    //private Boolean isRead;               // 읽음 여부 상태
     private String message;                 // 메세지 내용
     private String billingMonth;
     private BigDecimal totalAmount;         // 합계 금액

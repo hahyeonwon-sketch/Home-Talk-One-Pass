@@ -2,6 +2,8 @@ package com.hometalk.onepass.dashboard.entity.notification;
 
 import com.hometalk.onepass.auth.entity.User;
 import com.hometalk.onepass.common.entity.BaseTimeEntity;
+import com.hometalk.onepass.dashboard.enums.AlarmCategory;
+import com.hometalk.onepass.dashboard.enums.AlarmType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -20,21 +22,18 @@ public class NotificationToParking extends BaseTimeEntity{
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "module_name", nullable = false, length = 50)
-    private String moduleName;         // 알림 발생 모듈
+    @Enumerated(EnumType.STRING)
+    private AlarmCategory alarmCategory;    // BILLING, PARKING, SCHEDULE 등
+
+    @Enumerated(EnumType.STRING)
+    private AlarmType alarmType;            // 알람 타입
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;          // 등록한 회원 ID FK
 
-    @Column(name = "category_alarm", nullable = false, length = 50)
-    private String categoryAlarm;      // 모듈별 세부 분류
-
     @Column(nullable = false, length = 500)
     private String message;             // 알림 내용 메시지
-
-//    @Column(name = "reference_id")
-//    private Long referenceId;
 
     @Column(name = "is_read")
     private Boolean isRead;            // 읽음 여부 상태
