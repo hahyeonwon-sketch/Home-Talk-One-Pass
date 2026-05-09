@@ -5,7 +5,7 @@ import lombok.Getter;
 @Getter
 public enum AlarmCategory {
     BILLING("관리비"),
-    PARKING("주차관리"),
+    PARKING("주차"),
     NOTICE("공지사항"),
     SCHEDULE("일정관리"),
     COMMUNICATION("커뮤니케이션"),

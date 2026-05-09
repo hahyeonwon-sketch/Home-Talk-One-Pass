@@ -74,21 +74,24 @@
 <!--                                </div>-->
 
                                     <div style="text-align: center; margin-top: 50px">
-                                        <div>* 이번달 부과 금액 *</div>
 
-                                        <div th:text="|- ${detail.getBillingMonth()} 년도 ${detail.getAlarmCategory().title} -|">- 2026-03 년도 관리비-</div>
-                                        <div th:each="item : ${detail.getBillingItems()}">
-                                            <span th:text="|${item.getItemName()} : ${#numbers.formatInteger(item.getItemAmount(), 3, 'COMMA')} 원|">수도세: 30,000원</span>
-                                        </div>
+                                        <div th:if="${detail.getAlarmCategory().name() == 'BILLING'}">
+                                            <div>* 이번달 부과 금액 *</div>
 
-                                        <div th:with="total=${#aggregates.sum(detail.getBillingItems().![itemAmount])}">
-                                            <strong>
-                                                총 금액:
-                                                <span th:text="${#numbers.formatInteger(total, 0, 'COMMA')} + ' 원'">0 원</span>
-                                            </strong>
+                                            <div th:text="|- ${detail.getBillingMonth()} 년도 ${detail.getAlarmCategory().title} -|">- 2026-03 년도 관리비-</div>
+                                            <div th:each="item : ${detail.getBillingItems()}">
+                                                <span th:text="|${item.getItemName()} : ${#numbers.formatInteger(item.getItemAmount(), 3, 'COMMA')} 원|">수도세: 30,000원</span>
+                                            </div>
+
+                                            <div th:with="total=${#aggregates.sum(detail.getBillingItems().![itemAmount])}">
+                                                <strong>
+                                                    총 금액:
+                                                    <span th:text="${#numbers.formatInteger(total, 0, 'COMMA')} + ' 원'">0 원</span>
+                                                </strong>
+                                            </div>
+                                            <br> <!-- 여기서 줄바꿈 -->
+                                            <div th:text="|납기일 : ${#temporals.format(detail.dueDate, 'yyyy-MM-dd')}까지|">납기일 : 2026-03-31까지</div>
                                         </div>
-                                        <br> <!-- 여기서 줄바꿈 -->
-                                        <div th:text="|납기일 : ${#temporals.format(detail.dueDate, 'yyyy-MM-dd')}까지|">납기일 : 2026-03-31까지</div>
 
 
 <!--                                        <br><br><br><br>-->

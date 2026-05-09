@@ -170,7 +170,7 @@ public class NotificationServiceImpl implements NotificationService{
 
             sampleAlarmList.add(
                     NotificationCommon.builder()
-                            .alarmCategory(AlarmCategory.BILLING)
+                            .alarmCategory(notificationToBilling.getAlarmCategory())
                             .alarmType(notificationToBilling.getAlarmType())
                             .referenceId(notificationToBilling.getId())
                             .message(notificationToBilling.getMessage())
@@ -187,7 +187,7 @@ public class NotificationServiceImpl implements NotificationService{
 
             sampleAlarmList.add(
                     NotificationCommon.builder()
-                            .alarmCategory(AlarmCategory.BILLING)
+                            .alarmCategory(notificationToParking.getAlarmCategory())
                             .alarmType(notificationToParking.getAlarmType())
                             .referenceId(notificationToParking.getId())
                             .message(notificationToParking.getMessage())
@@ -217,22 +217,4 @@ public class NotificationServiceImpl implements NotificationService{
                 break;
         }
     }
-
-//    @Override
-//    @Transactional(readOnly = true)   // 읽기 전용 트랜잭션 -> Hibernate 더티 체킹(변경 감지) 생략으로 성능 향상
-//    public List<NotificationCommonResponseDto> findAllNotification(boolean isRead) {
-//
-//        List<NotificationCommon> notificationCommonList = new ArrayList<>();
-//        for (NotificationCommon notificationCommon : notificationRepository.findAll()) {
-//
-//            if (notificationCommon.getIsRead() == isRead) {
-//                notificationCommonList.add(notificationCommon);
-//            }
-//        }
-//
-//        return notificationCommonList
-//                .stream()  // 스트림 변환
-//                .map(NotificationCommonResponseDto::from)  // Entity -> DTO 변환 (LAZY 컬렉션 접근 없음)
-//                .collect(Collectors.toList()); // 리스트로 수집 -> List<NotificationCommon>
-//    }
 }
