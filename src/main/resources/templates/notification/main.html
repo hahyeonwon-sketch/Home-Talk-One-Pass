@@ -56,22 +56,19 @@
 
                                 <span style="font-size: 13px;color: #64748b">카테고리: </span>
 
-                                <!--이름순 sortBy = `customerName` / direction='asc'
-                                   - ORDER BY  customer_name ASC -> 이름 가나다 오름차순
-                                   - searchType-keyword-rating을 그대로 전달 -->
+                                <a th:href="@{/notification(page=0, alarmCategory='ALL' )}"
+                                   th:class="${sortBy == 'id'} ? 'sort-btn active' : 'sort-btn'">전체</a>
+
                                 <a th:href="@{/notification(page=0, alarmCategory='BILLING' )}"
                                    th:class="${sortBy == 'id'} ? 'sort-btn active' : 'sort-btn'">관리비</a>
 
-                                <!--최신순 sortBy = `id` / direction=`desc` page=0-->
                                 <a th:href="@{/notification(page=0, alarmCategory='PARKING' )}"
                                    th:class="${sortBy == 'id'} ? 'sort-btn active' : 'sort-btn'">주차</a>
 
-                                <!--최신순 sortBy = `id` / direction=`desc` page=0-->
                                 <a th:href="@{/notification(page=0, alarmCategory='INQUIRY' )}"
                                    th:class="${sortBy == 'id'} ? 'sort-btn active' : 'sort-btn'">민원</a>
 
-                                <!--적립금순 sortBy ='reserves' / direction='desc' -->
-                                <a th:href="@{/notificationr(page=0, alarmCategory='RESERVATION' )}"
+                                <a th:href="@{/notification(page=0, alarmCategory='RESERVATION' )}"
                                    th:class="${sortBy == 'id'} ? 'sort-btn active' : 'sort-btn'">예약</a>
                             </div>
                         </div>
