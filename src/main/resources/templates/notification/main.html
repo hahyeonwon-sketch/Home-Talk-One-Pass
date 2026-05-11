@@ -79,16 +79,18 @@
 
 
                     <table class="book-table">
+
                         <thead>
                         <tr>
 
-                            <th style="padding-left: 35px">
+                            <th style="padding-left: 35px; width: 260px;">
 
                                 <!-- 1. 알림 텍스트 -->
                                 <span th:text="(${entry.key == 'Y' ? '안 읽은 알림 ' : '읽은 알림 '}) + ${entry.getValue().totalElements >= 1 ?
                                                                                 entry.getValue().totalElements : 0} + '건'"> '알림' 0건 </span>
                             </th>
-                            <th th:style="'display: flex; gap: 10px; padding-left: ' + (${entry.getValue().totalElements >= 1} ? '400px' : '520px')">
+
+                            <th style="display: flex; gap: 10px; padding-left: 400px; width: 600px;">
 
                                 <!-- 2. 버튼 영역 -->
                                 <th:block th:each="i : ${#numbers.sequence(0, 1)}"> <!-- 2번 반복 -->
@@ -105,7 +107,7 @@
                                     </th:block>
                                 </th:block>
                             </th>
-                        </tr>
+                        <tr>
 
                         </thead>
                         <tbody>
@@ -156,7 +158,7 @@
                                 </div>
                             </td>
 
-                            <td th:style="'display: flex; gap: 10px; border-bottom: none; padding-left: ' + (${entry.key == 'Y'} ? '460px' : '400px')">
+                            <td th:style="'display: flex; gap: 10px; border-bottom: none; padding-left: ' + (${entry.key == 'Y'} ? '460px' : '400px')"> <!--entry.key == 'Y'는 안 읽은 알림이라 보기 버튼을 삭제 버튼 위체에 둔다.  -->
 
                                 <!-- 2. 버튼 영역 -->
                                 <th:block th:each="j : ${#numbers.sequence(0, 1)}"> <!-- 2번 반복 -->
