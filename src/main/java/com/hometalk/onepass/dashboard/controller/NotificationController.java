@@ -44,6 +44,7 @@ public class NotificationController {
     public String notification(
             Authentication authentication,
             Model model,
+            @RequestParam(required = false, defaultValue = "ALL") AlarmCategory alarmCategory,
             @RequestParam(required = false, defaultValue = "id") String sortBy,
             @RequestParam(required = false, defaultValue = "desc") String direction,
             @Qualifier("first") @PageableDefault(size = 3) Pageable firstPageable,
@@ -78,14 +79,23 @@ public class NotificationController {
                         secondPageable.getPageSize(),  // @PageableDefault가 만들어준 size (기본10)
                         Sort.by(dir, validSort));  // 정렬은 새로 적용
 
-        isNotReadPage = notificationService.findByIsNotReadNotification(first_sortedPageable);  // 안 읽은 보여주는 알림
-        isReadPage = notificationService.findByIsReadNotification(second_sortedPageable);   // 읽은 보여주는 알림
-
         Map<String, Page<NotificationCommonResponseDto>> alarmMap = new HashMap<>();
-        alarmMap.put("Y", isNotReadPage);
-        alarmMap.put("N", isReadPage);
 
-        //        List<Page<NotificationCommonResponseDto>> alarmList = Arrays.asList(isNotReadPage, isReadPage);
+        if (alarmCategory == AlarmCategory.ALL) {     // 카테고리 검색을 전체로 하는 경우
+
+            isNotReadPage = notificationService.findByIsNotReadNotification(first_sortedPageable);  // 안 읽은 보여주는 알림
+            isReadPage = notificationService.findByIsReadNotification(second_sortedPageable);   // 읽은 보여주는 알림
+
+            alarmMap.put("Y", isNotReadPage);
+            alarmMap.put("N", isReadPage);
+        } else {    // 카테고리 검색을 전체로 하지 않는 경우
+
+            isNotReadPage = notificationService.findByIsNotReadNotification(first_sortedPageable);  // 안 읽은 보여주는 알림
+            isReadPage = notificationService.findByIsAlarmCategory(true, alarmCategory, second_sortedPageable);
+
+            alarmMap.put("Y", isNotReadPage);
+            alarmMap.put("N", isReadPage);
+        }
 
         model.addAttribute("alarmMap", alarmMap);
         model.addAttribute("sortBy", validSort);

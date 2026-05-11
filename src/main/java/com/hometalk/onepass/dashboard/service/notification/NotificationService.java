@@ -19,6 +19,8 @@ public interface NotificationService {
     List<NotificationCommonResponseDto> findByIsReadNotification();
     Page<NotificationCommonResponseDto> findByIsReadNotification(Pageable pageable);
 
+    Page<NotificationCommonResponseDto> findByIsAlarmCategory(boolean isRead, AlarmCategory alarmCategory, Pageable pageable);
+
     NotificationCommonResponseDto  findNotificationCommonById(long id);
     Object findNotificationToDetailById(long id);
 

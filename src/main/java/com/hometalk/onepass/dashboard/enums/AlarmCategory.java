@@ -11,7 +11,8 @@ public enum AlarmCategory {
     COMMUNICATION("커뮤니케이션"),
     FACILITY("시설"),
     INQUIRY("민원"),
-    RESERVATION("예약관리");
+    RESERVATION("예약관리"),
+    ALL("전체");
 
     private final String title;
 

@@ -56,23 +56,23 @@
 
                                 <span style="font-size: 13px;color: #64748b">카테고리: </span>
 
-                                <!--최신순 sortBy = `id` / direction=`desc` page=0-->
-                                <a th:href="@{/customer(sortBy='id', direction='desc', page=0, searchType=${searchType}, keyword=${keyword}, rating=${rating})}"
-                                   th:class="${sortBy == 'id'} ? 'sort-btn active' : 'sort-btn'">민원</a>
+                                <!--이름순 sortBy = `customerName` / direction='asc'
+                                   - ORDER BY  customer_name ASC -> 이름 가나다 오름차순
+                                   - searchType-keyword-rating을 그대로 전달 -->
+                                <a th:href="@{/notification(page=0, alarmCategory='BILLING' )}"
+                                   th:class="${sortBy == 'id'} ? 'sort-btn active' : 'sort-btn'">관리비</a>
 
                                 <!--최신순 sortBy = `id` / direction=`desc` page=0-->
-                                <a th:href="@{/customer(sortBy='id', direction='desc', page=0, searchType=${searchType}, keyword=${keyword}, rating=${rating})}"
+                                <a th:href="@{/notification(page=0, alarmCategory='PARKING' )}"
                                    th:class="${sortBy == 'id'} ? 'sort-btn active' : 'sort-btn'">주차</a>
 
-                                <!--이름순 sortBy = `customerName` / direction='asc'
-                                    - ORDER BY  customer_name ASC -> 이름 가나다 오름차순
-                                    - searchType-keyword-rating을 그대로 전달 -->
-                                <a th:href="@{/customer(sortBy='customerName', direction='asc', page=0, searchType=${searchType}, keyword=${keyword}, rating=${rating})}"
-                                   th:class="${sortBy == 'customerName'} ? 'sort-btn active' : 'sort-btn'">관리비</a>
+                                <!--최신순 sortBy = `id` / direction=`desc` page=0-->
+                                <a th:href="@{/notification(page=0, alarmCategory='INQUIRY' )}"
+                                   th:class="${sortBy == 'id'} ? 'sort-btn active' : 'sort-btn'">민원</a>
 
                                 <!--적립금순 sortBy ='reserves' / direction='desc' -->
-                                <a th:href="@{/customer(sortBy='reserves', direction='desc', page=0, searchType=${searchType}, keyword=${keyword}, rating=${rating})}"
-                                   th:class="${sortBy == 'reserves'} ? 'sort-btn active' : 'sort-btn'">예약</a>
+                                <a th:href="@{/notificationr(page=0, alarmCategory='RESERVATION' )}"
+                                   th:class="${sortBy == 'id'} ? 'sort-btn active' : 'sort-btn'">예약</a>
                             </div>
                         </div>
                     </div>
@@ -99,8 +99,7 @@
                                     <th:block th:with="pageParamName=${entry.key == 'Y' ? 'first_page' : 'second_page'},
                                                       nextPageNum=${i == 0 ? entry.value.number - 1 : entry.value.number + 1}"> <!-- Prev: entry.value.number - 1, Next: entry.value.number + 1 -->
 
-                                        <a th:href="@{'/notification?' + ${pageParamName} + '=' + ${nextPageNum} +
-                                                                            '&sortBy=' + ${sortBy} + '&direction=' + ${direction}}"
+                                        <a th:href="@{'/notification?' + ${pageParamName} + '=' + ${nextPageNum}}"
                                            th:classappend="${(i == 0 ? entry.value.first : entry.value.last) ? 'btn-disabled' : 'btn'}"
                                            th:text=" ${i == 0 ? 'Prev' : 'Next'}"
                                            style="padding: 5px 10px; font-size: 0.8rem">Btn</a>
@@ -176,7 +175,7 @@
 
                                             <form th:action="@{/notification/{alarm}/{cId}/{dId}/delete(alarm=${content.alarmCategory}, cId=${content.id}, dId=${content.referenceId})}"
                                                   method="post"
-                                                  onsubmit="return confirm('정말 이 리뷰를 삭제하시겠습니까?');">
+                                                  onsubmit="return confirm('정말 이 알림을 삭제하시겠습니까?');">
                                                 <button type="submit" class="btn content-btn">삭제</button>
                                             </form>
                                         </th:block>

@@ -79,6 +79,13 @@ public class NotificationServiceImpl implements NotificationService{
     }
 
     @Override
+    public Page<NotificationCommonResponseDto> findByIsAlarmCategory(boolean isRead, AlarmCategory alarmCategory, Pageable pageable) {
+
+        return notificationRepository.findByIsReadAndAlarmCategory(isRead, alarmCategory, pageable)
+                .map(NotificationCommonResponseDto::from);
+    }
+
+    @Override
     public NotificationCommonResponseDto findNotificationCommonById(long id) {
 
         NotificationCommon NotificationCommon = notificationRepository.findById(id)
