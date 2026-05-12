@@ -81,6 +81,7 @@ public class NotificationController {
 
         Map<String, Page<NotificationCommonResponseDto>> alarmMap = new HashMap<>();
 
+        log.info("alarmCategory == {}", alarmCategory.name());
         if (alarmCategory == AlarmCategory.ALL) {     // 카테고리 검색을 전체로 하는 경우
 
             isNotReadPage = notificationService.findByIsNotReadNotification(first_sortedPageable);  // 안 읽은 보여주는 알림
@@ -100,6 +101,7 @@ public class NotificationController {
         model.addAttribute("alarmMap", alarmMap);
         model.addAttribute("sortBy", validSort);
         model.addAttribute("direction", direction);
+        model.addAttribute("alarmCategory", alarmCategory);
 
         // 시드 데이터 (관련 데이터 모델에 공유 - 추후)
         return "/notification/main";

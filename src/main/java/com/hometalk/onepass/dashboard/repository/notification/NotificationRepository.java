@@ -23,6 +23,9 @@ public interface NotificationRepository extends JpaRepository<NotificationCommon
     // boolean 값(status)을 인자로 받아 검색
     List<NotificationCommon> findByIsRead(Boolean status);
     Page<NotificationCommon> findByIsRead(Boolean status, Pageable pageable);
+
+
+    @Query("SELECT n FROM NotificationCommon n WHERE n.isRead = :status AND n.alarmCategory = :alarmCategory")
     Page<NotificationCommon> findByIsReadAndAlarmCategory(Boolean status, AlarmCategory alarmCategory, Pageable pageable);
 
     @Modifying

@@ -28,4 +28,5 @@ public interface NotificationService {
     NotificationCommonResponseDto saveNotification(Long id, boolean isRead);
     void findNotificationByEmail(String email);
     void deleteNotificationById(AlarmCategory alarmCategory, long commonId, long detailId);
+    void isAddNotificationCommonResponseDto(AlarmCategory alarmCategory);
 }

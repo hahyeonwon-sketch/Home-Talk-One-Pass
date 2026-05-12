@@ -4,6 +4,7 @@ package com.hometalk.onepass.dashboard.service.notification.impl;
 import com.hometalk.onepass.auth.entity.User;
 import com.hometalk.onepass.auth.repository.UserRepository;
 import com.hometalk.onepass.billing.entity.BillingStatus;
+import com.hometalk.onepass.community.entity.Category;
 import com.hometalk.onepass.dashboard.dto.notification.response.NotificationCommonResponseDto;
 import com.hometalk.onepass.dashboard.dto.notification.response.NotificationToBillingDto;
 import com.hometalk.onepass.dashboard.dto.notification.response.NotificationToParkingDto;
@@ -25,9 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -43,6 +42,10 @@ public class NotificationServiceImpl implements NotificationService{
     private final NotificationRepository notificationRepository;
     private final NotificationToBillingRepository notificationToBillingRepository;
     private final NotificationToParkingRepository notificationToParkingRepository;
+
+    // 공통 DB 추가 가능 여부
+    private final Set<AlarmCategory> isAddNotificationCommonSet = new HashSet<>();
+
 
     @Override
     @Transactional(readOnly = true)   // 읽기 전용 트랜잭션 -> Hibernate 더티 체킹(변경 감지) 생략으로 성능 향상
@@ -162,51 +165,68 @@ public class NotificationServiceImpl implements NotificationService{
     @Override
     public void findNotificationByEmail(String email) {
 
-        // 이미 데이터가 있으면 중복 삽입하지 않음
-        if (notificationRepository.count() > 0) {
-            log.info("[DataInitializer]이미 알람 데이터가 존재합니다. 시드 데이터 삽입을 건너뜁니다.");
-            return;
-        }
-
-        // 예: "test@example.com" 유저의 "미납(UNPAID)" 내역만 가져오기
-        List<NotificationToBilling> unpaidBillingList =
-                notificationToBillingRepository.findByUserEmailAndStatus(email, BillingStatus.UNPAID);
+        boolean isAddBilling = false;
+        boolean isAddParking = false;
 
         List<NotificationCommon> sampleAlarmList = new ArrayList<>();
-        for (NotificationToBilling notificationToBilling : unpaidBillingList) {
+        isAddBilling = isAddNotificationCommonSet.contains(AlarmCategory.BILLING);
+        log.info("샘플 관리비 공통 현재 갯수 = {}", notificationToBillingRepository.count());
+        if (isAddBilling) {
 
-            sampleAlarmList.add(
-                    NotificationCommon.builder()
-                            .alarmCategory(notificationToBilling.getAlarmCategory())
-                            .alarmType(notificationToBilling.getAlarmType())
-                            .referenceId(notificationToBilling.getId())
-                            .message(notificationToBilling.getMessage())
-                            .user(notificationToBilling.getUser())
-                            .isRead(false)
-                            .build()
-            );
+            List<NotificationToBilling> unpaidBillingList =
+                    notificationToBillingRepository.findByUserEmailAndStatus(email, BillingStatus.UNPAID);
+
+            for (NotificationToBilling notificationToBilling : unpaidBillingList) {
+
+                sampleAlarmList.add(
+                        NotificationCommon.builder()
+                                .alarmCategory(notificationToBilling.getAlarmCategory())
+                                .alarmType(notificationToBilling.getAlarmType())
+                                .referenceId(notificationToBilling.getId())
+                                .message(notificationToBilling.getMessage())
+                                .user(notificationToBilling.getUser())
+                                .isRead(false)
+                                .build()
+                );
+            }
+        }
+        else {
+            // 이미 데이터가 있으면 중복 삽입하지 않음
+            log.info("[DataInitializer]이미 관리비 공통 데이터가 존재합니다. 시드 데이터 삽입을 건너뜁니다.");
         }
 
-        List<NotificationToParking> parkingList =
-                notificationToParkingRepository.findByUserEmailAndStatus(email);
+        isAddParking = isAddNotificationCommonSet.contains(AlarmCategory.PARKING);
+        log.info("샘플 주차 공통 현재 갯수 = {}", notificationToParkingRepository.count());
+        if (isAddParking) {
 
-        for (NotificationToParking notificationToParking : parkingList) {
+            List<NotificationToParking> parkingList =
+                    notificationToParkingRepository.findByUserEmailAndStatus(email);
 
-            sampleAlarmList.add(
-                    NotificationCommon.builder()
-                            .alarmCategory(notificationToParking.getAlarmCategory())
-                            .alarmType(notificationToParking.getAlarmType())
-                            .referenceId(notificationToParking.getId())
-                            .message(notificationToParking.getMessage())
-                            .user(notificationToParking.getUser())
-                            .isRead(false)
-                            .build()
-            );
+            for (NotificationToParking notificationToParking : parkingList) {
+
+                sampleAlarmList.add(
+                        NotificationCommon.builder()
+                                .alarmCategory(notificationToParking.getAlarmCategory())
+                                .alarmType(notificationToParking.getAlarmType())
+                                .referenceId(notificationToParking.getId())
+                                .message(notificationToParking.getMessage())
+                                .user(notificationToParking.getUser())
+                                .isRead(false)
+                                .build()
+                );
+            }
+        }
+        else {
+            // 이미 데이터가 있으면 중복 삽입하지 않음
+            log.info("[DataInitializer]이미 주차 공통 데이터가 존재합니다. 시드 데이터 삽입을 건너뜁니다.");
         }
 
 
-        notificationRepository.saveAll(sampleAlarmList);
-        log.info("샘플 공통 알람 {}건 삽입 완료.", sampleAlarmList.size());
+        if (isAddBilling || isAddParking) {
+            isAddNotificationCommonSet.clear();
+            notificationRepository.saveAll(sampleAlarmList);
+            log.info("샘플 공통 알람 {}건 삽입 완료.", sampleAlarmList.size());
+        }
     }
 
     @Override
@@ -223,5 +243,11 @@ public class NotificationServiceImpl implements NotificationService{
                 notificationToParkingRepository.deleteNotificationToParkingByDirectly(detailId);
                 break;
         }
+    }
+
+    @Override
+    public void isAddNotificationCommonResponseDto(AlarmCategory alarmCategory) {
+
+        isAddNotificationCommonSet.add(alarmCategory);
     }
 }
