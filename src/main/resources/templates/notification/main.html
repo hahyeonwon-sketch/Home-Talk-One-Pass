@@ -34,17 +34,17 @@
                                 <span style="font-size: 13px;color: #64748b">정렬: </span>
 
                                 <!--최신순 sortBy = `id` / direction=`desc` page=0-->
-                                <a th:href="@{/notification(first_page = 0, sortBy='id', direction='desc')}"
-                                   th:class="${sortBy == 'id'} ? 'sort-btn active' : 'sort-btn'">최신순</a>
+                                <a th:href="@{/notification(first_page = 0, sortBy='createdAt', direction='desc')}"
+                                   th:class="${sortBy == 'createdAt'} ? 'sort-btn active' : 'sort-btn'">최신순</a>
 
                                 <!-- 카테고리 이름순 sortBy = `alarmCategory` / direction='asc'
                                     - ORDER BY  alarmCategory ASC -> 이름 가나다 오름차순 -->
                                 <a th:href="@{/notification(first_page = 0, sortBy='alarmCategory', direction='asc')}"
                                    th:class="${sortBy == 'alarmCategory'} ? 'sort-btn active' : 'sort-btn'">이름순</a>
 
-                                <!--적립금순 sortBy ='reserves' / direction='desc' -->
-                                <a th:href="@{/notification(first_page = 0, sortBy='reserves', direction='desc')}"
-                                   th:class="${sortBy == 'reserves'} ? 'sort-btn active' : 'sort-btn'">적립금순</a>
+                                <!--긴급순 sortBy ='priority' / direction='desc' -->
+                                <a th:href="@{/notification(first_page = 0, sortBy='isUrgent', direction='asc', isUrgent='true')}"
+                                   th:class="${sortBy == 'isUrgent'} ? 'sort-btn active' : 'sort-btn'">긴급순</a>
                             </div>
                         </div>
 
@@ -95,7 +95,8 @@
                                     <th:block th:with="pageParamName=${entry.key == 'Y' ? 'first_page' : 'second_page'},
                                                       nextPageNum=${i == 0 ? entry.value.number - 1 : entry.value.number + 1}"> <!-- Prev: entry.value.number - 1, Next: entry.value.number + 1 -->
 
-                                        <a th:href="@{'/notification?' + ${pageParamName} + '=' + ${nextPageNum} + '&alarmCategory=' + ${alarmCategory}}"
+                                        <a th:href="@{'/notification?' + ${pageParamName} + '=' + ${nextPageNum} + '&sortBy=' + ${sortBy}
+                                                                            + '&direction=' + ${direction} + '&isUrgent=' + ${isUrgent} + '&alarmCategory=' + ${alarmCategory}}"
                                            th:classappend="${(i == 0 ? entry.value.first : entry.value.last) ? 'btn-disabled' : 'btn'}"
                                            th:text=" ${i == 0 ? 'Prev' : 'Next'}"
                                            style="padding: 5px 10px; font-size: 0.8rem">Btn</a>

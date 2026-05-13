@@ -2,6 +2,7 @@ package com.hometalk.onepass.dashboard.service.notification;
 
 import com.hometalk.onepass.auth.entity.User;
 import com.hometalk.onepass.dashboard.dto.notification.response.NotificationCommonResponseDto;
+import com.hometalk.onepass.dashboard.entity.notification.NotificationCommon;
 import com.hometalk.onepass.dashboard.enums.AlarmCategory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -20,6 +21,7 @@ public interface NotificationService {
     Page<NotificationCommonResponseDto> findByIsReadNotification(Pageable pageable);
 
     Page<NotificationCommonResponseDto> findByIsAlarmCategory(boolean isRead, AlarmCategory alarmCategory, Pageable pageable);
+    Page<NotificationCommonResponseDto> findNotificationsByUrgent(boolean status, Pageable pageable);
 
     NotificationCommonResponseDto  findNotificationCommonById(long id);
     Object findNotificationToDetailById(long id);

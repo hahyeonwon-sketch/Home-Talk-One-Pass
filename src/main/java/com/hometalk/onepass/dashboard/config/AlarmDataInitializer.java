@@ -57,7 +57,7 @@ public class AlarmDataInitializer implements CommandLineRunner {
         isAddBilling = notificationToBillingRepository.count() <= 0;
         if (isAddBilling) {
 
-            notificationService.isAddNotificationCommonResponseDto(AlarmCategory.BILLING);
+            notificationService.isAddNotificationCommonResponseDto(AlarmCategory.BILLING);      // 관리비 데이터가 추가 되었다고 설정을 한다.
 
             List<NotificationToBilling> sampleBilling = List.of(
                     NotificationToBilling.builder()
@@ -181,9 +181,16 @@ public class AlarmDataInitializer implements CommandLineRunner {
         isAddParking = notificationToParkingRepository.count() <= 0;
         if (isAddParking) {
 
-            notificationService.isAddNotificationCommonResponseDto(AlarmCategory.PARKING);
+            notificationService.isAddNotificationCommonResponseDto(AlarmCategory.PARKING);      // 주차 데이터가 추가 되었다고 설정을 한다.
 
             List<NotificationToParking> sampleParking = List.of(
+                    NotificationToParking.builder()
+                            .alarmCategory(AlarmCategory.PARKING)
+                            .alarmType(AlarmType.OVER)
+                            .message("시간 초과가 되었습니다.")
+                            .user(defaultUser)
+                            .vehicleNumber("123-0999")
+                            .build(),
                     NotificationToParking.builder()
                             .alarmCategory(AlarmCategory.PARKING)
                             .alarmType(AlarmType.REG_APPROVE)

@@ -89,6 +89,13 @@ public class NotificationServiceImpl implements NotificationService{
     }
 
     @Override
+    public Page<NotificationCommonResponseDto> findNotificationsByUrgent(boolean status, Pageable pageable) {
+
+        return notificationRepository.findNotificationsByUrgent(status, pageable)
+                .map(NotificationCommonResponseDto::from);
+    }
+
+    @Override
     public NotificationCommonResponseDto findNotificationCommonById(long id) {
 
         NotificationCommon NotificationCommon = notificationRepository.findById(id)
