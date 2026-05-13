@@ -22,3 +22,10 @@
     line-height: 1.6;
     padding: 20px;
 }
+
+.content-btn {
+    margin-top: 6px;
+    padding: 5px 10px;
+    font-size: 1rem;
+    display: inline;
+}

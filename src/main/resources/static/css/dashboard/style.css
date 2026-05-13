@@ -287,7 +287,9 @@ body {
 
 /* 데이터 테이블 */
 .book-table {
+    table-layout: fixed;
     width: 100%;
+    max-width: 860px;
     border-collapse: collapse;   /* 셀 사이의 이중 테두리를 하나로 합침 */
     font-size: 14px;
     background: #fff;

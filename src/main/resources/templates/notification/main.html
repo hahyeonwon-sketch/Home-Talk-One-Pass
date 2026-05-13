@@ -34,18 +34,17 @@
                                 <span style="font-size: 13px;color: #64748b">정렬: </span>
 
                                 <!--최신순 sortBy = `id` / direction=`desc` page=0-->
-                                <a th:href="@{/customer(sortBy='id', direction='desc', page=0, searchType=${searchType}, keyword=${keyword}, rating=${rating})}"
-                                   th:class="${sortBy == 'id'} ? 'sort-btn active' : 'sort-btn'">최신순</a>
+                                <a th:href="@{/notification(first_page = 0, sortBy='createdAt', direction='desc')}"
+                                   th:class="${sortBy == 'createdAt'} ? 'sort-btn active' : 'sort-btn'">최신순</a>
 
-                                <!--이름순 sortBy = `customerName` / direction='asc'
-                                    - ORDER BY  customer_name ASC -> 이름 가나다 오름차순
-                                    - searchType-keyword-rating을 그대로 전달 -->
-                                <a th:href="@{/customer(sortBy='customerName', direction='asc', page=0, searchType=${searchType}, keyword=${keyword}, rating=${rating})}"
-                                   th:class="${sortBy == 'customerName'} ? 'sort-btn active' : 'sort-btn'">이름순</a>
+                                <!-- 카테고리 이름순 sortBy = `alarmCategory` / direction='asc'
+                                    - ORDER BY  alarmCategory ASC -> 이름 가나다 오름차순 -->
+                                <a th:href="@{/notification(first_page = 0, sortBy='alarmCategory', direction='asc')}"
+                                   th:class="${sortBy == 'alarmCategory'} ? 'sort-btn active' : 'sort-btn'">이름순</a>
 
-                                <!--적립금순 sortBy ='reserves' / direction='desc' -->
-                                <a th:href="@{/customer(sortBy='reserves', direction='desc', page=0, searchType=${searchType}, keyword=${keyword}, rating=${rating})}"
-                                   th:class="${sortBy == 'reserves'} ? 'sort-btn active' : 'sort-btn'">적립금순</a>
+                                <!--긴급순 sortBy ='priority' / direction='desc' -->
+                                <a th:href="@{/notification(first_page = 0, sortBy='isUrgent', direction='asc', isUrgent='true')}"
+                                   th:class="${sortBy == 'isUrgent'} ? 'sort-btn active' : 'sort-btn'">긴급순</a>
                             </div>
                         </div>
 
@@ -56,56 +55,55 @@
 
                                 <span style="font-size: 13px;color: #64748b">카테고리: </span>
 
-                                <!--최신순 sortBy = `id` / direction=`desc` page=0-->
-                                <a th:href="@{/customer(sortBy='id', direction='desc', page=0, searchType=${searchType}, keyword=${keyword}, rating=${rating})}"
-                                   th:class="${sortBy == 'id'} ? 'sort-btn active' : 'sort-btn'">민원</a>
+                                <a th:href="@{/notification(second_page = 0, alarmCategory='ALL' )}"
+                                   th:class="${sortBy == 'id'} ? 'sort-btn active' : 'sort-btn'">전체</a>
 
-                                <!--최신순 sortBy = `id` / direction=`desc` page=0-->
-                                <a th:href="@{/customer(sortBy='id', direction='desc', page=0, searchType=${searchType}, keyword=${keyword}, rating=${rating})}"
+                                <a th:href="@{/notification(second_page = 0, alarmCategory='BILLING' )}"
+                                   th:class="${sortBy == 'id'} ? 'sort-btn active' : 'sort-btn'">관리비</a>
+
+                                <a th:href="@{/notification(second_page = 0, alarmCategory='PARKING' )}"
                                    th:class="${sortBy == 'id'} ? 'sort-btn active' : 'sort-btn'">주차</a>
 
-                                <!--이름순 sortBy = `customerName` / direction='asc'
-                                    - ORDER BY  customer_name ASC -> 이름 가나다 오름차순
-                                    - searchType-keyword-rating을 그대로 전달 -->
-                                <a th:href="@{/customer(sortBy='customerName', direction='asc', page=0, searchType=${searchType}, keyword=${keyword}, rating=${rating})}"
-                                   th:class="${sortBy == 'customerName'} ? 'sort-btn active' : 'sort-btn'">관리비</a>
+                                <a th:href="@{/notification(second_page = 0, alarmCategory='INQUIRY' )}"
+                                   th:class="${sortBy == 'id'} ? 'sort-btn active' : 'sort-btn'">민원</a>
 
-                                <!--적립금순 sortBy ='reserves' / direction='desc' -->
-                                <a th:href="@{/customer(sortBy='reserves', direction='desc', page=0, searchType=${searchType}, keyword=${keyword}, rating=${rating})}"
-                                   th:class="${sortBy == 'reserves'} ? 'sort-btn active' : 'sort-btn'">예약</a>
+                                <a th:href="@{/notification(second_page = 0, alarmCategory='RESERVATION' )}"
+                                   th:class="${sortBy == 'id'} ? 'sort-btn active' : 'sort-btn'">예약</a>
                             </div>
                         </div>
                     </div>
 
 
                     <table class="book-table">
+
                         <thead>
                         <tr>
 
-                            <th style="padding-left: 35px">
+                            <th style="padding-left: 35px; width: 260px;">
 
                                 <!-- 1. 알림 텍스트 -->
                                 <span th:text="(${entry.key == 'Y' ? '안 읽은 알림 ' : '읽은 알림 '}) + ${entry.getValue().totalElements >= 1 ?
                                                                                 entry.getValue().totalElements : 0} + '건'"> '알림' 0건 </span>
                             </th>
-                            <th th:style="'display: flex; gap: 10px; padding-left: ' + (${entry.getValue().totalElements >= 1} ? '400px' : '520px')">
+
+                            <th style="display: flex; gap: 10px; padding-left: 400px; width: 600px;">
 
                                 <!-- 2. 버튼 영역 -->
-                                <span th:each="i : ${#numbers.sequence(0, 1)}"> <!-- 2번 반복 -->
+                                <th:block th:each="i : ${#numbers.sequence(0, 1)}"> <!-- 2번 반복 -->
 
                                     <!-- first_page : 안 읽은 알림, second_page : 읽은 알림 -->
-                                    <span th:with="pageParamName=${entry.key == 'Y' ? 'first_page' : 'second_page'},
+                                    <th:block th:with="pageParamName=${entry.key == 'Y' ? 'first_page' : 'second_page'},
                                                       nextPageNum=${i == 0 ? entry.value.number - 1 : entry.value.number + 1}"> <!-- Prev: entry.value.number - 1, Next: entry.value.number + 1 -->
 
-                                        <a th:href="@{'/notification?' + ${pageParamName} + '=' + ${nextPageNum} +
-                                                                            '&sortBy=' + ${sortBy} + '&direction=' + ${direction}}"
+                                        <a th:href="@{'/notification?' + ${pageParamName} + '=' + ${nextPageNum} + '&sortBy=' + ${sortBy}
+                                                                            + '&direction=' + ${direction} + '&isUrgent=' + ${isUrgent} + '&alarmCategory=' + ${alarmCategory}}"
                                            th:classappend="${(i == 0 ? entry.value.first : entry.value.last) ? 'btn-disabled' : 'btn'}"
                                            th:text=" ${i == 0 ? 'Prev' : 'Next'}"
                                            style="padding: 5px 10px; font-size: 0.8rem">Btn</a>
-                                    </span>
-                                </span>
+                                    </th:block>
+                                </th:block>
                             </th>
-                        </tr>
+                        <tr>
 
                         </thead>
                         <tbody>
@@ -156,40 +154,30 @@
                                 </div>
                             </td>
 
-                            <td th:style="'display: flex; gap: 10px; border-bottom: none; padding-left: ' + (${entry.key == 'Y'} ? '460px' : '400px')">
+                            <td th:style="'display: flex; gap: 10px; border-bottom: none; padding-left: ' + (${entry.key == 'Y'} ? '460px' : '400px')"> <!--entry.key == 'Y'는 안 읽은 알림이라 보기 버튼을 삭제 버튼 위체에 둔다.  -->
 
                                 <!-- 2. 버튼 영역 -->
-                                <span th:each="j : ${#numbers.sequence(0, 1)}"> <!-- 2번 반복 -->
+                                <th:block th:each="j : ${#numbers.sequence(0, 1)}"> <!-- 2번 반복 -->
 
-                                    <th:block th:if="${i < entry.getValue().numberOfElements}">
+                                    <th:block th:if="${i < entry.getValue().numberOfElements}"> <!-- alarmMap의 반복문 i -->
 
                                          <th:block th:if="${j == 0}">
+
                                             <a class="btn" style="margin-top: 6px; padding: 5px 10px; font-size: 1rem;"
-                                                th:href="@{/notification/{id}(id=${entry.getValue().content[i].id})}"
+                                                th:href="@{/notification/detail/{id}(id=${entry.value.content[i].id})}"
                                                 th:text="'보기'">View Details</a>
                                         </th:block>
 
-                                         <th:block th:if="${j == 1 && entry.key == 'N'}">
-                                            <a class="btn" style="margin-top: 6px; padding: 5px 10px; font-size: 1rem;"
-                                               th:href="@{/notification/{id}(id=${entry.getValue().content[i].id})}"
-                                               th:text="'삭제'">View Details</a>
+                                        <th:block th:if="${j == 1 && entry.key == 'N'}" th:with="content=${entry.value.content[i]}">
+
+                                            <form th:action="@{/notification/{alarm}/{cId}/{dId}/delete(alarm=${content.alarmCategory}, cId=${content.id}, dId=${content.referenceId})}"
+                                                  method="post"
+                                                  onsubmit="return confirm('정말 이 알림을 삭제하시겠습니까?');">
+                                                <button type="submit" class="btn content-btn">삭제</button>
+                                            </form>
                                         </th:block>
                                     </th:block>
-                                </span>
-
-<!--                                &lt;!&ndash; 보기 버튼 &ndash;&gt;-->
-<!--                                <span th:if="${i < entry.getValue().numberOfElements}">-->
-<!--                                    <a class="btn" style="padding: 5px 10px; font-size: 1rem"-->
-<!--                                       th:href="@{/notification/{id}(id=${entry.getValue().content[i].id})}"-->
-<!--                                       th:text="'보기'">View Details</a>-->
-<!--                                </span>-->
-
-<!--                                &lt;!&ndash; 삭제 버튼 &ndash;&gt;-->
-<!--                                <span th:if="${i < entry.getValue().numberOfElements}" style="padding-left: 10px">-->
-<!--                                    <a class="btn" style="padding: 5px 10px; font-size: 1rem"-->
-<!--                                       th:href="@{/notification/{id}(id=${entry.getValue().content[i].id})}"-->
-<!--                                       th:text="'삭제'"></a>-->
-<!--                                </span>-->
+                                </th:block>
                             </td>
                         </tr>
                         </tbody>
@@ -205,4 +193,15 @@
     </div>
 </div>
 
+<script th:inline="javascript">
+
+    // URL의 쿼리스트링(?key=value)을 파싱해서 각 파라미터를 꺼낼수 있는 객체 생성
+    const params = new URLSearchParams(window.location.search);   // 파라미터 파싱
+    console.log("전체 파라미터:", Object.fromEntries(params));
+    if (params.get('deleted') === 'true') {              // 값 읽기
+        alert('알림이 삭제되었습니다.');                   //  alert
+        // /books/1?deleted=true -> /books/1
+        window.history.replaceState(null, '', window.location.pathname);   // URL 정리
+    }
+</script>
 </body>

@@ -2,6 +2,8 @@ package com.hometalk.onepass.dashboard.dto.notification.response;
 
 
 import com.hometalk.onepass.dashboard.entity.notification.NotificationToParking;
+import com.hometalk.onepass.dashboard.enums.AlarmCategory;
+import com.hometalk.onepass.dashboard.enums.AlarmType;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -12,9 +14,8 @@ import java.time.LocalDateTime;
 public class NotificationToParkingDto {
 
     private Long id;
-    private String moduleName;         // 알림 발생 모듈
-    private String categoryAlarm;      // 모듈별 세부 분류
-    //private Boolean isRead;            // 읽음 여부 상태
+    private AlarmCategory alarmCategory;      // 모듈별 세부 분류
+    private AlarmType alarmType;
     private String vehicleNumber;      // 차량 번호 전체
     private String message;            // 메세지 내용
     private LocalDateTime createdAt;
@@ -25,9 +26,8 @@ public class NotificationToParkingDto {
     public static NotificationToParkingDto from(NotificationToParking notification) {
         return NotificationToParkingDto.builder()
                 .id(notification.getId())
-                .moduleName(notification.getModuleName())
-                .categoryAlarm(notification.getCategoryAlarm())
-                //.isRead(notification.getIsRead())
+                .alarmCategory(notification.getAlarmCategory())
+                .alarmType(notification.getAlarmType())
                 .vehicleNumber(notification.getVehicleNumber())
                 .message(notification.getMessage())
                 .createdAt(notification.getCreatedAt())

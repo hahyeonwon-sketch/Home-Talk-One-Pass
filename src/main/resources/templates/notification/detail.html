@@ -68,27 +68,47 @@
                         <tbody>
                             <tr>
 <!--                            <th class="label-col">내용</th>-->
-                                <td class="content-area">
+                                <td class="content-area" th:with="alarmCategory=${detail.getAlarmCategory().name()}">
 <!--                                <div style="text-align: center">-->
 <!--                                    안녕하세요.<br><br>-->
 <!--                                </div>-->
 
-                                    <div style="text-align: center; margin-top: 50px">
-                                        <div>* 이번달 부과 금액 *</div>
+                                <div style="text-align: center">
 
-                                        <div th:text="|- ${detail.getBillingMonth()} 년도 ${detail.getAlarmCategory().title} -|">- 2026-03 년도 관리비-</div>
-                                        <div th:each="item : ${detail.getBillingItems()}">
-                                            <span th:text="|${item.getItemName()} : ${#numbers.formatInteger(item.getItemAmount(), 3, 'COMMA')} 원|">수도세: 30,000원</span>
+                                        <div th:if="${alarmCategory == 'BILLING'}" style="margin-top: 50px">
+                                            <div>* 이번달 부과 금액 *</div>
+
+                                            <div th:text="|- ${detail.getBillingMonth()} 년도 ${detail.getAlarmCategory().title} -|">- 2026-03 년도 관리비-</div>
+                                            <div th:each="item : ${detail.getBillingItems()}">
+                                                <span th:text="|${item.getItemName()} : ${#numbers.formatInteger(item.getItemAmount(), 3, 'COMMA')} 원|">수도세: 30,000원</span>
+                                            </div>
+
+                                            <div th:with="total=${#aggregates.sum(detail.getBillingItems().![itemAmount])}">
+                                                <strong>
+                                                    총 금액:
+                                                    <span th:text="${#numbers.formatInteger(total, 0, 'COMMA')} + ' 원'">0 원</span>
+                                                </strong>
+                                            </div>
+                                            <br> <!-- 여기서 줄바꿈 -->
+                                            <div th:text="|납기일 : ${#temporals.format(detail.dueDate, 'yyyy-MM-dd')}까지|">납기일 : 2026-03-31까지</div>
                                         </div>
 
-                                        <div th:with="total=${#aggregates.sum(detail.getBillingItems().![itemAmount])}">
-                                            <strong>
-                                                총 금액:
-                                                <span th:text="${#numbers.formatInteger(total, 0, 'COMMA')} + ' 원'">0 원</span>
-                                            </strong>
+<!--                                        REG_APPROVE, REG_REJECT, ENTRY_RES, ENTRY_VIS, OVER, EXIT-->
+                                    <div th:if="${alarmCategory == 'PARKING'}" style="margin-top: 30px">
+                                            <div th:text = "|[Home Talk] 입주차 차량(${detail.getVehicleNumber()})이 ${detail.getMessage()}|">[Home Talk]</div>
+                                            <br>
+                                            <div>
+                                                <strong th:switch="${detail.getAlarmType().name()}">
+<!--                                                    알람타입: <span th:text="${detail.getAlarmType().name()}"></span>-->
+                                                    <span th:case='REG_APPROVE'>즐거운 귀가 보내세요!</span>
+                                                    <span th:case='ENTRY_VIS'>즐거운 귀가 보내세요!</span>
+                                                    <span th:case='ENTRY_RES'>예약이 무사히 되었습니다.</span>
+                                                    <span th:case='EXIT'>안녕히 가십시요!</span>
+                                                    <span th:case='REG_REJECT'>죄송합니다. 등록이 거절 되었습니다.</span>
+                                                    <span th:case='OVER'>죄송합니다. 시간이 초과 되었습니다.</span>
+                                                </strong>
+                                            </div>
                                         </div>
-                                        <br> <!-- 여기서 줄바꿈 -->
-                                        <div th:text="|납기일 : ${#temporals.format(detail.dueDate, 'yyyy-MM-dd')}까지|">납기일 : 2026-03-31까지</div>
 
 
 <!--                                        <br><br><br><br>-->

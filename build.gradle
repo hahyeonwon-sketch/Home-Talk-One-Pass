@@ -38,6 +38,16 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
+	// Querydsl 라이브러리
+	implementation 'io.github.openfeign.querydsl:querydsl-jpa:6.10.1'
+
+	// OpenFeign Querydsl용 APT 프로세서 (:jpa 접미사 선언 필수)
+	annotationProcessor 'io.github.openfeign.querydsl:querydsl-apt:6.10.1:jpa'
+
+	// 자카르타 표준 스펙 API
+	annotationProcessor "jakarta.annotation:jakarta.annotation-api"
+	annotationProcessor "jakarta.persistence:jakarta.persistence-api"
+
 
 	/* 스프링 시큐리티 */
 	implementation 'org.springframework.boot:spring-boot-starter-security'
@@ -53,6 +63,20 @@ dependencies {
 	// Java 8 날짜/시간(LocalDate 등) 처리를 위한 모듈
 	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
+	// 기존 수동 경로 지정을 지우고, Gradle 8.x+ 및 IntelliJ 기본 경로로 통합합니다.
+	def querydslDir = layout.buildDirectory.dir("generated/sources/annotationProcessor/java/main").get().asFile
+
+	sourceSets {
+		main.java.srcDirs += querydslDir
+	}
+
+	tasks.withType(JavaCompile).configureEach {
+		options.getGeneratedSourceOutputDirectory().set(file(querydslDir))
+	}
+
+	clean {
+		delete file(querydslDir)
+	}
 }
 
 tasks.named('test') {

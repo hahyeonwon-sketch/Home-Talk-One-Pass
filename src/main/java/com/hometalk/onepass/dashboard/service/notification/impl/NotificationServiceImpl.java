@@ -4,14 +4,18 @@ package com.hometalk.onepass.dashboard.service.notification.impl;
 import com.hometalk.onepass.auth.entity.User;
 import com.hometalk.onepass.auth.repository.UserRepository;
 import com.hometalk.onepass.billing.entity.BillingStatus;
+import com.hometalk.onepass.community.entity.Category;
 import com.hometalk.onepass.dashboard.dto.notification.response.NotificationCommonResponseDto;
 import com.hometalk.onepass.dashboard.dto.notification.response.NotificationToBillingDto;
+import com.hometalk.onepass.dashboard.dto.notification.response.NotificationToParkingDto;
 import com.hometalk.onepass.dashboard.entity.notification.NotificationCommon;
 import com.hometalk.onepass.dashboard.entity.notification.NotificationToBilling;
+import com.hometalk.onepass.dashboard.entity.notification.NotificationToParking;
 import com.hometalk.onepass.dashboard.enums.AlarmCategory;
 import com.hometalk.onepass.dashboard.enums.AlarmType;
 import com.hometalk.onepass.dashboard.repository.notification.NotificationRepository;
 import com.hometalk.onepass.dashboard.repository.notification.NotificationToBillingRepository;
+import com.hometalk.onepass.dashboard.repository.notification.NotificationToParkingRepository;
 import com.hometalk.onepass.dashboard.service.notification.NotificationService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -22,9 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -39,6 +41,11 @@ public class NotificationServiceImpl implements NotificationService{
     // 알림 관련 DB 접근을 담당하는 Repository
     private final NotificationRepository notificationRepository;
     private final NotificationToBillingRepository notificationToBillingRepository;
+    private final NotificationToParkingRepository notificationToParkingRepository;
+
+    // 공통 DB 추가 가능 여부
+    private final Set<AlarmCategory> isAddNotificationCommonSet = new HashSet<>();
+
 
     @Override
     @Transactional(readOnly = true)   // 읽기 전용 트랜잭션 -> Hibernate 더티 체킹(변경 감지) 생략으로 성능 향상
@@ -75,6 +82,20 @@ public class NotificationServiceImpl implements NotificationService{
     }
 
     @Override
+    public Page<NotificationCommonResponseDto> findByIsAlarmCategory(boolean isRead, AlarmCategory alarmCategory, Pageable pageable) {
+
+        return notificationRepository.findByIsReadAndAlarmCategory(isRead, alarmCategory, pageable)
+                .map(NotificationCommonResponseDto::from);
+    }
+
+    @Override
+    public Page<NotificationCommonResponseDto> findNotificationsByUrgent(boolean status, Pageable pageable) {
+
+        return notificationRepository.findNotificationsByUrgent(status, pageable)
+                .map(NotificationCommonResponseDto::from);
+    }
+
+    @Override
     public NotificationCommonResponseDto findNotificationCommonById(long id) {
 
         NotificationCommon NotificationCommon = notificationRepository.findById(id)
@@ -84,17 +105,38 @@ public class NotificationServiceImpl implements NotificationService{
     }
 
     @Override
-    public NotificationToBillingDto findNotificationToBillingById(long id) {
+    public Object findNotificationToDetailById(long id) {
 
         NotificationCommon notificationCommon = notificationRepository.findById(id)
                 .orElseThrow(() ->
                         new NoSuchElementException("해당 알림을 찾을 수 없습니다. id= " + id));
 
-        NotificationToBilling notificationToBilling = notificationToBillingRepository.findById(notificationCommon.getReferenceId())
-                .orElseThrow(() ->
-                        new NoSuchElementException("해당 관리비를 찾을 수 없습니다. referenceId " + notificationCommon.getReferenceId()));
+        Object detailObj = null;
+        switch (notificationCommon.getAlarmCategory()) {
+            case BILLING:
+                NotificationToBilling notificationToBilling = notificationToBillingRepository.findById(notificationCommon.getReferenceId())
+                        .orElseThrow(() ->
+                                new NoSuchElementException("해당 관리비를 찾을 수 없습니다. referenceId " + notificationCommon.getReferenceId()));
 
-        return  NotificationToBillingDto.from(notificationToBilling);
+                detailObj = NotificationToBillingDto.from(notificationToBilling);
+                break;
+            case PARKING:
+                NotificationToParking notificationToParking = notificationToParkingRepository.findById(notificationCommon.getReferenceId())
+                        .orElseThrow(() ->
+                                new NoSuchElementException("해당 주차를 찾을 수 없습니다. referenceId " + notificationCommon.getReferenceId()));
+
+                detailObj = NotificationToParkingDto.from(notificationToParking);
+                break;
+            case NOTICE:
+            case SCHEDULE:
+            case COMMUNICATION:
+            case INQUIRY:
+            case FACILITY:
+            case RESERVATION:
+            default:
+        }
+
+        return detailObj;
     }
 
     @Override
@@ -115,7 +157,7 @@ public class NotificationServiceImpl implements NotificationService{
     }
 
     @Override
-    public void saveNotification(Long id, boolean isRead) {
+    public NotificationCommonResponseDto saveNotification(Long id, boolean isRead) {
 
         // 1. 기존 데이터를 DB에서 조회 (영속화)
         NotificationCommon entity = notificationRepository.findById(id)
@@ -123,55 +165,96 @@ public class NotificationServiceImpl implements NotificationService{
 
         entity.setIsRead(isRead);
         notificationRepository.save(entity);
+
+        return NotificationCommonResponseDto.from(entity);
     }
 
     @Override
-    public void findNotificationToBillingByEmail(String email) {
+    public void findNotificationByEmail(String email) {
 
-        // 이미 데이터가 있으면 중복 삽입하지 않음
-        if (notificationRepository.count() > 0) {
-            log.info("[DataInitializer]이미 알람 데이터가 존재합니다. 시드 데이터 삽입을 건너뜁니다.");
-            return;
-        }
-
-        // 예: "test@example.com" 유저의 "미납(UNPAID)" 내역만 가져오기
-        List<NotificationToBilling> unpaidList =
-                notificationToBillingRepository.findByUserEmailAndStatus(email, BillingStatus.UNPAID);
+        boolean isAddBilling = false;
+        boolean isAddParking = false;
 
         List<NotificationCommon> sampleAlarmList = new ArrayList<>();
-        for (NotificationToBilling notificationToBilling : unpaidList) {
+        isAddBilling = isAddNotificationCommonSet.contains(AlarmCategory.BILLING);
+        log.info("샘플 관리비 공통 현재 갯수 = {}", notificationToBillingRepository.count());
+        if (isAddBilling) {
 
-            sampleAlarmList.add(
-                    NotificationCommon.builder()
-                            .alarmCategory(AlarmCategory.BILLING)
-                            .alarmType(notificationToBilling.getAlarmType())
-                            .referenceId(notificationToBilling.getId())
-                            .message(notificationToBilling.getMessage())
-                            .user(notificationToBilling.getUser())
-                            .isRead(false)
-                            .build()
-            );
+            List<NotificationToBilling> unpaidBillingList =
+                    notificationToBillingRepository.findByUserEmailAndStatus(email, BillingStatus.UNPAID);
+
+            for (NotificationToBilling notificationToBilling : unpaidBillingList) {
+
+                sampleAlarmList.add(
+                        NotificationCommon.builder()
+                                .alarmCategory(notificationToBilling.getAlarmCategory())
+                                .alarmType(notificationToBilling.getAlarmType())
+                                .referenceId(notificationToBilling.getId())
+                                .message(notificationToBilling.getMessage())
+                                .user(notificationToBilling.getUser())
+                                .isRead(false)
+                                .build()
+                );
+            }
+        }
+        else {
+            // 이미 데이터가 있으면 중복 삽입하지 않음
+            log.info("[DataInitializer]이미 관리비 공통 데이터가 존재합니다. 시드 데이터 삽입을 건너뜁니다.");
         }
 
-        notificationRepository.saveAll(sampleAlarmList);
-        log.info("샘플 공통 알람 {}건 삽입 완료.", sampleAlarmList.size());
+        isAddParking = isAddNotificationCommonSet.contains(AlarmCategory.PARKING);
+        log.info("샘플 주차 공통 현재 갯수 = {}", notificationToParkingRepository.count());
+        if (isAddParking) {
+
+            List<NotificationToParking> parkingList =
+                    notificationToParkingRepository.findByUserEmailAndStatus(email);
+
+            for (NotificationToParking notificationToParking : parkingList) {
+
+                sampleAlarmList.add(
+                        NotificationCommon.builder()
+                                .alarmCategory(notificationToParking.getAlarmCategory())
+                                .alarmType(notificationToParking.getAlarmType())
+                                .referenceId(notificationToParking.getId())
+                                .message(notificationToParking.getMessage())
+                                .user(notificationToParking.getUser())
+                                .isRead(false)
+                                .build()
+                );
+            }
+        }
+        else {
+            // 이미 데이터가 있으면 중복 삽입하지 않음
+            log.info("[DataInitializer]이미 주차 공통 데이터가 존재합니다. 시드 데이터 삽입을 건너뜁니다.");
+        }
+
+
+        if (isAddBilling || isAddParking) {
+            isAddNotificationCommonSet.clear();
+            notificationRepository.saveAll(sampleAlarmList);
+            log.info("샘플 공통 알람 {}건 삽입 완료.", sampleAlarmList.size());
+        }
     }
 
-//    @Override
-//    @Transactional(readOnly = true)   // 읽기 전용 트랜잭션 -> Hibernate 더티 체킹(변경 감지) 생략으로 성능 향상
-//    public List<NotificationCommonResponseDto> findAllNotification(boolean isRead) {
-//
-//        List<NotificationCommon> notificationCommonList = new ArrayList<>();
-//        for (NotificationCommon notificationCommon : notificationRepository.findAll()) {
-//
-//            if (notificationCommon.getIsRead() == isRead) {
-//                notificationCommonList.add(notificationCommon);
-//            }
-//        }
-//
-//        return notificationCommonList
-//                .stream()  // 스트림 변환
-//                .map(NotificationCommonResponseDto::from)  // Entity -> DTO 변환 (LAZY 컬렉션 접근 없음)
-//                .collect(Collectors.toList()); // 리스트로 수집 -> List<NotificationCommon>
-//    }
+    @Override
+    @Transactional
+    public void deleteNotificationById(AlarmCategory alarmCategory, long commonId, long detailId) {
+
+        notificationRepository.deleteNotificationCommonByDirectly(commonId);
+
+        switch (alarmCategory) {
+            case BILLING:
+                notificationToBillingRepository.deleteNotificationToBillingByDirectly(detailId);
+                break;
+            case PARKING:
+                notificationToParkingRepository.deleteNotificationToParkingByDirectly(detailId);
+                break;
+        }
+    }
+
+    @Override
+    public void isAddNotificationCommonResponseDto(AlarmCategory alarmCategory) {
+
+        isAddNotificationCommonSet.add(alarmCategory);
+    }
 }

@@ -5,6 +5,8 @@ import com.hometalk.onepass.auth.entity.User;
 import com.hometalk.onepass.auth.service.MyPageService;
 import com.hometalk.onepass.dashboard.dto.notification.response.NotificationCommonResponseDto;
 import com.hometalk.onepass.dashboard.dto.notification.response.NotificationToBillingDto;
+import com.hometalk.onepass.dashboard.dto.notification.response.NotificationToParkingDto;
+import com.hometalk.onepass.dashboard.entity.notification.NotificationCommon;
 import com.hometalk.onepass.dashboard.entity.notification.NotificationToBilling;
 import com.hometalk.onepass.dashboard.enums.AlarmCategory;
 import com.hometalk.onepass.dashboard.repository.notification.NotificationRepository;
@@ -23,10 +25,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
@@ -39,59 +38,90 @@ public class NotificationController {
     private final MyPageService myPageService;
     private final NotificationService notificationService;
 
-    private final NotificationRepository notificationRepository;
-    private final NotificationToBillingRepository notificationToBillingRepository;
+//    private final NotificationRepository notificationRepository;
+//    private final NotificationToBillingRepository notificationToBillingRepository;
 
     @GetMapping
     public String notification(
             Authentication authentication,
             Model model,
+            @RequestParam(required = false, defaultValue = "ALL") AlarmCategory alarmCategory,
             @RequestParam(required = false, defaultValue = "id") String sortBy,
             @RequestParam(required = false, defaultValue = "desc") String direction,
+            @RequestParam(required = false, defaultValue = "false") boolean isUrgent,
             @Qualifier("first") @PageableDefault(size = 3) Pageable firstPageable,
             @Qualifier("second") @PageableDefault(size = 3) Pageable secondPageable) {
 
         MyPageResponseDTO myPage = myPageService.getMyPage(authentication);
         log.info("email == {}", myPage.getEmail());
-        notificationService.findNotificationToBillingByEmail(myPage.getEmail());
+        notificationService.findNotificationByEmail(myPage.getEmail());
 
 
         Page<NotificationCommonResponseDto> isNotReadPage = null;  // 최종적으로 뷰에 전달할 회원 목록
         Page<NotificationCommonResponseDto> isReadPage = null;  // 최종적으로 뷰에 전달할 회원 목록
+
+        // 정렬 허용 목록 컬럼명인데, 허용 목록에 없는 컬럼명은 "id"로 강제 변환
+        String validSort =
+                List.of("createdAt", "alarmCategory").contains(sortBy)
+                        ? sortBy : "id";
+
+        log.info("sortBy == {}", sortBy);
+
+        Pageable first_sortedPageable = null;
+        Pageable second_sortedPageable = null;
+
+        log.info("isUrgent == {}", isUrgent);
+        if (isUrgent) {
+
+            // Querydsl 메서드로 전달할 정렬 정보가 없는 깨끗한 Pageable 생성
+            first_sortedPageable = PageRequest.of(firstPageable.getPageNumber(),
+                    firstPageable.getPageSize());
+
+            // Querydsl 전용 메서드 호출 (우리가 만든 CaseBuilder 정렬이 적용됨)
+            isNotReadPage  = notificationService.findNotificationsByUrgent(false, first_sortedPageable);
+
+        } else {
+
+            // "asc" 외 모든 값은 DESC 처리
+            Sort.Direction dir = "asc".equalsIgnoreCase(direction)
+                    ? Sort.Direction.ASC
+                    : Sort.Direction.DESC;
+
+            // @PageableDefault의 page/size + 위에서 결정한 정렬 기준을 합쳐 새 Pageable 생성
+            first_sortedPageable = PageRequest.of(firstPageable.getPageNumber(), // @PageableDefault가 만들어준 page 번호
+                    firstPageable.getPageSize(),  // @PageableDefault가 만들어준 size (기본10)
+                    Sort.by(dir, validSort));  // 정렬은 새로 적용
+
+            isNotReadPage = notificationService.findByIsNotReadNotification(first_sortedPageable);  // 안 읽은 보여주는 알림
+        }
 
         // "asc" 외 모든 값은 DESC 처리
         Sort.Direction dir = "asc".equalsIgnoreCase(direction)
                 ? Sort.Direction.ASC
                 : Sort.Direction.DESC;
 
-        // 정렬 허용 목록 컬럼명인데, 허용 목록에 없는 컬럼명은 "id"로 강제 변환
-        String validSort =
-                List.of("id", "isRead", "createdAt").contains(sortBy)
-                        ? sortBy : "id";
+        second_sortedPageable = PageRequest.of(secondPageable.getPageNumber(), // @PageableDefault가 만들어준 page 번호
+                secondPageable.getPageSize(),  // @PageableDefault가 만들어준 size (기본10)
+                Sort.by(dir, validSort));  // 정렬은 새로 적용
 
-        // @PageableDefault의 page/size + 위에서 결정한 정렬 기준을 합쳐 새 Pageable 생성
-        Pageable first_sortedPageable =
-                PageRequest.of(firstPageable.getPageNumber(), // @PageableDefault가 만들어준 page 번호
-                        firstPageable.getPageSize(),  // @PageableDefault가 만들어준 size (기본10)
-                        Sort.by(dir, validSort));  // 정렬은 새로 적용
+        log.info("alarmCategory == {}", alarmCategory.name());
+        if (alarmCategory == AlarmCategory.ALL) {     // 카테고리 검색을 전체로 하는 경우
 
-        Pageable second_sortedPageable =
-                PageRequest.of(secondPageable.getPageNumber(), // @PageableDefault가 만들어준 page 번호
-                        secondPageable.getPageSize(),  // @PageableDefault가 만들어준 size (기본10)
-                        Sort.by(dir, validSort));  // 정렬은 새로 적용
+            isReadPage = notificationService.findByIsReadNotification(second_sortedPageable);   // 읽은 보여주는 알림
+        } else {    // 카테고리 검색을 전체로 하지 않는 경우
 
-        isNotReadPage = notificationService.findByIsNotReadNotification(first_sortedPageable);  // 안 읽은 보여주는 알림
-        isReadPage = notificationService.findByIsReadNotification(second_sortedPageable);   // 읽은 보여주는 알림
+            isReadPage = notificationService.findByIsAlarmCategory(true, alarmCategory, second_sortedPageable);
+        }
 
         Map<String, Page<NotificationCommonResponseDto>> alarmMap = new HashMap<>();
         alarmMap.put("Y", isNotReadPage);
         alarmMap.put("N", isReadPage);
 
-        //        List<Page<NotificationCommonResponseDto>> alarmList = Arrays.asList(isNotReadPage, isReadPage);
-
         model.addAttribute("alarmMap", alarmMap);
         model.addAttribute("sortBy", validSort);
         model.addAttribute("direction", direction);
+        model.addAttribute("isUrgent", isUrgent);
+        model.addAttribute("alarmCategory", alarmCategory);
 
         // 시드 데이터 (관련 데이터 모델에 공유 - 추후)
         return "/notification/main";
@@ -101,23 +131,42 @@ public class NotificationController {
      *   알림 상세 페이지
      *   GET /notification/{id}
      * */
-    @GetMapping("/{id}")
+    @GetMapping("/detail/{id}")
     public String detail(
             Model model,
             @PathVariable Long id,
             @RequestParam(required = false, defaultValue = "true") boolean isRead) {
 
-        notificationService.saveNotification(id, isRead);
-        NotificationToBillingDto detail = notificationService.findNotificationToBillingById(id);
-        log.info("== 알림 상세 조회 == id={}, AlarmCategory={}",detail.getId(), detail.getAlarmCategory());
+        NotificationCommonResponseDto notiCommonResponseDto = notificationService.saveNotification(id, isRead);
+        log.info("== 알림 상세 조회 == id={}, AlarmCategory={}", notiCommonResponseDto.getId(), notiCommonResponseDto.getAlarmCategory());
 
-        if (detail.getAlarmCategory() == AlarmCategory.BILLING)
+        Object detailObj = notificationService.findNotificationToDetailById(id);
+
+        if (notiCommonResponseDto.getAlarmCategory() == AlarmCategory.BILLING)
         {
-          model.addAttribute("detail",  detail);
+            NotificationToBillingDto detail = (NotificationToBillingDto) detailObj;
+            model.addAttribute("detail",  detail);
+        }
+        else if (notiCommonResponseDto.getAlarmCategory() == AlarmCategory.PARKING)
+        {
+            NotificationToParkingDto detail = (NotificationToParkingDto) detailObj;
+            model.addAttribute("detail",  detail);
         }
 
 
         return "/notification/detail";   // templates/notification/detail.html
+    }
+
+    //알림 삭제
+    @PostMapping("/{alarmCategory}/{commonId}/{detailId}/delete")
+    public String deleteNotification(
+            @PathVariable AlarmCategory alarmCategory,
+            @PathVariable Long commonId,
+            @PathVariable Long detailId) {
+        log.info("== 공통 알림 삭제 == id={}", commonId);
+        log.info("== 디테일 알림 삭제 == id={}", detailId);
+        notificationService.deleteNotificationById(alarmCategory, commonId, detailId);
+        return "redirect:/notification?deleted=true";
     }
 }
 
