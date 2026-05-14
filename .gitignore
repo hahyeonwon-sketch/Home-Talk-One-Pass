@@ -38,3 +38,5 @@ out/
 
 ### Upload Files ###
 uploads/
+.idea/compiler.xml
+.idea/gradle.xml
