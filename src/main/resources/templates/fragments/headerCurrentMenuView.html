@@ -18,6 +18,9 @@
 
     <div class="header-top-row" style="width: 100%; display: flex; justify-content: flex-end; padding: 10px 40px; background-color: #ffffff;">
         <nav class="menu" style="margin-top: 20px;">    <!-- 20px만큼 위를 띄움 -->
+            <a href="#" th:href="@{/notification/AddNotification}" style="position: relative; display: inline-block; text-decoration: none;">
+                알림발송⏰
+            </a>
             <a href="#" th:href="@{/notification}" style="position: relative; display: inline-block; text-decoration: none;">
                 알림⏰
                 <!-- 새 메시지가 있을 때만 빨간 점 표시 (서버에서 newAlert 변수를 보내준다고 가정) -->

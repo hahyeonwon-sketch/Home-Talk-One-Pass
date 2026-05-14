@@ -3,6 +3,7 @@ package com.hometalk.onepass.dashboard.service.notification.impl;
 
 import com.hometalk.onepass.auth.entity.User;
 import com.hometalk.onepass.auth.repository.UserRepository;
+import com.hometalk.onepass.billing.dto.BillingDetailResponse;
 import com.hometalk.onepass.billing.entity.BillingStatus;
 import com.hometalk.onepass.community.entity.Category;
 import com.hometalk.onepass.dashboard.dto.notification.response.NotificationCommonResponseDto;
@@ -26,6 +27,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -157,7 +160,7 @@ public class NotificationServiceImpl implements NotificationService{
     }
 
     @Override
-    public NotificationCommonResponseDto saveNotification(Long id, boolean isRead) {
+    public NotificationCommonResponseDto updateNotification(Long id, boolean isRead) {
 
         // 1. 기존 데이터를 DB에서 조회 (영속화)
         NotificationCommon entity = notificationRepository.findById(id)
@@ -170,6 +173,60 @@ public class NotificationServiceImpl implements NotificationService{
     }
 
     @Override
+    public void addNotification(AlarmCategory alarmCategory) {
+
+        User defaultUser = findUserByEmail();
+        switch (alarmCategory) {
+            case BILLING:
+
+                isAddNotificationCommonResponseDto(AlarmCategory.BILLING);
+
+                NotificationToBilling notificationToBilling =  NotificationToBilling.builder()
+                        .alarmCategory(AlarmCategory.BILLING)
+                        .alarmType(AlarmType.NEW)
+                        .message("새 고지서가 왔습니다.")
+                        .user(defaultUser)
+                        .billingMonth("2026-06")
+                        .totalAmount(BigDecimal.valueOf(155000))
+                        .status(BillingStatus.UNPAID)
+                        .dueDate(LocalDate.of(2026, 3, 31))
+                        .billingItems(List.of(
+                                BillingDetailResponse.ItemDetail.builder()
+                                        .itemName("전기료")
+                                        .itemAmount(BigDecimal.valueOf(25000))
+                                        .build(),
+                                BillingDetailResponse.ItemDetail.builder()
+                                        .itemName("난방비")
+                                        .itemAmount(BigDecimal.valueOf(5000))
+                                        .build(),
+                                BillingDetailResponse.ItemDetail.builder()
+                                        .itemName("수도세")
+                                        .itemAmount(BigDecimal.valueOf(70000))
+                                        .build()
+                        )).build();
+
+                notificationToBillingRepository.save(notificationToBilling);
+                log.info("샘플 관리비 알람 1 건 삽입 완료.");
+                break;
+            case PARKING:
+
+                isAddNotificationCommonResponseDto(AlarmCategory.PARKING);
+
+                NotificationToParking notificationToParking = NotificationToParking.builder()
+                        .alarmCategory(AlarmCategory.PARKING)
+                        .alarmType(AlarmType.OVER)
+                        .message("시간 초과가 되었습니다.")
+                        .user(defaultUser)
+                        .vehicleNumber("123-1103")
+                        .build();
+
+                notificationToParkingRepository.save(notificationToParking);
+                log.info("샘플 주차 알람 1 건 삽입 완료.");
+                break;
+        }
+    }
+
+    @Override
     public void findNotificationByEmail(String email) {
 
         boolean isAddBilling = false;
@@ -177,24 +234,58 @@ public class NotificationServiceImpl implements NotificationService{
 
         List<NotificationCommon> sampleAlarmList = new ArrayList<>();
         isAddBilling = isAddNotificationCommonSet.contains(AlarmCategory.BILLING);
+        isAddParking = isAddNotificationCommonSet.contains(AlarmCategory.PARKING);
+
+        Map<AlarmCategory, Set<Long>> sampleAlarmReferenceIdMap = new HashMap<>();
+        if (isAddBilling || isAddParking) {
+
+            for (NotificationCommon notificationCommon : notificationRepository.findByIsRead(false)) {
+
+                sampleAlarmReferenceIdMap.computeIfAbsent(
+                        notificationCommon.getAlarmCategory(),
+                        k -> new HashSet<>()
+                ).add(notificationCommon.getReferenceId());
+            }
+
+            for (NotificationCommon notificationCommon : notificationRepository.findByIsRead(true)) {
+
+                sampleAlarmReferenceIdMap.computeIfAbsent(
+                        notificationCommon.getAlarmCategory(),
+                        k -> new HashSet<>()
+                ).add(notificationCommon.getReferenceId());
+            }
+
+        }
+
+
         log.info("샘플 관리비 공통 현재 갯수 = {}", notificationToBillingRepository.count());
         if (isAddBilling) {
 
             List<NotificationToBilling> unpaidBillingList =
                     notificationToBillingRepository.findByUserEmailAndStatus(email, BillingStatus.UNPAID);
 
+            AlarmCategory category = AlarmCategory.BILLING;
+
+            // Set 데이터를 꺼내어 바로 ArrayList로 변환 (값이 없으면 빈 리스트 반환)
+            List<Long> referenceIdList = new ArrayList<>(
+                    sampleAlarmReferenceIdMap.getOrDefault(category, Collections.emptySet())
+            );
+
             for (NotificationToBilling notificationToBilling : unpaidBillingList) {
 
-                sampleAlarmList.add(
-                        NotificationCommon.builder()
-                                .alarmCategory(notificationToBilling.getAlarmCategory())
-                                .alarmType(notificationToBilling.getAlarmType())
-                                .referenceId(notificationToBilling.getId())
-                                .message(notificationToBilling.getMessage())
-                                .user(notificationToBilling.getUser())
-                                .isRead(false)
-                                .build()
-                );
+                if (!referenceIdList.contains(notificationToBilling.getId()))
+                {
+                    sampleAlarmList.add(
+                            NotificationCommon.builder()
+                                    .alarmCategory(notificationToBilling.getAlarmCategory())
+                                    .alarmType(notificationToBilling.getAlarmType())
+                                    .referenceId(notificationToBilling.getId())
+                                    .message(notificationToBilling.getMessage())
+                                    .user(notificationToBilling.getUser())
+                                    .isRead(false)
+                                    .build()
+                    );
+                }
             }
         }
         else {
@@ -202,25 +293,34 @@ public class NotificationServiceImpl implements NotificationService{
             log.info("[DataInitializer]이미 관리비 공통 데이터가 존재합니다. 시드 데이터 삽입을 건너뜁니다.");
         }
 
-        isAddParking = isAddNotificationCommonSet.contains(AlarmCategory.PARKING);
         log.info("샘플 주차 공통 현재 갯수 = {}", notificationToParkingRepository.count());
         if (isAddParking) {
 
             List<NotificationToParking> parkingList =
                     notificationToParkingRepository.findByUserEmailAndStatus(email);
 
+            AlarmCategory category = AlarmCategory.PARKING;
+
+            // Set 데이터를 꺼내어 바로 ArrayList로 변환 (값이 없으면 빈 리스트 반환)
+            List<Long> referenceIdList = new ArrayList<>(
+                    sampleAlarmReferenceIdMap.getOrDefault(category, Collections.emptySet())
+            );
+
             for (NotificationToParking notificationToParking : parkingList) {
 
-                sampleAlarmList.add(
-                        NotificationCommon.builder()
-                                .alarmCategory(notificationToParking.getAlarmCategory())
-                                .alarmType(notificationToParking.getAlarmType())
-                                .referenceId(notificationToParking.getId())
-                                .message(notificationToParking.getMessage())
-                                .user(notificationToParking.getUser())
-                                .isRead(false)
-                                .build()
-                );
+                if (!referenceIdList.contains(notificationToParking.getId()))
+                {
+                    sampleAlarmList.add(
+                            NotificationCommon.builder()
+                                    .alarmCategory(notificationToParking.getAlarmCategory())
+                                    .alarmType(notificationToParking.getAlarmType())
+                                    .referenceId(notificationToParking.getId())
+                                    .message(notificationToParking.getMessage())
+                                    .user(notificationToParking.getUser())
+                                    .isRead(false)
+                                    .build()
+                    );
+                }
             }
         }
         else {

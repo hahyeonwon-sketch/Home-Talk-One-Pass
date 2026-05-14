@@ -127,6 +127,15 @@ public class NotificationController {
         return "/notification/main";
     }
 
+    @GetMapping("/AddNotification")
+    public String AddNotification() {
+
+        notificationService.addNotification(AlarmCategory.BILLING);
+        notificationService.addNotification(AlarmCategory.PARKING);
+
+        return "redirect:/notification";
+    }
+
     /*
      *   알림 상세 페이지
      *   GET /notification/{id}
@@ -137,7 +146,7 @@ public class NotificationController {
             @PathVariable Long id,
             @RequestParam(required = false, defaultValue = "true") boolean isRead) {
 
-        NotificationCommonResponseDto notiCommonResponseDto = notificationService.saveNotification(id, isRead);
+        NotificationCommonResponseDto notiCommonResponseDto = notificationService.updateNotification(id, isRead);
         log.info("== 알림 상세 조회 == id={}, AlarmCategory={}", notiCommonResponseDto.getId(), notiCommonResponseDto.getAlarmCategory());
 
         Object detailObj = notificationService.findNotificationToDetailById(id);
