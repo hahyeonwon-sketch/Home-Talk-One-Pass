@@ -1,6 +1,7 @@
 package com.hometalk.onepass.dashboard.dto.notification.response;
 
 
+import com.hometalk.onepass.auth.entity.User;
 import com.hometalk.onepass.billing.dto.BillingDetailResponse;
 import com.hometalk.onepass.billing.entity.BillingStatus;
 import com.hometalk.onepass.dashboard.entity.notification.NotificationToBilling;
@@ -25,6 +26,7 @@ public class NotificationToBillingDto {
     private Long id;
     private AlarmCategory alarmCategory;    // 알림 발생 모듈
     private AlarmType alarmType;            // 모듈별 세부 분류
+    private User user;
     private String message;                 // 메세지 내용
     private String billingMonth;
     private BigDecimal totalAmount;         // 합계 금액
@@ -42,6 +44,7 @@ public class NotificationToBillingDto {
                 .id(notification.getId())
                 .alarmCategory(notification.getAlarmCategory())
                 .alarmType(notification.getAlarmType())
+                .user(notification.getUser())
                 .billingItems(notification.getBillingItems().stream()
                         .map(d -> BillingDetailResponse.ItemDetail.builder()
                                 .itemName(d.getItemName())
@@ -56,6 +59,24 @@ public class NotificationToBillingDto {
                 .createdAt(notification.getCreatedAt())
                 .updatedAt(notification.getUpdatedAt())
                 .deletedAt(notification.getDeletedAt())
+                .build();
+    }
+
+    /* DTO --> Entity 변환 메서드
+     *   - Service 레이어에서 호출하여 Entity로 변환 후 Repository에 전달
+     * */
+    public NotificationToBilling toEntity() {
+        return NotificationToBilling.builder()
+                .alarmCategory(this.alarmCategory)
+                .alarmType(this.alarmType)
+                .user(this.user)
+                .billingItems(this.billingItems)
+                .message(this.message)
+                .billingMonth(this.billingMonth)
+                .totalAmount(this.totalAmount)
+                .status(this.status)
+                .dueDate(this.dueDate)
+                .deletedAt(this.deletedAt)
                 .build();
     }
 }

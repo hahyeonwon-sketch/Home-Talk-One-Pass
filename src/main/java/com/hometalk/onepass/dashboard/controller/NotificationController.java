@@ -3,12 +3,16 @@ package com.hometalk.onepass.dashboard.controller;
 import com.hometalk.onepass.auth.dto.MyPageResponseDTO;
 import com.hometalk.onepass.auth.entity.User;
 import com.hometalk.onepass.auth.service.MyPageService;
+import com.hometalk.onepass.billing.dto.BillingDetailResponse;
+import com.hometalk.onepass.billing.entity.BillingStatus;
 import com.hometalk.onepass.dashboard.dto.notification.response.NotificationCommonResponseDto;
 import com.hometalk.onepass.dashboard.dto.notification.response.NotificationToBillingDto;
 import com.hometalk.onepass.dashboard.dto.notification.response.NotificationToParkingDto;
 import com.hometalk.onepass.dashboard.entity.notification.NotificationCommon;
 import com.hometalk.onepass.dashboard.entity.notification.NotificationToBilling;
+import com.hometalk.onepass.dashboard.entity.notification.NotificationToParking;
 import com.hometalk.onepass.dashboard.enums.AlarmCategory;
+import com.hometalk.onepass.dashboard.enums.AlarmType;
 import com.hometalk.onepass.dashboard.repository.notification.NotificationRepository;
 import com.hometalk.onepass.dashboard.repository.notification.NotificationToBillingRepository;
 import com.hometalk.onepass.dashboard.service.notification.NotificationService;
@@ -27,7 +31,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Controller
@@ -130,8 +137,42 @@ public class NotificationController {
     @GetMapping("/AddNotification")
     public String AddNotification() {
 
-        notificationService.addNotification(AlarmCategory.BILLING);
-        notificationService.addNotification(AlarmCategory.PARKING);
+        User defaultUser = notificationService.findUserByEmail();
+        NotificationToBilling notificationToBilling =  NotificationToBilling.builder()
+                .alarmCategory(AlarmCategory.BILLING)
+                .alarmType(AlarmType.NEW)
+                .message("새 고지서가 왔습니다.")
+                .user(defaultUser)
+                .billingMonth("2026-06")
+                .totalAmount(BigDecimal.valueOf(155000))
+                .status(BillingStatus.UNPAID)
+                .dueDate(LocalDate.of(2026, 3, 31))
+                .billingItems(List.of(
+                        BillingDetailResponse.ItemDetail.builder()
+                                .itemName("전기료")
+                                .itemAmount(BigDecimal.valueOf(25000))
+                                .build(),
+                        BillingDetailResponse.ItemDetail.builder()
+                                .itemName("난방비")
+                                .itemAmount(BigDecimal.valueOf(5000))
+                                .build(),
+                        BillingDetailResponse.ItemDetail.builder()
+                                .itemName("수도세")
+                                .itemAmount(BigDecimal.valueOf(70000))
+                                .build()
+                )).build();
+
+        notificationService.addNotification(AlarmCategory.BILLING, NotificationToBillingDto.from(notificationToBilling));
+
+        NotificationToParking notificationToParking = NotificationToParking.builder()
+                .alarmCategory(AlarmCategory.PARKING)
+                .alarmType(AlarmType.OVER)
+                .message("시간 초과가 되었습니다.")
+                .user(defaultUser)
+                .vehicleNumber("123-1103")
+                .build();
+
+        notificationService.addNotification(AlarmCategory.PARKING, NotificationToParkingDto.from(notificationToParking));
 
         return "redirect:/notification";
     }

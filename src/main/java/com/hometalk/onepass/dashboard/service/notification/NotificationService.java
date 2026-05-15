@@ -28,7 +28,7 @@ public interface NotificationService {
 
     User findUserByEmail();
     NotificationCommonResponseDto updateNotification(Long id, boolean isRead);
-    void addNotification(AlarmCategory alarmCategory);
+    void addNotification(AlarmCategory alarmCategory, Object object);
     void findNotificationByEmail(String email);
     void deleteNotificationById(AlarmCategory alarmCategory, long commonId, long detailId);
     void isAddNotificationCommonResponseDto(AlarmCategory alarmCategory);

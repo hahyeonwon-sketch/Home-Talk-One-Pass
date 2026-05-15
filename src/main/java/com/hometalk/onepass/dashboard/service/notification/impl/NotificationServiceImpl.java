@@ -173,54 +173,21 @@ public class NotificationServiceImpl implements NotificationService{
     }
 
     @Override
-    public void addNotification(AlarmCategory alarmCategory) {
+    public void addNotification(AlarmCategory alarmCategory, Object object) {
 
-        User defaultUser = findUserByEmail();
         switch (alarmCategory) {
             case BILLING:
 
                 isAddNotificationCommonResponseDto(AlarmCategory.BILLING);
-
-                NotificationToBilling notificationToBilling =  NotificationToBilling.builder()
-                        .alarmCategory(AlarmCategory.BILLING)
-                        .alarmType(AlarmType.NEW)
-                        .message("새 고지서가 왔습니다.")
-                        .user(defaultUser)
-                        .billingMonth("2026-06")
-                        .totalAmount(BigDecimal.valueOf(155000))
-                        .status(BillingStatus.UNPAID)
-                        .dueDate(LocalDate.of(2026, 3, 31))
-                        .billingItems(List.of(
-                                BillingDetailResponse.ItemDetail.builder()
-                                        .itemName("전기료")
-                                        .itemAmount(BigDecimal.valueOf(25000))
-                                        .build(),
-                                BillingDetailResponse.ItemDetail.builder()
-                                        .itemName("난방비")
-                                        .itemAmount(BigDecimal.valueOf(5000))
-                                        .build(),
-                                BillingDetailResponse.ItemDetail.builder()
-                                        .itemName("수도세")
-                                        .itemAmount(BigDecimal.valueOf(70000))
-                                        .build()
-                        )).build();
-
-                notificationToBillingRepository.save(notificationToBilling);
+                NotificationToBillingDto notificationToBillingDto = (NotificationToBillingDto) object;
+                notificationToBillingRepository.save(notificationToBillingDto.toEntity());
                 log.info("샘플 관리비 알람 1 건 삽입 완료.");
                 break;
             case PARKING:
 
                 isAddNotificationCommonResponseDto(AlarmCategory.PARKING);
-
-                NotificationToParking notificationToParking = NotificationToParking.builder()
-                        .alarmCategory(AlarmCategory.PARKING)
-                        .alarmType(AlarmType.OVER)
-                        .message("시간 초과가 되었습니다.")
-                        .user(defaultUser)
-                        .vehicleNumber("123-1103")
-                        .build();
-
-                notificationToParkingRepository.save(notificationToParking);
+                NotificationToParkingDto notificationToParkingDto = (NotificationToParkingDto) object;
+                notificationToParkingRepository.save(notificationToParkingDto.toEntity());
                 log.info("샘플 주차 알람 1 건 삽입 완료.");
                 break;
         }
