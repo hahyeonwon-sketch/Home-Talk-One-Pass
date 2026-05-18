@@ -154,7 +154,7 @@
                                 </div>
                             </td>
 
-                            <td th:style="'display: flex; gap: 10px; padding-left: ' + (${entry.key == 'Y'} ? '120px' : '60px')"> <!--entry.key == 'Y'는 안 읽은 알림이라 보기 버튼을 삭제 버튼 위체에 둔다.  -->
+                            <td th:style="'display: flex; gap: 10px; padding-top: 13px; padding-left: ' + (${entry.key == 'Y'} ? '120px' : '60px')"> <!--entry.key == 'Y'는 안 읽은 알림이라 보기 버튼을 삭제 버튼 위체에 둔다.  -->
 
                                 <!-- 2. 버튼 영역 -->
                                 <th:block th:each="j : ${#numbers.sequence(0, 1)}"> <!-- 2번 반복 -->
