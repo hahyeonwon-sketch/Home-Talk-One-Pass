@@ -295,15 +295,39 @@ public class NotificationServiceImpl implements NotificationService{
     @Transactional
     public void deleteNotificationById(AlarmCategory alarmCategory, long commonId, long detailId) {
 
-        notificationRepository.deleteNotificationCommonByDirectly(commonId);
 
-        switch (alarmCategory) {
-            case BILLING:
-                notificationToBillingRepository.deleteNotificationToBillingByDirectly(detailId);
-                break;
-            case PARKING:
-                notificationToParkingRepository.deleteNotificationToParkingByDirectly(detailId);
-                break;
+        Set<Long> idSet = sampleAlarmReferenceIdMap.get(alarmCategory);
+
+        if (idSet == null) {
+            throw new IllegalArgumentException("삭제 실패: 존재하지 않는 알림 카테고리입니다. Category = " + alarmCategory);
+        }
+
+        // 메모리에서 ID 제거 시도 및 결과 확인
+        if (!idSet.remove(detailId)) {
+            throw new IllegalArgumentException("삭제 실패: 해당 알림 ID가 메모리에 존재하지 않습니다. ID = " + detailId);
+        }
+
+        try {
+
+            notificationRepository.deleteNotificationCommonByDirectly(commonId);
+
+            switch (alarmCategory) {
+                case BILLING:
+                    notificationToBillingRepository.deleteNotificationToBillingByDirectly(detailId);
+                    break;
+                case PARKING:
+                    notificationToParkingRepository.deleteNotificationToParkingByDirectly(detailId);
+                    break;
+                default:
+                    log.warn("정의되지 않은 알람 카테고리 DB 삭제 요청: {}", alarmCategory);
+                    break;
+            }
+
+            log.info("성공적으로 알림을 삭제했습니다. CommonID: {}, DetailID: ({})", commonId, detailId);
+        } catch (Exception e) {
+            // DB 삭제 중 예외 발생 시 로그를 남기고 런타임 예외를 다시 던져 트랜잭션 롤백을 유도합니다.
+            log.error("알림 DB 삭제 중 오류 발생: {}", e.getMessage());
+            throw new RuntimeException("알림 데이터베이스 삭제 작업 중 오류가 발생했습니다.", e);
         }
     }
 
