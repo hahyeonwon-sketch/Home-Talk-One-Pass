@@ -300,13 +300,14 @@ body {
 
 .book-table th,
 .book-table td {
+    background-color: #f0f5fe;
     padding: 12px 14px;
     text-align: left;
     border-bottom: 1px solid #f0f0f0;
 }
 /* 헤더 행 - 열 제목 */
 .book-table thead th {
-    background-color: #f8f9ff;
+    background-color: #f0f1fe;
     font-weight: 600;
     color: #555;
     font-size: 13px;
@@ -318,6 +319,10 @@ body {
 
 .book-table tbody tr:hover {
     background-color: #eef1ff;
+}
+
+.book-table tbody tr:last-child {
+    border-bottom: 1px solid #eef1ff !important;
 }
 
 /* 정렬 버튼 스타일 */

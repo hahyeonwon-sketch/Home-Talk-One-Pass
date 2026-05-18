@@ -154,7 +154,7 @@
                                 </div>
                             </td>
 
-                            <td th:style="'display: flex; gap: 10px; border-bottom: none; padding-left: ' + (${entry.key == 'Y'} ? '120px' : '60px')"> <!--entry.key == 'Y'는 안 읽은 알림이라 보기 버튼을 삭제 버튼 위체에 둔다.  -->
+                            <td th:style="'display: flex; gap: 10px; padding-left: ' + (${entry.key == 'Y'} ? '120px' : '60px')"> <!--entry.key == 'Y'는 안 읽은 알림이라 보기 버튼을 삭제 버튼 위체에 둔다.  -->
 
                                 <!-- 2. 버튼 영역 -->
                                 <th:block th:each="j : ${#numbers.sequence(0, 1)}"> <!-- 2번 반복 -->
@@ -163,9 +163,9 @@
 
                                          <th:block th:if="${j == 0}">
 
-                                            <a class="btn" style="margin-top: 6px; padding: 5px 10px; font-size: 1rem;"
-                                                th:href="@{/notification/detail/{id}(id=${entry.value.content[i].id})}"
-                                                th:text="'보기'">View Details</a>
+                                            <a class="btn content-viewBtn"
+                                               th:href="@{/notification/detail/{id}(id=${entry.value.content[i].id})}"
+                                               th:text="'보기'">View Details</a>
                                         </th:block>
 
                                         <th:block th:if="${j == 1 && entry.key == 'N'}" th:with="content=${entry.value.content[i]}">
@@ -173,9 +173,13 @@
                                             <form th:action="@{/notification/{alarm}/{cId}/{dId}/delete(alarm=${content.alarmCategory}, cId=${content.id}, dId=${content.referenceId})}"
                                                   method="post"
                                                   onsubmit="return confirm('정말 이 알림을 삭제하시겠습니까?');">
-                                                <button type="submit" class="btn content-btn">삭제</button>
+                                                <button type="submit" class="btn content-deleteBtn" >삭제</button>
                                             </form>
                                         </th:block>
+                                    </th:block>
+                                    <th:block th:if="${i >= entry.getValue().numberOfElements}">
+
+                                        <span style="padding-top: 22px">&nbsp;</span>
                                     </th:block>
                                 </th:block>
                             </td>
