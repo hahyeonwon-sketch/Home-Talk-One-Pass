@@ -49,6 +49,9 @@ public class NotificationServiceImpl implements NotificationService{
     // 공통 DB 추가 가능 여부
     private final Set<AlarmCategory> isAddNotificationCommonSet = new HashSet<>();
 
+    // 레퍼런스 아뒤 리스트
+    Map<AlarmCategory, Set<Long>> sampleAlarmReferenceIdMap = new HashMap<>();
+
 
     @Override
     @Transactional(readOnly = true)   // 읽기 전용 트랜잭션 -> Hibernate 더티 체킹(변경 감지) 생략으로 성능 향상
@@ -196,34 +199,9 @@ public class NotificationServiceImpl implements NotificationService{
     @Override
     public void findNotificationByEmail(String email) {
 
-        boolean isAddBilling = false;
-        boolean isAddParking = false;
-
         List<NotificationCommon> sampleAlarmList = new ArrayList<>();
-        isAddBilling = isAddNotificationCommonSet.contains(AlarmCategory.BILLING);
-        isAddParking = isAddNotificationCommonSet.contains(AlarmCategory.PARKING);
-
-        Map<AlarmCategory, Set<Long>> sampleAlarmReferenceIdMap = new HashMap<>();
-        if (isAddBilling || isAddParking) {
-
-            for (NotificationCommon notificationCommon : notificationRepository.findByIsRead(false)) {
-
-                sampleAlarmReferenceIdMap.computeIfAbsent(
-                        notificationCommon.getAlarmCategory(),
-                        k -> new HashSet<>()
-                ).add(notificationCommon.getReferenceId());
-            }
-
-            for (NotificationCommon notificationCommon : notificationRepository.findByIsRead(true)) {
-
-                sampleAlarmReferenceIdMap.computeIfAbsent(
-                        notificationCommon.getAlarmCategory(),
-                        k -> new HashSet<>()
-                ).add(notificationCommon.getReferenceId());
-            }
-
-        }
-
+        boolean isAddBilling = isAddNotificationCommonSet.contains(AlarmCategory.BILLING);
+        boolean isAddParking = isAddNotificationCommonSet.contains(AlarmCategory.PARKING);
 
         log.info("샘플 관리비 공통 현재 갯수 = {}", notificationToBillingRepository.count());
         if (isAddBilling) {
@@ -233,15 +211,20 @@ public class NotificationServiceImpl implements NotificationService{
 
             AlarmCategory category = AlarmCategory.BILLING;
 
-            // Set 데이터를 꺼내어 바로 ArrayList로 변환 (값이 없으면 빈 리스트 반환)
-            List<Long> referenceIdList = new ArrayList<>(
-                    sampleAlarmReferenceIdMap.getOrDefault(category, Collections.emptySet())
-            );
+            // 1. 해당 카테고리의 Set이 이미 Map에 있는지 확인
+            if (!sampleAlarmReferenceIdMap.containsKey(category)) {
+                // 2. 없다면 새 HashSet을 생성하여 Map에 먼저 넣기
+                sampleAlarmReferenceIdMap.put(category, new HashSet<>());
+            }
+
+            List<Long> referenceIdList = new ArrayList<>(sampleAlarmReferenceIdMap.get(category));
 
             for (NotificationToBilling notificationToBilling : unpaidBillingList) {
 
-                if (!referenceIdList.contains(notificationToBilling.getId()))
-                {
+                if (!referenceIdList.contains(notificationToBilling.getId())) {
+
+                    sampleAlarmReferenceIdMap.get(category).add(notificationToBilling.getId());
+
                     sampleAlarmList.add(
                             NotificationCommon.builder()
                                     .alarmCategory(notificationToBilling.getAlarmCategory())
@@ -268,15 +251,20 @@ public class NotificationServiceImpl implements NotificationService{
 
             AlarmCategory category = AlarmCategory.PARKING;
 
-            // Set 데이터를 꺼내어 바로 ArrayList로 변환 (값이 없으면 빈 리스트 반환)
-            List<Long> referenceIdList = new ArrayList<>(
-                    sampleAlarmReferenceIdMap.getOrDefault(category, Collections.emptySet())
-            );
+            // 1. 해당 카테고리의 Set이 이미 Map에 있는지 확인
+            if (!sampleAlarmReferenceIdMap.containsKey(category)) {
+                // 2. 없다면 새 HashSet을 생성하여 Map에 먼저 넣기
+                sampleAlarmReferenceIdMap.put(category, new HashSet<>());
+            }
+
+            List<Long> referenceIdList = new ArrayList<>(sampleAlarmReferenceIdMap.get(category));
 
             for (NotificationToParking notificationToParking : parkingList) {
 
-                if (!referenceIdList.contains(notificationToParking.getId()))
-                {
+                if (!referenceIdList.contains(notificationToParking.getId())) {
+
+                    sampleAlarmReferenceIdMap.get(category).add(notificationToParking.getId());
+
                     sampleAlarmList.add(
                             NotificationCommon.builder()
                                     .alarmCategory(notificationToParking.getAlarmCategory())

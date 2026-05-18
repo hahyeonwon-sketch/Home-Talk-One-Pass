@@ -42,7 +42,7 @@ public class NotificationToParking extends BaseTimeEntity{
     private LocalDateTime deletedAt;            // 삭제 시각
 
     // 주차 알림
-    @Column(name = "vehicle_number", nullable = false, unique = true,length = 100)
+    @Column(name = "vehicle_number", nullable = false, length = 100)
     private String vehicleNumber;      // 차량 번호 전체
 
 //    private Long user_id;               // 등록한 회원 ID FK
