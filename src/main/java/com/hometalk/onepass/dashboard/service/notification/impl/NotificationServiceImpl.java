@@ -66,8 +66,21 @@ public class NotificationServiceImpl implements NotificationService{
     @Override
     public Page<NotificationCommonResponseDto> findByIsNotReadNotification(Pageable pageable) {
 
-        return notificationRepository.findByIsRead(false, pageable)  // deleted_at IS NULL + LIMIT/OFFSET/ORDER BY 자동 생성
-                .map(NotificationCommonResponseDto::from);        // Page<NotificationCommonResponseDto> -> Page<NotificationCommonResponseDto> 변환 (메타정보 유지)
+        Page<NotificationCommon> notificationCommonsList = notificationRepository.findByIsRead(false, pageable);
+        notificationCommonsList.forEach(notificationCommon -> {
+
+            // 1. 해당 카테고리의 Set이 이미 Map에 있는지 확인
+            AlarmCategory category = notificationCommon.getAlarmCategory();
+            if (!sampleAlarmReferenceIdMap.containsKey(category)) {
+
+                // 2. 없다면 새 HashSet을 생성하여 Map에 먼저 넣기
+                sampleAlarmReferenceIdMap.put(category, new HashSet<>());
+            }
+
+            sampleAlarmReferenceIdMap.get(category).add(notificationCommon.getReferenceId());
+        });
+
+        return notificationCommonsList.map(NotificationCommonResponseDto::from);    // Page<NotificationCommonResponseDto> -> Page<NotificationCommonResponseDto> 변환 (메타정보 유지)
     }
 
     @Override
@@ -83,8 +96,21 @@ public class NotificationServiceImpl implements NotificationService{
     @Override
     public Page<NotificationCommonResponseDto> findByIsReadNotification(Pageable pageable) {
 
-        return notificationRepository.findByIsRead(true, pageable)  // deleted_at IS NULL + LIMIT/OFFSET/ORDER BY 자동 생성
-                .map(NotificationCommonResponseDto::from);        // Page<NotificationCommon -> Page<NotificationCommonResponseDto> 변환 (메타정보 유지)
+        Page<NotificationCommon> notificationCommonsList = notificationRepository.findByIsRead(true, pageable);
+        notificationCommonsList.forEach(notificationCommon -> {
+
+            // 1. 해당 카테고리의 Set이 이미 Map에 있는지 확인
+            AlarmCategory category = notificationCommon.getAlarmCategory();
+            if (!sampleAlarmReferenceIdMap.containsKey(category)) {
+
+                // 2. 없다면 새 HashSet을 생성하여 Map에 먼저 넣기
+                sampleAlarmReferenceIdMap.put(category, new HashSet<>());
+            }
+
+            sampleAlarmReferenceIdMap.get(category).add(notificationCommon.getReferenceId());
+        });
+
+        return notificationCommonsList.map(NotificationCommonResponseDto::from);
     }
 
     @Override
@@ -178,12 +204,14 @@ public class NotificationServiceImpl implements NotificationService{
     @Override
     public void addNotification(AlarmCategory alarmCategory, Object object) {
 
+        Long referenceId = 0L;
         switch (alarmCategory) {
             case BILLING:
 
                 isAddNotificationCommonResponseDto(AlarmCategory.BILLING);
                 NotificationToBillingDto notificationToBillingDto = (NotificationToBillingDto) object;
                 notificationToBillingRepository.save(notificationToBillingDto.toEntity());
+                referenceId = notificationToBillingDto.getId();
                 log.info("샘플 관리비 알람 1 건 삽입 완료.");
                 break;
             case PARKING:
@@ -191,8 +219,15 @@ public class NotificationServiceImpl implements NotificationService{
                 isAddNotificationCommonResponseDto(AlarmCategory.PARKING);
                 NotificationToParkingDto notificationToParkingDto = (NotificationToParkingDto) object;
                 notificationToParkingRepository.save(notificationToParkingDto.toEntity());
+                referenceId = notificationToParkingDto.getId();
                 log.info("샘플 주차 알람 1 건 삽입 완료.");
                 break;
+        }
+
+        // 카테고리가 Map에 없으면 새 HashSet을 만들고(computeIfAbsent), 있으면 기존 Set을 가져와서 add합니다.
+        // Set이므로 중복 값은 알아서 거릅니다.
+        if (referenceId != null && referenceId > 0L) {
+            sampleAlarmReferenceIdMap.computeIfAbsent(alarmCategory, k -> new HashSet<>()).add(referenceId);
         }
     }
 
@@ -217,13 +252,11 @@ public class NotificationServiceImpl implements NotificationService{
                 sampleAlarmReferenceIdMap.put(category, new HashSet<>());
             }
 
-            List<Long> referenceIdList = new ArrayList<>(sampleAlarmReferenceIdMap.get(category));
-
+            boolean isAdd;
             for (NotificationToBilling notificationToBilling : unpaidBillingList) {
 
-                if (!referenceIdList.contains(notificationToBilling.getId())) {
-
-                    sampleAlarmReferenceIdMap.get(category).add(notificationToBilling.getId());
+                isAdd = sampleAlarmReferenceIdMap.get(category).add(notificationToBilling.getId());
+                if (isAdd) {
 
                     sampleAlarmList.add(
                             NotificationCommon.builder()
@@ -257,13 +290,11 @@ public class NotificationServiceImpl implements NotificationService{
                 sampleAlarmReferenceIdMap.put(category, new HashSet<>());
             }
 
-            List<Long> referenceIdList = new ArrayList<>(sampleAlarmReferenceIdMap.get(category));
-
+            boolean isAdd;
             for (NotificationToParking notificationToParking : parkingList) {
 
-                if (!referenceIdList.contains(notificationToParking.getId())) {
-
-                    sampleAlarmReferenceIdMap.get(category).add(notificationToParking.getId());
+                isAdd = sampleAlarmReferenceIdMap.get(category).add(notificationToParking.getId());
+                if (isAdd) {
 
                     sampleAlarmList.add(
                             NotificationCommon.builder()
