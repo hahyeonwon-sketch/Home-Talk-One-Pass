@@ -26,10 +26,12 @@ public interface NotificationService {
     NotificationCommonResponseDto  findNotificationCommonById(long id);
     Object findNotificationToDetailById(long id);
 
-    User findUserByEmail();
+    User findUserByEmail(String email);
+    User getCurrentUser();
     NotificationCommonResponseDto updateNotification(Long id, boolean isRead);
     void addNotification(AlarmCategory alarmCategory, Object object);
     void findNotificationByEmail(String email);
     void deleteNotificationById(AlarmCategory alarmCategory, long commonId, long detailId);
     void isAddNotificationCommonResponseDto(AlarmCategory alarmCategory);
+    void sendAlarmSignal();
 }

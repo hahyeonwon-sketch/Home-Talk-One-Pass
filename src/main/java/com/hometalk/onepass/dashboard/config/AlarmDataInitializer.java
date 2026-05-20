@@ -52,7 +52,7 @@ public class AlarmDataInitializer implements CommandLineRunner {
         boolean isAddBilling = false;
         boolean isAddParking = false;
 
-        User defaultUser = notificationService.findUserByEmail();
+        User defaultUser = notificationService.getCurrentUser();
 
         isAddBilling = notificationToBillingRepository.count() <= 0;
         if (isAddBilling) {

@@ -1,11 +1,13 @@
 package com.hometalk.onepass.dashboard.service.notification.impl;
 
 
+import com.hometalk.onepass.auth.dto.MyPageResponseDTO;
 import com.hometalk.onepass.auth.entity.User;
 import com.hometalk.onepass.auth.repository.UserRepository;
 import com.hometalk.onepass.billing.dto.BillingDetailResponse;
 import com.hometalk.onepass.billing.entity.BillingStatus;
 import com.hometalk.onepass.community.entity.Category;
+import com.hometalk.onepass.dashboard.controller.NotificationApiController;
 import com.hometalk.onepass.dashboard.dto.notification.response.NotificationCommonResponseDto;
 import com.hometalk.onepass.dashboard.dto.notification.response.NotificationToBillingDto;
 import com.hometalk.onepass.dashboard.dto.notification.response.NotificationToParkingDto;
@@ -25,8 +27,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.*;
@@ -52,6 +56,7 @@ public class NotificationServiceImpl implements NotificationService{
     // 레퍼런스 아뒤 리스트
     Map<AlarmCategory, Set<Long>> sampleAlarmReferenceIdMap = new HashMap<>();
 
+    private User currentUser = null;
 
     @Override
     @Transactional(readOnly = true)   // 읽기 전용 트랜잭션 -> Hibernate 더티 체킹(변경 감지) 생략으로 성능 향상
@@ -172,20 +177,24 @@ public class NotificationServiceImpl implements NotificationService{
     }
 
     @Override
-    public User findUserByEmail() {
+    public User findUserByEmail(String email) {
 
-        return userRepository.findByEmail("gildong@test.com")
+        assert userRepository != null;
+        currentUser = userRepository.findByEmail(email)
                 .orElseGet(() -> {
                     // 2. 만약 없다면, 필수 필드를 모두 채워서 저장합니다.
                     return userRepository.save(User.builder()
                             .name("테스트유저")
-                            .email("gildong@test.com")
+                            .email(email)
                             .nickname("테스트닉네임")
                             .phoneNumber("010-0000-0000") // 필수값들
                             .role(User.UserRole.MEMBER)      // Enum 값들
                             .status(User.UserStatus.APPROVED)
                             .build());
                 });
+
+        log.info("currentUser.getEmail == {}", currentUser.getEmail());
+        return currentUser;
     }
 
     @Override
@@ -241,9 +250,6 @@ public class NotificationServiceImpl implements NotificationService{
         log.info("샘플 관리비 공통 현재 갯수 = {}", notificationToBillingRepository.count());
         if (isAddBilling) {
 
-            List<NotificationToBilling> unpaidBillingList =
-                    notificationToBillingRepository.findByUserEmailAndStatus(email, BillingStatus.UNPAID);
-
             AlarmCategory category = AlarmCategory.BILLING;
 
             // 1. 해당 카테고리의 Set이 이미 Map에 있는지 확인
@@ -251,6 +257,9 @@ public class NotificationServiceImpl implements NotificationService{
                 // 2. 없다면 새 HashSet을 생성하여 Map에 먼저 넣기
                 sampleAlarmReferenceIdMap.put(category, new HashSet<>());
             }
+
+            List<NotificationToBilling> unpaidBillingList =
+                    notificationToBillingRepository.findByUserEmailAndStatus(email, BillingStatus.UNPAID);
 
             boolean isAdd;
             for (NotificationToBilling notificationToBilling : unpaidBillingList) {
@@ -279,9 +288,6 @@ public class NotificationServiceImpl implements NotificationService{
         log.info("샘플 주차 공통 현재 갯수 = {}", notificationToParkingRepository.count());
         if (isAddParking) {
 
-            List<NotificationToParking> parkingList =
-                    notificationToParkingRepository.findByUserEmailAndStatus(email);
-
             AlarmCategory category = AlarmCategory.PARKING;
 
             // 1. 해당 카테고리의 Set이 이미 Map에 있는지 확인
@@ -289,6 +295,9 @@ public class NotificationServiceImpl implements NotificationService{
                 // 2. 없다면 새 HashSet을 생성하여 Map에 먼저 넣기
                 sampleAlarmReferenceIdMap.put(category, new HashSet<>());
             }
+
+            List<NotificationToParking> parkingList =
+                    notificationToParkingRepository.findByUserEmailAndStatus(email);
 
             boolean isAdd;
             for (NotificationToParking notificationToParking : parkingList) {
@@ -366,5 +375,34 @@ public class NotificationServiceImpl implements NotificationService{
     public void isAddNotificationCommonResponseDto(AlarmCategory alarmCategory) {
 
         isAddNotificationCommonSet.add(alarmCategory);
+    }
+
+    @Override
+    public void sendAlarmSignal() {
+        SseEmitter emitter = NotificationApiController.emitters.get(currentUser.getEmail());
+
+        if (emitter != null) {
+            try {
+                log.info("send alarm signal");
+
+                if (!notificationRepository.findByIsRead(false).isEmpty()) {
+
+                    emitter.send(SseEmitter.event()
+                            .name("alarm-signal")    // 프론트의 addEventListener 명칭과 매칭
+                            .data("NEW_ALARM"));    // 단순히 알림이 왔다는 신호 데이터만 전송
+                }
+            } catch (IOException e) {
+                NotificationApiController.emitters.remove(currentUser.getEmail());
+                log.error("실패: 전송 중 오류 발생 : {}", e.getMessage());
+            }
+        }
+        else {
+            log.warn("emitter == null : 알림 표시가 전송 되지 않았습니다.");
+        }
+    }
+
+    @Override
+    public User getCurrentUser() {
+        return currentUser;
     }
 }

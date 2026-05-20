@@ -36,7 +36,8 @@ public class SecurityConfig {
                                 "/auth/login",
                                 "/auth/register/**",
                                 "/oauth2/authorization/**",
-                                "/login/oauth2/**"
+                                "/login/oauth2/**",
+                                "/api/notifications/**"
                         ).permitAll()
 
                         // 2. 그 외의 모든 요청은 인증(로그인)이 필요함

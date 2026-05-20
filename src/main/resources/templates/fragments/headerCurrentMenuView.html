@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://thymeleaf.org">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <!--
   * Fragment 스타일1 : 고정 레이아웃 (파라미터 없음)
     - 이 파일은 모든 페이지에서 동일하게 사용되는 "고정된" 헤더임.
@@ -24,8 +24,8 @@
             <a href="#" th:href="@{/notification}" style="position: relative; display: inline-block; text-decoration: none;">
                 알림⏰
                 <!-- 새 메시지가 있을 때만 빨간 점 표시 (서버에서 newAlert 변수를 보내준다고 가정) -->
-                <span
-                        style="position: absolute; top: -5px; right: 50px; width: 12px; height: 12px; background-color: red; border-radius: 50%; border: 1px solid white;">
+                <span   id="alarm-badge"
+                        style="position: absolute; top: -5px; right: 50px; width: 12px; height: 12px; background-color: red; border-radius: 50%; border: 1px solid white; display: none;">
                 </span>
             </a>
             <a href="#"

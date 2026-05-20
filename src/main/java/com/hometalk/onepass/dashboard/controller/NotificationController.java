@@ -45,9 +45,6 @@ public class NotificationController {
     private final MyPageService myPageService;
     private final NotificationService notificationService;
 
-//    private final NotificationRepository notificationRepository;
-//    private final NotificationToBillingRepository notificationToBillingRepository;
-
     @GetMapping
     public String notification(
             Authentication authentication,
@@ -137,7 +134,7 @@ public class NotificationController {
     @GetMapping("/AddNotification")
     public String AddNotification() {
 
-        User defaultUser = notificationService.findUserByEmail();
+        User defaultUser = notificationService.findUserByEmail(notificationService.getCurrentUser().getEmail());
         NotificationToBilling notificationToBilling =  NotificationToBilling.builder()
                 .alarmCategory(AlarmCategory.BILLING)
                 .alarmType(AlarmType.NEW)
