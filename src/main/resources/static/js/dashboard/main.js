@@ -19,10 +19,22 @@ document.addEventListener("DOMContentLoaded", function() {
     eventSource.addEventListener('alarm-signal', function(event) {
         console.log("[실시간 신호 도착] 데이터 내용:", event.data);
 
-        // 헤더 메뉴의 빨간 점 활성화
+        let alarm_badgeNone = event.data === "AllRead_ALARM"
+
+        // 헤더 메뉴의 빨간 점 활성화 및 비 활성화
         const badge = document.getElementById('alarm-badge');
         if (badge) {
-            badge.style.display = 'block';
+
+            if (alarm_badgeNone) {
+
+                badge.style.display = 'none';
+            } else {
+
+                if (badge.style.display === 'none') {
+
+                    badge.style.display = 'block';
+                }
+            }
         }
     });
 

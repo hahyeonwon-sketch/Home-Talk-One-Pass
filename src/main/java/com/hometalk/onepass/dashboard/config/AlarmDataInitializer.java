@@ -1,7 +1,9 @@
 package com.hometalk.onepass.dashboard.config;
 
+import com.hometalk.onepass.auth.dto.MyPageResponseDTO;
 import com.hometalk.onepass.auth.entity.User;
 import com.hometalk.onepass.auth.repository.UserRepository;
+import com.hometalk.onepass.auth.service.MyPageService;
 import com.hometalk.onepass.billing.dto.BillingDetailResponse;
 import com.hometalk.onepass.billing.entity.BillingDetail;
 import com.hometalk.onepass.billing.entity.BillingStatus;
@@ -20,6 +22,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.domain.Page;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -37,7 +42,9 @@ import java.util.Map;
 public class AlarmDataInitializer implements CommandLineRunner {
 
 
+    private final MyPageService myPageService;
     private final NotificationService notificationService;
+
     private final NotificationToBillingRepository notificationToBillingRepository;
     private final NotificationToParkingRepository notificationToParkingRepository;
 
@@ -52,7 +59,24 @@ public class AlarmDataInitializer implements CommandLineRunner {
         boolean isAddBilling = false;
         boolean isAddParking = false;
 
-        User defaultUser = notificationService.getCurrentUser();
+        // Spring Security가 인증을 완료하여 저장소에 넣은 직후, 코드 어디서든 꺼낼 수 있습니다.
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//
+//        if (authentication != null && authentication.isAuthenticated()) {
+//
+//            MyPageResponseDTO myPage = myPageService.getMyPage(authentication);
+//            log.info("authentication.email == {}", myPage.getEmail());
+//            notificationService.findUserByEmail(myPage.getEmail());
+//        }
+//        else {
+//
+//            if (authentication == null)
+//                log.info("authentication == null");
+//            else if (!authentication.isAuthenticated())
+//                log.info("authentication.isAuthenticated() is false");
+//        }
+
+        User defaultUser = notificationService.findUserByEmail("gildong@test.com");
 
         isAddBilling = notificationToBillingRepository.count() <= 0;
         if (isAddBilling) {

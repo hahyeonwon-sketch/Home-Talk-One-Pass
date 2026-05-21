@@ -207,6 +207,7 @@ public class NotificationServiceImpl implements NotificationService{
         entity.setIsRead(isRead);
         notificationRepository.save(entity);
 
+        sendAlarmSignal();
         return NotificationCommonResponseDto.from(entity);
     }
 
@@ -383,13 +384,20 @@ public class NotificationServiceImpl implements NotificationService{
 
         if (emitter != null) {
             try {
+
                 log.info("send alarm signal");
 
-                if (!notificationRepository.findByIsRead(false).isEmpty()) {
+                if (notificationRepository.existsByIsRead(false)) {
 
                     emitter.send(SseEmitter.event()
                             .name("alarm-signal")    // 프론트의 addEventListener 명칭과 매칭
                             .data("NEW_ALARM"));    // 단순히 알림이 왔다는 신호 데이터만 전송
+                }
+                else {
+
+                    emitter.send(SseEmitter.event()
+                            .name("alarm-signal")
+                            .data("AllRead_ALARM"));        // 알림 표시를 지운다.
                 }
             } catch (IOException e) {
                 NotificationApiController.emitters.remove(currentUser.getEmail());
