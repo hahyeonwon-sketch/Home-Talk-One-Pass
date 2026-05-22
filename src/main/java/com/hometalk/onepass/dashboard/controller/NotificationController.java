@@ -47,7 +47,6 @@ public class NotificationController {
 
     @GetMapping
     public String notification(
-            Authentication authentication,
             Model model,
             @RequestParam(required = false, defaultValue = "ALL") AlarmCategory alarmCategory,
             @RequestParam(required = false, defaultValue = "id") String sortBy,
@@ -56,10 +55,8 @@ public class NotificationController {
             @Qualifier("first") @PageableDefault(size = 3) Pageable firstPageable,
             @Qualifier("second") @PageableDefault(size = 3) Pageable secondPageable) {
 
-        MyPageResponseDTO myPage = myPageService.getMyPage(authentication);
-        log.info("email == {}", myPage.getEmail());
-        notificationService.findNotificationByEmail(myPage.getEmail());
 
+        notificationService.findNotificationByEmail();
 
         Page<NotificationCommonResponseDto> isNotReadPage = null;  // 최종적으로 뷰에 전달할 회원 목록
         Page<NotificationCommonResponseDto> isReadPage = null;  // 최종적으로 뷰에 전달할 회원 목록
@@ -134,7 +131,7 @@ public class NotificationController {
     @GetMapping("/AddNotification")
     public String AddNotification() {
 
-        User defaultUser = notificationService.findUserByEmail(notificationService.getCurrentUser().getEmail());
+        User defaultUser = notificationService.getCurrentUser();
         NotificationToBilling notificationToBilling =  NotificationToBilling.builder()
                 .alarmCategory(AlarmCategory.BILLING)
                 .alarmType(AlarmType.NEW)

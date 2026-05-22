@@ -59,23 +59,6 @@ public class AlarmDataInitializer implements CommandLineRunner {
         boolean isAddBilling = false;
         boolean isAddParking = false;
 
-        // Spring Security가 인증을 완료하여 저장소에 넣은 직후, 코드 어디서든 꺼낼 수 있습니다.
-//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//
-//        if (authentication != null && authentication.isAuthenticated()) {
-//
-//            MyPageResponseDTO myPage = myPageService.getMyPage(authentication);
-//            log.info("authentication.email == {}", myPage.getEmail());
-//            notificationService.findUserByEmail(myPage.getEmail());
-//        }
-//        else {
-//
-//            if (authentication == null)
-//                log.info("authentication == null");
-//            else if (!authentication.isAuthenticated())
-//                log.info("authentication.isAuthenticated() is false");
-//        }
-
         User defaultUser = notificationService.findUserByEmail("gildong@test.com");
 
         isAddBilling = notificationToBillingRepository.count() <= 0;

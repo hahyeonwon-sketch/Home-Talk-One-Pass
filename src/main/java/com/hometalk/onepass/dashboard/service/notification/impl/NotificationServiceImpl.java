@@ -214,14 +214,12 @@ public class NotificationServiceImpl implements NotificationService{
     @Override
     public void addNotification(AlarmCategory alarmCategory, Object object) {
 
-        Long referenceId = 0L;
         switch (alarmCategory) {
             case BILLING:
 
                 isAddNotificationCommonResponseDto(AlarmCategory.BILLING);
                 NotificationToBillingDto notificationToBillingDto = (NotificationToBillingDto) object;
                 notificationToBillingRepository.save(notificationToBillingDto.toEntity());
-                referenceId = notificationToBillingDto.getId();
                 log.info("샘플 관리비 알람 1 건 삽입 완료.");
                 break;
             case PARKING:
@@ -229,20 +227,13 @@ public class NotificationServiceImpl implements NotificationService{
                 isAddNotificationCommonResponseDto(AlarmCategory.PARKING);
                 NotificationToParkingDto notificationToParkingDto = (NotificationToParkingDto) object;
                 notificationToParkingRepository.save(notificationToParkingDto.toEntity());
-                referenceId = notificationToParkingDto.getId();
                 log.info("샘플 주차 알람 1 건 삽입 완료.");
                 break;
-        }
-
-        // 카테고리가 Map에 없으면 새 HashSet을 만들고(computeIfAbsent), 있으면 기존 Set을 가져와서 add합니다.
-        // Set이므로 중복 값은 알아서 거릅니다.
-        if (referenceId != null && referenceId > 0L) {
-            sampleAlarmReferenceIdMap.computeIfAbsent(alarmCategory, k -> new HashSet<>()).add(referenceId);
         }
     }
 
     @Override
-    public void findNotificationByEmail(String email) {
+    public void findNotificationByEmail() {
 
         List<NotificationCommon> sampleAlarmList = new ArrayList<>();
         boolean isAddBilling = isAddNotificationCommonSet.contains(AlarmCategory.BILLING);
@@ -260,7 +251,7 @@ public class NotificationServiceImpl implements NotificationService{
             }
 
             List<NotificationToBilling> unpaidBillingList =
-                    notificationToBillingRepository.findByUserEmailAndStatus(email, BillingStatus.UNPAID);
+                    notificationToBillingRepository.findByUserEmailAndStatus(currentUser.getEmail(), BillingStatus.UNPAID);
 
             boolean isAdd;
             for (NotificationToBilling notificationToBilling : unpaidBillingList) {
@@ -298,7 +289,7 @@ public class NotificationServiceImpl implements NotificationService{
             }
 
             List<NotificationToParking> parkingList =
-                    notificationToParkingRepository.findByUserEmailAndStatus(email);
+                    notificationToParkingRepository.findByUserEmailAndStatus(currentUser.getEmail());
 
             boolean isAdd;
             for (NotificationToParking notificationToParking : parkingList) {

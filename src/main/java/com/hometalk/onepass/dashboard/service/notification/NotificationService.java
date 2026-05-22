@@ -30,7 +30,7 @@ public interface NotificationService {
     User getCurrentUser();
     NotificationCommonResponseDto updateNotification(Long id, boolean isRead);
     void addNotification(AlarmCategory alarmCategory, Object object);
-    void findNotificationByEmail(String email);
+    void findNotificationByEmail();
     void deleteNotificationById(AlarmCategory alarmCategory, long commonId, long detailId);
     void isAddNotificationCommonResponseDto(AlarmCategory alarmCategory);
     void sendAlarmSignal();

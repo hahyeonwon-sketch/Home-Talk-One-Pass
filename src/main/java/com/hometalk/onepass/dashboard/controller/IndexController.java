@@ -16,9 +16,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 @RequiredArgsConstructor
 public class IndexController {
 
-    private final MyPageService myPageService;
-    private final NotificationService notificationService;
-
     @GetMapping({"/", "/index"})
     public String index() {
 
