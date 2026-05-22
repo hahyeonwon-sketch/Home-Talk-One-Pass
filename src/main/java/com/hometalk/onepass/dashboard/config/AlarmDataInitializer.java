@@ -242,5 +242,7 @@ public class AlarmDataInitializer implements CommandLineRunner {
             // 이미 데이터가 있으면 중복 삽입하지 않음
             log.info("[DataInitializer]이미 주차 데이터가 존재합니다. 시드 데이터 삽입을 건너뜁니다.");
         }
+
+        notificationService.findNotificationByEmail();
     }
 }

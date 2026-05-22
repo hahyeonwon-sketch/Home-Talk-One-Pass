@@ -34,4 +34,5 @@ public interface NotificationService {
     void deleteNotificationById(AlarmCategory alarmCategory, long commonId, long detailId);
     void isAddNotificationCommonResponseDto(AlarmCategory alarmCategory);
     void sendAlarmSignal();
+    boolean getAlarmBadge();
 }

@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -77,6 +78,13 @@ public class NotificationApiController {
         }
 
         return emitter;
+    }
+
+    @GetMapping("/alarmCheck")
+    public ResponseEntity<String> alarmCheck() {
+
+        String alarmSignal = notificationService.getAlarmBadge() ? "NEW_ALARM" : "AllRead_ALARM";
+        return ResponseEntity.ok(alarmSignal);
     }
 
     /**

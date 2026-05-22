@@ -55,9 +55,6 @@ public class NotificationController {
             @Qualifier("first") @PageableDefault(size = 3) Pageable firstPageable,
             @Qualifier("second") @PageableDefault(size = 3) Pageable secondPageable) {
 
-
-        notificationService.findNotificationByEmail();
-
         Page<NotificationCommonResponseDto> isNotReadPage = null;  // 최종적으로 뷰에 전달할 회원 목록
         Page<NotificationCommonResponseDto> isReadPage = null;  // 최종적으로 뷰에 전달할 회원 목록
 
@@ -156,7 +153,8 @@ public class NotificationController {
                                 .build()
                 )).build();
 
-        notificationService.addNotification(AlarmCategory.BILLING, NotificationToBillingDto.from(notificationToBilling));
+        notificationService.addNotification(
+                AlarmCategory.BILLING, NotificationToBillingDto.from(notificationToBilling));
 
         NotificationToParking notificationToParking = NotificationToParking.builder()
                 .alarmCategory(AlarmCategory.PARKING)
@@ -166,7 +164,10 @@ public class NotificationController {
                 .vehicleNumber("123-1103")
                 .build();
 
-        notificationService.addNotification(AlarmCategory.PARKING, NotificationToParkingDto.from(notificationToParking));
+        notificationService.addNotification(
+                AlarmCategory.PARKING, NotificationToParkingDto.from(notificationToParking));
+
+        notificationService.sendAlarmSignal();
 
         return "redirect:/notification";
     }

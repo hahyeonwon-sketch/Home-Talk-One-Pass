@@ -57,6 +57,7 @@ public class NotificationServiceImpl implements NotificationService{
     Map<AlarmCategory, Set<Long>> sampleAlarmReferenceIdMap = new HashMap<>();
 
     private User currentUser = null;
+    private boolean alarmBadge = false;
 
     @Override
     @Transactional(readOnly = true)   // 읽기 전용 트랜잭션 -> Hibernate 더티 체킹(변경 감지) 생략으로 성능 향상
@@ -212,22 +213,69 @@ public class NotificationServiceImpl implements NotificationService{
     }
 
     @Override
-    public void addNotification(AlarmCategory alarmCategory, Object object) {
+    public void addNotification(AlarmCategory category, Object object) {
 
-        switch (alarmCategory) {
+        // 1. 해당 카테고리의 Set이 이미 Map에 있는지 확인
+        if (!sampleAlarmReferenceIdMap.containsKey(category)) {
+            // 2. 없다면 새 HashSet을 생성하여 Map에 먼저 넣기
+            sampleAlarmReferenceIdMap.put(category, new HashSet<>());
+        }
+
+        boolean isAdd;
+        switch (category) {
             case BILLING:
 
-                isAddNotificationCommonResponseDto(AlarmCategory.BILLING);
                 NotificationToBillingDto notificationToBillingDto = (NotificationToBillingDto) object;
-                notificationToBillingRepository.save(notificationToBillingDto.toEntity());
-                log.info("샘플 관리비 알람 1 건 삽입 완료.");
+                NotificationToBilling notificationToBilling =
+                        notificationToBillingRepository.save(notificationToBillingDto.toEntity());
+
+                isAdd = sampleAlarmReferenceIdMap.get(category).add(notificationToBilling.getId());
+                if (isAdd) {
+
+                    NotificationCommon notificationCommon = NotificationCommon.builder()
+                            .alarmCategory(notificationToBilling.getAlarmCategory())
+                            .alarmType(notificationToBilling.getAlarmType())
+                            .referenceId(notificationToBilling.getId())
+                            .message(notificationToBilling.getMessage())
+                            .user(notificationToBilling.getUser())
+                            .isRead(false)
+                            .build();
+
+                    notificationRepository.save(notificationCommon);
+                    log.info("샘플 관리비 알람 삽입 완료.");
+                }
+                else {
+
+                    notificationToBillingRepository.deleteById(notificationToBilling.getId());
+                    log.info("샘플 관리비 알람이 이미 존재합니다..");
+                }
                 break;
             case PARKING:
 
-                isAddNotificationCommonResponseDto(AlarmCategory.PARKING);
                 NotificationToParkingDto notificationToParkingDto = (NotificationToParkingDto) object;
-                notificationToParkingRepository.save(notificationToParkingDto.toEntity());
-                log.info("샘플 주차 알람 1 건 삽입 완료.");
+                NotificationToParking notificationToParking =
+                        notificationToParkingRepository.save(notificationToParkingDto.toEntity());
+
+                isAdd = sampleAlarmReferenceIdMap.get(category).add(notificationToParking.getId());
+                if (isAdd) {
+
+                    NotificationCommon notificationCommon = NotificationCommon.builder()
+                            .alarmCategory(notificationToParking.getAlarmCategory())
+                            .alarmType(notificationToParking.getAlarmType())
+                            .referenceId(notificationToParking.getId())
+                            .message(notificationToParking.getMessage())
+                            .user(notificationToParking.getUser())
+                            .isRead(false)
+                            .build();
+
+                    notificationRepository.save(notificationCommon);
+                    log.info("샘플 주차 알람 삽입 완료.");
+                }
+                else {
+
+                    notificationToParkingRepository.deleteById(notificationToParking.getId());
+                    log.info("샘플 주차 알람이 이미 존재합니다..");
+                }
                 break;
         }
     }
@@ -327,7 +375,6 @@ public class NotificationServiceImpl implements NotificationService{
     @Transactional
     public void deleteNotificationById(AlarmCategory alarmCategory, long commonId, long detailId) {
 
-
         Set<Long> idSet = sampleAlarmReferenceIdMap.get(alarmCategory);
 
         if (idSet == null) {
@@ -337,6 +384,10 @@ public class NotificationServiceImpl implements NotificationService{
         // 메모리에서 ID 제거 시도 및 결과 확인
         if (!idSet.remove(detailId)) {
             throw new IllegalArgumentException("삭제 실패: 해당 알림 ID가 메모리에 존재하지 않습니다. ID = " + detailId);
+        }
+
+        if (idSet.isEmpty()) {
+            sampleAlarmReferenceIdMap.remove(alarmCategory); // 맵에서 카테고리 키 자체를 삭제하여 메모리 방지
         }
 
         try {
@@ -378,7 +429,8 @@ public class NotificationServiceImpl implements NotificationService{
 
                 log.info("send alarm signal");
 
-                if (notificationRepository.existsByIsRead(false)) {
+                alarmBadge = notificationRepository.existsByIsRead(false);
+                if (alarmBadge) {
 
                     emitter.send(SseEmitter.event()
                             .name("alarm-signal")    // 프론트의 addEventListener 명칭과 매칭
@@ -398,6 +450,11 @@ public class NotificationServiceImpl implements NotificationService{
         else {
             log.warn("emitter == null : 알림 표시가 전송 되지 않았습니다.");
         }
+    }
+
+    @Override
+    public boolean getAlarmBadge() {
+        return alarmBadge;
     }
 
     @Override

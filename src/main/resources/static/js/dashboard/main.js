@@ -1,4 +1,15 @@
 
+// 1. 데이터 불러오기
+const alarmStatus = localStorage.getItem('alarmStatus');
+
+// 2. 콘솔창에서 값 확인
+console.log("불러온 알람 상태:", alarmStatus); // 결과: "NEW_ALARM" 또는 null (데이터가 없을 때)
+
+// 3. 실전 활용 (알람 조건문 처리)
+if (alarmStatus === "NEW_ALARM") {
+    document.getElementById('alarm-badge').style.display = 'block';
+}
+
 
 // 헤더는 모든 페이지 공통이므로 '실시간 알림 대기 및 표시' 역할만 담당합니다.
 document.addEventListener("DOMContentLoaded", function() {
@@ -19,22 +30,23 @@ document.addEventListener("DOMContentLoaded", function() {
     eventSource.addEventListener('alarm-signal', function(event) {
         console.log("[실시간 신호 도착] 데이터 내용:", event.data);
 
-        let alarm_badgeNone = event.data === "AllRead_ALARM"
-
         // 헤더 메뉴의 빨간 점 활성화 및 비 활성화
         const badge = document.getElementById('alarm-badge');
         if (badge) {
 
-            if (alarm_badgeNone) {
-
-                badge.style.display = 'none';
-            } else {
+            if (event.data === "NEW_ALARM") {
 
                 if (badge.style.display === 'none') {
-
                     badge.style.display = 'block';
                 }
             }
+            else {
+
+                if (badge.style.display === 'block') {}
+                badge.style.display = 'none';
+            }
+
+            localStorage.setItem('alarmStatus', event.data);
         }
     });
 
@@ -47,3 +59,22 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     };
 });
+
+// 자바 백엔드 서버(Spring Boot 등)의 API 엔드포인트로 요청을 보냄
+// fetch(sseCheckUrl)
+//     .then(response => response.text()) // 응답 데이터를 JSON 형태로 변환
+//     .then(data => {
+//         console.log("자바 백엔드로부터 받은 데이터:", data);
+//
+//         if (data === "NEW_ALARM") {
+//
+//             const badge = document.getElementById('alarm-badge');
+//             badge.style.display = 'block';
+//         } else {
+//
+//             const badge = document.getElementById('alarm-badge');
+//             if (badge) badge.style.display = 'none';
+//         }
+//
+//     })
+//     .catch(error => console.error("통신 실패:", error));
