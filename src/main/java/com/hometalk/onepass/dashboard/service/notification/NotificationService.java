@@ -35,4 +35,5 @@ public interface NotificationService {
     void isAddNotificationCommonResponseDto(AlarmCategory alarmCategory);
     void sendAlarmSignal();
     boolean getAlarmBadge();
+    void addListAlarmReferenceId();
 }
