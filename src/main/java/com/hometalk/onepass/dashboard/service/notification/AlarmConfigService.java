@@ -3,12 +3,14 @@ package com.hometalk.onepass.dashboard.service.notification;
 import com.hometalk.onepass.dashboard.entity.notification.UserAlarmConfig;
 import com.hometalk.onepass.dashboard.enums.AlarmCategory;
 import com.hometalk.onepass.dashboard.repository.notification.NotificationReferenceIdRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AlarmConfigService {
@@ -70,10 +72,21 @@ public class AlarmConfigService {
                 if (ids != null) {
                     // 이미 결과 맵에 해당 카테고리가 있으면 기존 Set에 더하고, 없으면 새로 HashSet을 생성하여 누적
                     combinedMap.computeIfAbsent(category, k -> new HashSet<>()).addAll(ids);
+                    log.info("category == {} ids == {}", category, ids);
                 }
             }
         }
 
         return combinedMap; // 최종 병합된 하나의 Map 반환
+    }
+
+    @Transactional
+    public void deletePartialReferenceIdIds(Long userId, AlarmCategory category, Long idsToDelete) {
+        // 1. 유저의 알림 설정 엔티티를 DB에서 조회
+        UserAlarmConfig config = notificationReferenceIdRepository.findByUserId(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 유저의 알림 설정이 존재하지 않습니다."));
+
+        // 2. 엔티티 내부 메서드를 호출하여 메모리 상의 Map에서 ID 제거
+        config.removeReferenceIds(category, idsToDelete);
     }
 }

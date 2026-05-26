@@ -12,6 +12,7 @@ import com.hometalk.onepass.dashboard.entity.notification.NotificationCommon;
 import com.hometalk.onepass.dashboard.entity.notification.NotificationToBilling;
 import com.hometalk.onepass.dashboard.entity.notification.NotificationToParking;
 import com.hometalk.onepass.dashboard.enums.AlarmCategory;
+import com.hometalk.onepass.dashboard.repository.notification.NotificationReferenceIdRepository;
 import com.hometalk.onepass.dashboard.repository.notification.NotificationRepository;
 import com.hometalk.onepass.dashboard.repository.notification.NotificationToBillingRepository;
 import com.hometalk.onepass.dashboard.repository.notification.NotificationToParkingRepository;
@@ -370,9 +371,12 @@ public class NotificationServiceImpl implements NotificationService{
             sampleAlarmReferenceIdMap.remove(alarmCategory); // 맵에서 카테고리 키 자체를 삭제하여 메모리 방지
         }
 
+        alarmConfigService.deletePartialReferenceIdIds(currentUser.getId(), alarmCategory, detailId);
+
         try {
 
             notificationRepository.deleteNotificationCommonByDirectly(commonId);
+
 
             switch (alarmCategory) {
                 case BILLING:
@@ -444,6 +448,13 @@ public class NotificationServiceImpl implements NotificationService{
 
             createAlarmReferenceId = true;
             sampleAlarmReferenceIdMap = alarmConfigService.getCombinedAlarmMap();
+//            log.info("sampleAlarmReferenceIdMap.size() = {}", sampleAlarmReferenceIdMap.size());
+//
+//            for (Map.Entry<AlarmCategory, Set<Long>> entry : sampleAlarmReferenceIdMap.entrySet()) {
+//
+//                log.info("sampleAlarmReferenceIdMap.getKey = {}", entry.getKey());
+//                log.info("sampleAlarmReferenceIdMap.getValue = {}", entry.getValue());
+//            }
         }
     }
 

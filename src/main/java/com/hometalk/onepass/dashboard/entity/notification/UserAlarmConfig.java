@@ -35,4 +35,22 @@ public class UserAlarmConfig {
                 .computeIfAbsent(category, k -> new HashSet<>())
                 .add(referenceId);
     }
+
+    // 특정 카테고리의 일부 ID들을 삭제하는 비즈니스 로직
+    public void removeReferenceIds(AlarmCategory category, Long idToDelete) {
+        if (this.sampleAlarmReferenceIdMap == null || idToDelete == null) {
+            return;
+        }
+
+        Set<Long> currentIds = this.sampleAlarmReferenceIdMap.get(category);
+        if (currentIds != null) {
+            // 전달받은 ID 목록을 Set에서 일괄 제거
+            currentIds.remove(idToDelete);
+
+            // 만약 해당 카테고리에 남은 ID가 없다면 깔끔하게 Key 자체를 제거
+            if (currentIds.isEmpty()) {
+                this.sampleAlarmReferenceIdMap.remove(category);
+            }
+        }
+    }
 }
