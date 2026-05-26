@@ -447,7 +447,7 @@ public class NotificationServiceImpl implements NotificationService{
         if (!createAlarmReferenceId) {
 
             createAlarmReferenceId = true;
-            sampleAlarmReferenceIdMap = alarmConfigService.getCombinedAlarmMap();
+            sampleAlarmReferenceIdMap = alarmConfigService.getCombinedAlarmMap(currentUser.getId());
 //            log.info("sampleAlarmReferenceIdMap.size() = {}", sampleAlarmReferenceIdMap.size());
 //
 //            for (Map.Entry<AlarmCategory, Set<Long>> entry : sampleAlarmReferenceIdMap.entrySet()) {

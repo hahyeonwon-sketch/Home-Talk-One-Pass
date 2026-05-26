@@ -47,16 +47,16 @@ public class AlarmConfigService {
     }
 
     @Transactional(readOnly = true)
-    public List<UserAlarmConfig> getAllAlarmConfigs() {
+    public List<UserAlarmConfig> getAllAlarmConfigs(Long userId) {
         // DB에 저장된 user_alarm_config 테이블의 모든 데이터를 List로 가져옵니다.
         // 이때 내부의 각 Map 데이터들은 컨버터(@Convert)에 의해 자동으로 자바 Map 객체로 복원되어 채워집니다.
-        return notificationReferenceIdRepository.findAll();
+        return notificationReferenceIdRepository.findByUserId(userId).stream().toList();
     }
 
     @Transactional(readOnly = true)
-    public Map<AlarmCategory, Set<Long>> getCombinedAlarmMap() {
+    public Map<AlarmCategory, Set<Long>> getCombinedAlarmMap(Long userId) {
 
-        List<UserAlarmConfig> configs = getAllAlarmConfigs();
+        List<UserAlarmConfig> configs = getAllAlarmConfigs(userId);
         Map<AlarmCategory, Set<Long>> combinedMap = new HashMap<>();
 
 
