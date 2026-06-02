@@ -1,0 +1,56 @@
+package com.hometalk.onepass.dashboard.entity.notification;
+
+import com.hometalk.onepass.dashboard.enums.AlarmCategory;
+import com.hometalk.onepass.dashboard.service.notification.AlarmMapConverter;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+@Getter
+@Setter
+@Entity
+@Table(name = "user_alarm_config")
+public class UserAlarmConfig {
+
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "user_id", unique = true, nullable = false)
+    private Long userId;
+
+    @Setter
+    @Convert(converter = AlarmMapConverter.class)
+    @Column(columnDefinition = "TEXT") // 데이터가 길어질 수 있으므로 TEXT 타입 권장
+    private Map<AlarmCategory, Set<Long>> sampleAlarmReferenceIdMap = new HashMap<>();
+
+
+    // 비즈니스 로직에서 하나씩 안전하게 추가할 수 있도록 돕는 메서드
+    public void addReferenceId(AlarmCategory category, Long referenceId) {
+        this.sampleAlarmReferenceIdMap
+                .computeIfAbsent(category, k -> new HashSet<>())
+                .add(referenceId);
+    }
+
+    // 특정 카테고리의 일부 ID들을 삭제하는 비즈니스 로직
+    public void removeReferenceIds(AlarmCategory category, Long idToDelete) {
+        if (this.sampleAlarmReferenceIdMap == null || idToDelete == null) {
+            return;
+        }
+
+        Set<Long> currentIds = this.sampleAlarmReferenceIdMap.get(category);
+        if (currentIds != null) {
+            // 전달받은 ID 목록을 Set에서 일괄 제거
+            currentIds.remove(idToDelete);
+
+            // 만약 해당 카테고리에 남은 ID가 없다면 깔끔하게 Key 자체를 제거
+            if (currentIds.isEmpty()) {
+                this.sampleAlarmReferenceIdMap.remove(category);
+            }
+        }
+    }
+}

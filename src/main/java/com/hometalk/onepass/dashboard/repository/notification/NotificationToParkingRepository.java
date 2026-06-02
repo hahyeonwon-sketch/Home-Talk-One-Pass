@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
+// 알림 상세보기 저장소
 public interface NotificationToParkingRepository extends JpaRepository<NotificationToParking, Long> {
 
     @Query("SELECT p FROM NotificationToParking p " +

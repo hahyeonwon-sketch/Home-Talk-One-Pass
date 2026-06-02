@@ -11,7 +11,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.Optional;
 
-
+// 알림 상세보기 저장소
 public interface NotificationToBillingRepository extends JpaRepository<NotificationToBilling, Long> {
 
     @Query("SELECT b FROM NotificationToBilling b " +

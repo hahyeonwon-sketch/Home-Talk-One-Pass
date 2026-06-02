@@ -2,6 +2,7 @@ package com.hometalk.onepass.dashboard.controller;
 
 import com.hometalk.onepass.auth.dto.MyPageResponseDTO;
 import com.hometalk.onepass.auth.service.MyPageService;
+import com.hometalk.onepass.dashboard.service.notification.AlarmConfigService;
 import com.hometalk.onepass.dashboard.service.notification.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +29,7 @@ public class NotificationApiController {
 
     private final MyPageService myPageService;
     private final NotificationService notificationService;
+    private final AlarmConfigService alarmConfigService;
 
     // 사용자별 SSE 연결을 저장하는 저장소 (로그인 구현 상태에 따라 Key를 UserId로 관리)
     public static final Map<String, SseEmitter> emitters = new ConcurrentHashMap<>();

@@ -1,12 +1,9 @@
 package com.hometalk.onepass.dashboard.service.notification.impl;
 
 
-import com.hometalk.onepass.auth.dto.MyPageResponseDTO;
 import com.hometalk.onepass.auth.entity.User;
 import com.hometalk.onepass.auth.repository.UserRepository;
-import com.hometalk.onepass.billing.dto.BillingDetailResponse;
 import com.hometalk.onepass.billing.entity.BillingStatus;
-import com.hometalk.onepass.community.entity.Category;
 import com.hometalk.onepass.dashboard.controller.NotificationApiController;
 import com.hometalk.onepass.dashboard.dto.notification.response.NotificationCommonResponseDto;
 import com.hometalk.onepass.dashboard.dto.notification.response.NotificationToBillingDto;
@@ -15,10 +12,11 @@ import com.hometalk.onepass.dashboard.entity.notification.NotificationCommon;
 import com.hometalk.onepass.dashboard.entity.notification.NotificationToBilling;
 import com.hometalk.onepass.dashboard.entity.notification.NotificationToParking;
 import com.hometalk.onepass.dashboard.enums.AlarmCategory;
-import com.hometalk.onepass.dashboard.enums.AlarmType;
+import com.hometalk.onepass.dashboard.repository.notification.NotificationReferenceIdRepository;
 import com.hometalk.onepass.dashboard.repository.notification.NotificationRepository;
 import com.hometalk.onepass.dashboard.repository.notification.NotificationToBillingRepository;
 import com.hometalk.onepass.dashboard.repository.notification.NotificationToParkingRepository;
+import com.hometalk.onepass.dashboard.service.notification.AlarmConfigService;
 import com.hometalk.onepass.dashboard.service.notification.NotificationService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -31,8 +29,6 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -44,6 +40,8 @@ public class NotificationServiceImpl implements NotificationService{
 
     // 유저 관련 DB
     private final UserRepository userRepository;
+    // 알림 저장 서비스
+    private final AlarmConfigService alarmConfigService;
 
     // 알림 관련 DB 접근을 담당하는 Repository
     private final NotificationRepository notificationRepository;
@@ -56,8 +54,9 @@ public class NotificationServiceImpl implements NotificationService{
     // 레퍼런스 아뒤 리스트
     Map<AlarmCategory, Set<Long>> sampleAlarmReferenceIdMap = new HashMap<>();
 
-    private User currentUser = null;
-    private boolean alarmBadge = false;
+    private User currentUser = null;        // 현재 유저
+    private boolean alarmBadge = false;     // 알림 표시에 사용할 변수
+    private boolean createAlarmReferenceId = false;   // 알림 상세보기에 사용할 레퍼런스 아뒤
 
     @Override
     @Transactional(readOnly = true)   // 읽기 전용 트랜잭션 -> Hibernate 더티 체킹(변경 감지) 생략으로 성능 향상
@@ -73,19 +72,6 @@ public class NotificationServiceImpl implements NotificationService{
     public Page<NotificationCommonResponseDto> findByIsNotReadNotification(Pageable pageable) {
 
         Page<NotificationCommon> notificationCommonsList = notificationRepository.findByIsRead(false, pageable);
-        notificationCommonsList.forEach(notificationCommon -> {
-
-            // 1. 해당 카테고리의 Set이 이미 Map에 있는지 확인
-            AlarmCategory category = notificationCommon.getAlarmCategory();
-            if (!sampleAlarmReferenceIdMap.containsKey(category)) {
-
-                // 2. 없다면 새 HashSet을 생성하여 Map에 먼저 넣기
-                sampleAlarmReferenceIdMap.put(category, new HashSet<>());
-            }
-
-            sampleAlarmReferenceIdMap.get(category).add(notificationCommon.getReferenceId());
-        });
-
         return notificationCommonsList.map(NotificationCommonResponseDto::from);    // Page<NotificationCommonResponseDto> -> Page<NotificationCommonResponseDto> 변환 (메타정보 유지)
     }
 
@@ -103,19 +89,6 @@ public class NotificationServiceImpl implements NotificationService{
     public Page<NotificationCommonResponseDto> findByIsReadNotification(Pageable pageable) {
 
         Page<NotificationCommon> notificationCommonsList = notificationRepository.findByIsRead(true, pageable);
-        notificationCommonsList.forEach(notificationCommon -> {
-
-            // 1. 해당 카테고리의 Set이 이미 Map에 있는지 확인
-            AlarmCategory category = notificationCommon.getAlarmCategory();
-            if (!sampleAlarmReferenceIdMap.containsKey(category)) {
-
-                // 2. 없다면 새 HashSet을 생성하여 Map에 먼저 넣기
-                sampleAlarmReferenceIdMap.put(category, new HashSet<>());
-            }
-
-            sampleAlarmReferenceIdMap.get(category).add(notificationCommon.getReferenceId());
-        });
-
         return notificationCommonsList.map(NotificationCommonResponseDto::from);
     }
 
@@ -205,10 +178,15 @@ public class NotificationServiceImpl implements NotificationService{
         NotificationCommon entity = notificationRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("해당 알림이 없습니다."));
 
-        entity.setIsRead(isRead);
-        notificationRepository.save(entity);
+        if (isRead) {
 
-        sendAlarmSignal();
+            if (entity.getIsRead() == false) {
+
+                entity.setIsRead(true);
+                notificationRepository.save(entity);
+            }
+        }
+
         return NotificationCommonResponseDto.from(entity);
     }
 
@@ -221,7 +199,7 @@ public class NotificationServiceImpl implements NotificationService{
             sampleAlarmReferenceIdMap.put(category, new HashSet<>());
         }
 
-        boolean isAdd;
+        boolean isAdd = false;
         switch (category) {
             case BILLING:
 
@@ -241,6 +219,7 @@ public class NotificationServiceImpl implements NotificationService{
                             .isRead(false)
                             .build();
 
+                    alarmConfigService.saveConfigOne(currentUser.getId(), category, notificationToBilling.getId());
                     notificationRepository.save(notificationCommon);
                     log.info("샘플 관리비 알람 삽입 완료.");
                 }
@@ -268,6 +247,7 @@ public class NotificationServiceImpl implements NotificationService{
                             .isRead(false)
                             .build();
 
+                    alarmConfigService.saveConfigOne(currentUser.getId(), category, notificationToParking.getId());
                     notificationRepository.save(notificationCommon);
                     log.info("샘플 주차 알람 삽입 완료.");
                 }
@@ -301,7 +281,7 @@ public class NotificationServiceImpl implements NotificationService{
             List<NotificationToBilling> unpaidBillingList =
                     notificationToBillingRepository.findByUserEmailAndStatus(currentUser.getEmail(), BillingStatus.UNPAID);
 
-            boolean isAdd;
+            boolean isAdd = false;
             for (NotificationToBilling notificationToBilling : unpaidBillingList) {
 
                 isAdd = sampleAlarmReferenceIdMap.get(category).add(notificationToBilling.getId());
@@ -339,7 +319,7 @@ public class NotificationServiceImpl implements NotificationService{
             List<NotificationToParking> parkingList =
                     notificationToParkingRepository.findByUserEmailAndStatus(currentUser.getEmail());
 
-            boolean isAdd;
+            boolean isAdd = false;
             for (NotificationToParking notificationToParking : parkingList) {
 
                 isAdd = sampleAlarmReferenceIdMap.get(category).add(notificationToParking.getId());
@@ -367,6 +347,7 @@ public class NotificationServiceImpl implements NotificationService{
         if (isAddBilling || isAddParking) {
             isAddNotificationCommonSet.clear();
             notificationRepository.saveAll(sampleAlarmList);
+            alarmConfigService.saveConfigAll(currentUser.getId(), sampleAlarmReferenceIdMap);
             log.info("샘플 공통 알람 {}건 삽입 완료.", sampleAlarmList.size());
         }
     }
@@ -390,9 +371,12 @@ public class NotificationServiceImpl implements NotificationService{
             sampleAlarmReferenceIdMap.remove(alarmCategory); // 맵에서 카테고리 키 자체를 삭제하여 메모리 방지
         }
 
+        alarmConfigService.deletePartialReferenceIdIds(currentUser.getId(), alarmCategory, detailId);
+
         try {
 
             notificationRepository.deleteNotificationCommonByDirectly(commonId);
+
 
             switch (alarmCategory) {
                 case BILLING:
@@ -455,6 +439,23 @@ public class NotificationServiceImpl implements NotificationService{
     @Override
     public boolean getAlarmBadge() {
         return alarmBadge;
+    }
+
+    @Override
+    public void addListAlarmReferenceId() {
+
+        if (!createAlarmReferenceId) {
+
+            createAlarmReferenceId = true;
+            sampleAlarmReferenceIdMap = alarmConfigService.getCombinedAlarmMap(currentUser.getId());
+//            log.info("sampleAlarmReferenceIdMap.size() = {}", sampleAlarmReferenceIdMap.size());
+//
+//            for (Map.Entry<AlarmCategory, Set<Long>> entry : sampleAlarmReferenceIdMap.entrySet()) {
+//
+//                log.info("sampleAlarmReferenceIdMap.getKey = {}", entry.getKey());
+//                log.info("sampleAlarmReferenceIdMap.getValue = {}", entry.getValue());
+//            }
+        }
     }
 
     @Override
